@@ -1,7 +1,7 @@
 <template>
   <transition name="fade-bounce-y" mode="out-in">
     <!-- 聊天窗口 -->
-    <div v-show="showDia" id="bot-container">
+    <div v-show="showDia && !isLoginPage" id="bot-container">
       <div class="chat-window" v-show="showChat">
         <div class="chat-header">
           <div class="status-wrapper">
@@ -12,48 +12,56 @@
         </div>
 
         <div class="chat-messages" ref="messagesContainer">
-          <div v-for="(msg, index) in messages" 
-               :key="index" 
-               :class="['message-wrapper', msg.type]">
-            <div class="avatar" v-if="msg.type === 'bot'">
-              <svg class="icon" viewBox="0 0 1024 1024" width="24" height="24">
-                <path d="M814.2848 581.2736a164.7616 104.8576 90 1 0 209.7152 0 164.7616 104.8576 90 1 0-209.7152 0Z" fill="#0C61C6" p-id="9736"></path>
-                <path d="M5.3248 611.2256a164.7616 104.8576 90 1 0 209.7152 0 164.7616 104.8576 90 1 0-209.7152 0Z" fill="#0C61C6" p-id="9737"></path>
-                <path d="M514.6624 985.7536c256.4608 0 464.384-161.1776 464.384-423.3728 0-249.7024-210.432-411.2896-464.384-423.3728-42.752-6.2464 24.4224-112.0768 24.4224-112.0768S50.2784 132.1984 50.2784 562.3808c0 261.9392 207.9232 423.3728 464.384 423.3728z" fill="#2B83E2" p-id="9738"></path>
-                <path d="M140.1344 641.1776a374.528 314.5728 0 1 0 749.056 0 374.528 314.5728 0 1 0-749.056 0Z" fill="#FFFFFF" p-id="9739"></path>
-                <path d="M274.9952 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9740"></path>
-                <path d="M634.5216 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9741"></path>
-              </svg>
+          <template v-for="(msg, index) in messagesWithTimestamp">
+            <!-- 时间显示 -->
+            <div v-if="shouldShowTimestamp(msg, index)" 
+                 :key="`time-${index}`"
+                 class="message-timestamp">
+              {{ formatMessageTime(msg.timestamp) }}
             </div>
-            <div class="message-content">
-              {{ msg.text }}
-              <div v-if="msg.type === 'bot'" 
-                   class="text-to-speech-btn"
-                   @click="handleTextToSpeech(msg, index)"
-                   :class="{ 
-                     'loading': msg.ttsStatus === 'loading',
-                     'playing': msg.ttsStatus === 'playing' 
-                   }">
-                <svg v-if="!msg.ttsStatus" class="tts-icon" viewBox="0 0 24 24" width="16" height="16">
-                  <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/>
-                </svg>
-                <svg v-else-if="msg.ttsStatus === 'loading'" class="loading-icon" viewBox="0 0 24 24" width="16" height="16">
-                  <path fill="currentColor" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z">
-                    <animateTransform attributeName="transform"
-                      attributeType="XML"
-                      type="rotate"
-                      dur="1s"
-                      from="0 12 12"
-                      to="360 12 12"
-                      repeatCount="indefinite"/>
-                  </path>
-                </svg>
-                <svg v-else class="playing-icon" viewBox="0 0 24 24" width="16" height="16">
-                  <path fill="currentColor" d="M14,19H18V5H14M6,19H10V5H6V19Z"/>
+            <!-- 消息内容 -->
+            <div :key="`msg-${index}`"
+                 :class="['message-wrapper', msg.type]">
+              <div class="avatar" v-if="msg.type === 'bot'">
+                <svg class="icon" viewBox="0 0 1024 1024" width="24" height="24">
+                  <path d="M814.2848 581.2736a164.7616 104.8576 90 1 0 209.7152 0 164.7616 104.8576 90 1 0-209.7152 0Z" fill="#0C61C6" p-id="9736"></path>
+                  <path d="M5.3248 611.2256a164.7616 104.8576 90 1 0 209.7152 0 164.7616 104.8576 90 1 0-209.7152 0Z" fill="#0C61C6" p-id="9737"></path>
+                  <path d="M514.6624 985.7536c256.4608 0 464.384-161.1776 464.384-423.3728 0-249.7024-210.432-411.2896-464.384-423.3728-42.752-6.2464 24.4224-112.0768 24.4224-112.0768S50.2784 132.1984 50.2784 562.3808c0 261.9392 207.9232 423.3728 464.384 423.3728z" fill="#2B83E2" p-id="9738"></path>
+                  <path d="M140.1344 641.1776a374.528 314.5728 0 1 0 749.056 0 374.528 314.5728 0 1 0-749.056 0Z" fill="#FFFFFF" p-id="9739"></path>
+                  <path d="M274.9952 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9740"></path>
+                  <path d="M634.5216 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9741"></path>
                 </svg>
               </div>
+              <div class="message-content">
+                {{ msg.text }}
+                <div v-if="msg.type === 'bot'" 
+                     class="text-to-speech-btn"
+                     @click="handleTextToSpeech(msg, index)"
+                     :class="{ 
+                       'loading': msg.ttsStatus === 'loading',
+                       'playing': msg.ttsStatus === 'playing' 
+                     }">
+                  <svg v-if="!msg.ttsStatus" class="tts-icon" viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/>
+                  </svg>
+                  <svg v-else-if="msg.ttsStatus === 'loading'" class="loading-icon" viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z">
+                      <animateTransform attributeName="transform"
+                        attributeType="XML"
+                        type="rotate"
+                        dur="1s"
+                        from="0 12 12"
+                        to="360 12 12"
+                        repeatCount="indefinite"/>
+                    </path>
+                  </svg>
+                  <svg v-else class="playing-icon" viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M14,19H18V5H14M6,19H10V5H6V19Z"/>
+                  </svg>
+                </div>
+              </div>
             </div>
-          </div>
+          </template>
         </div>
 
         <div class="chat-input">
@@ -154,6 +162,15 @@ export default {
     },
     shouldShowDiaElements() {
       return this.showDia && !this.isListening
+    },
+    messagesWithTimestamp() {
+      return this.messages.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp || new Date().getTime()
+      }));
+    },
+    isLoginPage() {
+      return this.$route.path === '/login' || this.$route.path === '/'
     }
   },
 
@@ -491,7 +508,8 @@ export default {
       // 添加用户消息到消息列表
       this.messages.push({
         type: 'user',
-        text: currentInput
+        text: currentInput,
+        timestamp: new Date().getTime()
       })
 
       // 清空输入框
@@ -513,7 +531,8 @@ export default {
       // 添加机器人思考中的消息
       this.messages.push({
         type: 'bot',
-        text: '在思考...'
+        text: '正在思考...',
+        timestamp: new Date().getTime()
       })
 
       try {
@@ -734,6 +753,44 @@ export default {
         console.error('Text to speech failed:', error)
         this.$set(message, 'ttsStatus', null)
       }
+    },
+
+    // 判断是否需要显示时间戳
+    shouldShowTimestamp(currentMsg, index) {
+      if (index === 0) return true;
+      
+      const prevMsg = this.messagesWithTimestamp[index - 1];
+      const currentTime = new Date(currentMsg.timestamp);
+      const prevTime = new Date(prevMsg.timestamp);
+      
+      // 如果消息间隔超过5分钟，显示时间戳
+      return currentTime - prevTime > 5 * 60 * 1000;
+    },
+
+    // 格式化时间显示
+    formatMessageTime(timestamp) {
+      const messageDate = new Date(timestamp);
+      const now = new Date();
+      const isToday = messageDate.toDateString() === now.toDateString();
+      
+      // 格式化时间
+      const timeStr = messageDate.toLocaleTimeString('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      
+      // 如果是今天的消息，只显示时间
+      if (isToday) {
+        return timeStr;
+      }
+      
+      // 不是今天的消息，显示日期和时间
+      const dateStr = messageDate.toLocaleDateString('zh-CN', {
+        month: 'numeric',
+        day: 'numeric'
+      });
+      return `${dateStr} ${timeStr}`;
     }
   }
 }
@@ -1172,7 +1229,8 @@ export default {
       line-height: 1.4;
       background: #f5f5f5;
       color: #333;
-      white-space: pre-wrap;
+      letter-spacing:0.2px;
+      white-space: pre-line;
       word-wrap: break-word;
       
       .text-to-speech-btn {
@@ -1359,6 +1417,13 @@ export default {
   100% {
     transform: scale(1);
   }
+}
+
+.message-timestamp {
+  text-align: center;
+  margin: 8px 0;
+  color: #999;
+  font-size: 12px;
 }
 </style>
 
