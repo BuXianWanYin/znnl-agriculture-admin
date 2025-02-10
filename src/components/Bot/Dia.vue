@@ -32,9 +32,11 @@
                   <path d="M634.5216 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9741"></path>
                 </svg>
               </div>
-              <div class="message-content">
-                {{ msg.text }}
-                <div v-if="msg.type === 'bot'" 
+              <div class="message-content-wrapper">
+                <div class="message-content">
+                  {{ msg.text }}
+                </div>
+                <div v-if="msg.type === 'bot' && msg.audioUrl && !msg.ttsStatus" 
                      class="text-to-speech-btn"
                      @click="handleTextToSpeech(msg)"
                      :class="{ 
@@ -139,14 +141,9 @@ export default {
       isInputListening: false,
       userInput: '',
       showChat: false,
-      messages: [
-        {
-          type: 'bot',
-          text: '你好！我是你的智能助手，有什么可以帮你的吗？',
-          timestamp: new Date().getTime(),
-          audioUrl: null
-        }
-      ]
+      messages: [],
+      userId: '',
+      isLoadingHistory: false,
     }
   },
 
@@ -176,10 +173,46 @@ export default {
     }
   },
 
+  watch: {
+    showChat: {
+      async handler(newValue) {
+        if (newValue && this.messages.length === 0) {
+          // 创建欢迎消息
+          const welcomeMessage = {
+            type: 'bot',
+            text: '你好！我是你的智能助手，有什么可以帮你的吗？',
+            timestamp: new Date().getTime(),
+            audioUrl: null,
+            ttsStatus: 'loading' // 添加 ttsStatus 来控制按钮显示
+          }
+          
+          // 添加消息
+          this.messages.push(welcomeMessage)
+          
+          // 请求语音URL
+          try {
+            const audioUrl = await this.getVoiceUrl(welcomeMessage.text, welcomeMessage.timestamp)
+            welcomeMessage.audioUrl = audioUrl
+            welcomeMessage.ttsStatus = null // 加载完成后清除状态，允许显示播放按钮
+          } catch (error) {
+            console.error('获取欢迎消息语音URL失败:', error)
+            welcomeMessage.ttsStatus = null
+          }
+        }
+      },
+      immediate: false
+    }
+  },
+
   mounted() {
     this.initializeBot()
     this.activateMotion()
-    this.loadHistoryMessages()
+    // 获取用户ID (这里假设从localStorage获取，你需要根据实际情况修改)
+    this.userId = 1
+    // 加载历史记录
+    if (this.userId) {
+      this.loadChatHistory()
+    }
   },
 
   methods: {
@@ -501,23 +534,6 @@ export default {
       this.handleClick()
     },
 
-    // 加载历史消息
-    loadHistoryMessages() {
-      const historyCookie = this.$cookies.get('chatHistory')
-      if (historyCookie) {
-        console.log('从Cookie加载历史消息:', historyCookie)
-        this.messages = historyCookie
-      } else {
-        console.log('没有找到历史消息Cookie')
-      }
-    },
-
-    // 保存历史消息到cookie
-    saveHistoryMessages() {
-      console.log('保存消息到Cookie:', this.messages)
-      this.$cookies.set('chatHistory', this.messages, '6h')
-    },
-
     // 格式化时间戳为后端所需格式
     formatTimestampForBackend(timestamp) {
       const date = new Date(timestamp)
@@ -565,6 +581,59 @@ export default {
       }
     },
 
+    // 添加加载历史记录方法
+    async loadChatHistory() {
+      if (this.isLoadingHistory) return
+      
+      this.isLoadingHistory = true
+      try {
+        const response = await fetch(`http://10.0.28.47:8081/ai/history?userId=${this.userId}`)
+        if (!response.ok) {
+          throw new Error('Failed to load chat history')
+        }
+        const history = await response.json()
+        // 转换历史记录格式并添加到消息列表
+        this.messages = history.map(msg => ({
+          type: msg.type,
+          text: msg.content,
+          timestamp: msg.timestamp,
+          audioUrl: msg.audioUrl,
+          ttsStatus: null
+        }))
+      } catch (error) {
+        console.error('加载聊天历史失败:', error)
+      } finally {
+        this.isLoadingHistory = false
+      }
+    },
+
+    // 添加保存消息方法
+    async saveChatMessage(message) {
+      try {
+        const messageData = {
+          type: message.type,
+          content: message.text,
+          audioUrl: message.audioUrl || null,
+          timestamp: message.timestamp,
+          userId: this.userId
+        }
+
+        const response = await fetch('http://10.0.28.47:8081/ai/message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(messageData)
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to save message')
+        }
+      } catch (error) {
+        console.error('保存消息失败:', error)
+      }
+    },
+
     // 修改发送消息方法
     async sendMessage() {
       if (!this.userInput.trim()) return
@@ -572,16 +641,17 @@ export default {
       const currentInput = this.userInput.trim()
       const timestamp = new Date().getTime()
       
-      console.log('发送新消息:', currentInput)
-      console.log('消息时间戳:', timestamp)
-      
-      // 添加用户消息
-      this.messages.push({
+      // 创建用户消息对象
+      const userMessage = {
         type: 'user',
         text: currentInput,
         timestamp: timestamp,
         audioUrl: null
-      })
+      }
+      
+      // 添加到消息列表并保存
+      this.messages.push(userMessage)
+      await this.saveChatMessage(userMessage)
 
       this.userInput = ''
       
@@ -601,7 +671,8 @@ export default {
         type: 'bot',
         text: '正在思考...',
         timestamp: new Date().getTime(),
-        audioUrl: null
+        audioUrl: null,
+        ttsStatus: 'loading'
       }
       this.messages.push(botMessage)
 
@@ -660,14 +731,18 @@ export default {
         console.log('AI响应完成，获取语音URL...')
         const audioUrl = await this.getVoiceUrl(fullMessage, botMessage.timestamp)
         botMessage.audioUrl = audioUrl
+        botMessage.ttsStatus = null // 加载完成后清除状态，允许显示播放按钮
         console.log('更新消息的音频URL:', audioUrl)
-
-        this.saveHistoryMessages()
-        console.log('消息历史已保存到Cookie')
+        
+        // 在获取完整回复后保存机器人消息
+        botMessage.text = fullMessage
+        botMessage.audioUrl = audioUrl
+        botMessage.ttsStatus = null
+        await this.saveChatMessage(botMessage)
         
       } catch (error) {
         console.error('发送消息失败:', error)
-        botMessage.text = '抱歉，我遇到了一些问题，请稍后再试。'
+        botMessage.ttsStatus = null
       }
     },
 
@@ -1141,7 +1216,7 @@ export default {
 .microphone-icon {
   width: 14px;
   height: 14px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.91 5.78V20c0 .55.45 1 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
   background-repeat: no-repeat;
   background-position: center;
   transition: all 0.3s ease;
@@ -1296,60 +1371,70 @@ export default {
       }
     }
 
+    .message-content-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 85%;
+    }
+
     .message-content {
       position: relative;
-      max-width: 70%;
+      max-width: 85%;
       padding: 8px 12px;
       border-radius: 8px;
       font-size: 13px;
       line-height: 1.4;
       background: #f5f5f5;
       color: #333;
-      letter-spacing:0.2px;
+      letter-spacing: 0.2px;
       white-space: pre-line;
       word-wrap: break-word;
+    }
+
+    .text-to-speech-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
       
-      .text-to-speech-btn {
-        position: absolute;
-        right: 0;
-        bottom: -20px;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-        
-        &:hover {
-          opacity: 1;
-        }
+      &:hover {
+        opacity: 1;
+      }
+
+      svg {
+        width: 16px;
+        height: 16px;
+        color: #666;
+      }
+
+      &.playing {
+        animation: pulse-fade 1.5s ease-in-out infinite;
         
         svg {
-          color: #666;
-        }
-        
-        &.loading svg {
           color: #7aa2f7;
         }
-        
-        &.playing svg {
-          color: #7aa2f7;
-        }
+      }
+
+      &.loading {
+        opacity: 0.4;
+        cursor: default;
       }
     }
 
     &.user {
       flex-direction: row-reverse;
       
-      .avatar {
-        display: none;
+      .message-content-wrapper {
+        flex-direction: row-reverse;
       }
       
       .message-content {
         background: #f0f0f0;
-        margin-right: 8px;
       }
     }
 
@@ -1500,6 +1585,18 @@ export default {
   margin: 8px 0;
   color: #999;
   font-size: 12px;
+}
+
+@keyframes pulse-fade {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 </style>
 
