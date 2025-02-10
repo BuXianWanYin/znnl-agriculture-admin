@@ -540,7 +540,7 @@ export default {
         formData.append('timestamp', formattedTimestamp)
         formData.append('text', text)
 
-        const response = await fetch('http://localhost:8081/cosy/voicepath', {
+        const response = await fetch('http://10.0.28.47:8081/cosy/voicepath', {
           method: 'POST',
           body: formData
         })
