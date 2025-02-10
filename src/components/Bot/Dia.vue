@@ -14,7 +14,7 @@
         <div class="chat-messages" ref="messagesContainer">
           <template v-for="(msg, index) in messagesWithTimestamp">
             <!-- 时间显示 -->
-            <div v-if="shouldShowTimestamp(msg, index)" 
+            <div v-if="shouldShowTimestamp(msg, index)"
                  :key="`time-${index}`"
                  class="message-timestamp">
               {{ formatMessageTime(msg.timestamp) }}
@@ -32,14 +32,16 @@
                   <path d="M634.5216 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9741"></path>
                 </svg>
               </div>
-              <div class="message-content">
-                {{ msg.text }}
-                <div v-if="msg.type === 'bot'" 
+              <div class="message-content-wrapper">
+                <div class="message-content">
+                  {{ msg.text }}
+                </div>
+                <div v-if="msg.type === 'bot' && msg.audioUrl && !msg.ttsStatus"
                      class="text-to-speech-btn"
-                     @click="handleTextToSpeech(msg, index)"
-                     :class="{ 
+                     @click="handleTextToSpeech(msg)"
+                     :class="{
                        'loading': msg.ttsStatus === 'loading',
-                       'playing': msg.ttsStatus === 'playing' 
+                       'playing': msg.ttsStatus === 'playing'
                      }">
                   <svg v-if="!msg.ttsStatus" class="tts-icon" viewBox="0 0 24 24" width="16" height="16">
                     <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/>
@@ -65,8 +67,8 @@
         </div>
 
         <div class="chat-input">
-          <textarea 
-            v-model="userInput" 
+          <textarea
+            v-model="userInput"
             @keydown.enter.prevent="handleEnterPress"
             @input="adjustTextareaHeight"
             @keydown.delete="adjustTextareaHeight"
@@ -76,7 +78,7 @@
             rows="1"
           ></textarea>
           <div class="button-group">
-            <div class="voice-input-btn" 
+            <div class="voice-input-btn"
                  :class="{ 'listening': isChatListening }"
                  @click="handleChatVoiceClick">
               <div class="microphone-icon" :class="{ 'stop-icon': isChatListening }"></div>
@@ -93,14 +95,14 @@
         <div id="Aurora-Dia--tips-wrapper">
           <div id="Aurora-Dia--tips" class="Aurora-Dia--tips">你好呀～</div>
         </div>
-        <div class="voice-btn" 
+        <div class="voice-btn"
              :class="{ 'listening': isListening, 'show': isHovering || isListening }"
              @click="handleVoiceClick"
              @mouseenter="handleVoiceBtnHover(true)"
              @mouseleave="handleVoiceBtnHover(false)">
           <div class="microphone-icon" :class="{ 'stop-icon': isListening }"></div>
         </div>
-        <div id="Aurora-Dia" class="Aurora-Dia" 
+        <div id="Aurora-Dia" class="Aurora-Dia"
              @mouseenter="handleDiaHover(true)"
              @mouseleave="handleDiaHover(false)"
              @click="handleDiaClick">
@@ -139,12 +141,9 @@ export default {
       isInputListening: false,
       userInput: '',
       showChat: false,
-      messages: [
-        {
-          type: 'bot',
-          text: '你好！我是你的智能助手，有什么可以帮你的吗？'
-        }
-      ]
+      messages: [],
+      userId: '',
+      isLoadingHistory: false,
     }
   },
 
@@ -174,9 +173,46 @@ export default {
     }
   },
 
+  watch: {
+    showChat: {
+      async handler(newValue) {
+        if (newValue && this.messages.length === 0) {
+          // 创建欢迎消息
+          const welcomeMessage = {
+            type: 'bot',
+            text: '你好！我是你的智能助手，有什么可以帮你的吗？',
+            timestamp: new Date().getTime(),
+            audioUrl: null,
+            ttsStatus: 'loading' // 添加 ttsStatus 来控制按钮显示
+          }
+
+          // 添加消息
+          this.messages.push(welcomeMessage)
+
+          // 请求语音URL
+          try {
+            const audioUrl = await this.getVoiceUrl(welcomeMessage.text, welcomeMessage.timestamp)
+            welcomeMessage.audioUrl = audioUrl
+            welcomeMessage.ttsStatus = null // 加载完成后清除状态，允许显示播放按钮
+          } catch (error) {
+            console.error('获取欢迎消息语音URL失败:', error)
+            welcomeMessage.ttsStatus = null
+          }
+        }
+      },
+      immediate: false
+    }
+  },
+
   mounted() {
     this.initializeBot()
     this.activateMotion()
+    // 获取用户ID (这里假设从localStorage获取，你需要根据实际情况修改)
+    this.userId = 1
+    // 加载历史记录
+    if (this.userId) {
+      this.loadChatHistory()
+    }
   },
 
   methods: {
@@ -230,7 +266,7 @@ export default {
           })
           // 启动机器人
           this.diaInstance.on()
-          
+
           // 设置录音结束的回调函数
           this.diaInstance.onRecordingEnd((text, isChat, isAIResponse, isTyping = false) => {
             // 判断是否是聊天模式
@@ -283,16 +319,16 @@ export default {
       if (!this.isListening) {
         this.isHovering = hovering
       }
-      
+
       if (!hovering && !document.querySelector('.Aurora-Dia:hover')) {
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
-        
+
         diaElement.classList.remove('hover-effect')
         if (platform) platform.classList.remove('hover-effect')
         if (topPlatform) topPlatform.classList.remove('hover-effect')
-        
+
         if (this.isListening) {
           this.handleClick()
         }
@@ -300,7 +336,7 @@ export default {
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
-        
+
         diaElement.classList.add('hover-effect')
         if (platform) platform.classList.add('hover-effect')
         if (topPlatform) topPlatform.classList.add('hover-effect')
@@ -314,11 +350,11 @@ export default {
           const diaElement = document.querySelector('.Aurora-Dia')
           const platform = document.querySelector('.Aurora-Dia--platform')
           const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
-          
+
           diaElement.classList.remove('hover-effect')
           if (platform) platform.classList.remove('hover-effect')
           if (topPlatform) topPlatform.classList.remove('hover-effect')
-          
+
           if (this.isListening) {
             this.handleClick()
           }
@@ -328,7 +364,7 @@ export default {
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
-        
+
         diaElement.classList.add('hover-effect')
         if (platform) platform.classList.add('hover-effect')
         if (topPlatform) topPlatform.classList.add('hover-effect')
@@ -339,7 +375,7 @@ export default {
     async handleVoiceRecognition(isChatMode = false) {
       // 如果机器人实例不存在则直接返回
       if (!this.diaInstance) return
-      
+
       try {
         // 判断当前是否正在录音（根据模式判断不同的状态）
         if (isChatMode ? !this.isChatListening : !this.isListening) {
@@ -351,10 +387,10 @@ export default {
             // 设置普通模式的录音状态为true
             this.isListening = true
           }
-          
+
           // 调用机器人实例开始录音
           await this.diaInstance.startListening(isChatMode)
-          
+
           // 设置录音结束后的回调函数
           this.diaInstance.onRecordingEnd((text, isChat, isAIResponse, shouldUpdate = false) => {
             // 判断是否为聊天模式
@@ -389,7 +425,7 @@ export default {
                     this.adjustTextareaHeight({ target: textarea })
                   }
                 });
-                
+
                 // // 将用户消息添加到消息列表
                 // this.messages.push({
                 //   type: 'user',
@@ -404,7 +440,7 @@ export default {
               });
             }
           })
-          
+
         } else {
           // 如果已经在录音，则停止录音
           await this.diaInstance.stopListening(isChatMode)
@@ -436,50 +472,50 @@ export default {
       const rightEye = document.getElementById('Aurora-Dia--right-eye')
       const eyesEl = document.getElementById('Aurora-Dia--eyes')
       const diaBody = document.getElementById('Aurora-Dia')
-      
+
       if (leftEye && rightEye && eyesEl && diaBody) {
         let rafId = null
-        
+
         document.addEventListener('mousemove', evt => {
           if (rafId) {
             cancelAnimationFrame(rafId)
           }
-          
+
           rafId = requestAnimationFrame(() => {
             clearTimeout(this.eyesAnimationTimer)
             eyesEl.classList.add('moving')
-            
+
             const viewportWidth = window.innerWidth
             const viewportHeight = window.innerHeight
-            
+
             const diaRect = diaBody.getBoundingClientRect()
             const diaCenterX = diaRect.left + diaRect.width / 2
             const diaCenterY = diaRect.top + diaRect.height / 2
-            
+
             const deltaX = evt.clientX - diaCenterX
             const deltaY = evt.clientY - diaCenterY
-            
+
             const maxPossibleX = Math.max(diaCenterX, viewportWidth - diaCenterX)
             const maxPossibleY = Math.max(diaCenterY, viewportHeight - diaCenterY)
-            
+
             const ratioX = Math.abs(deltaX) / maxPossibleX
             const ratioY = Math.abs(deltaY) / maxPossibleY
-            
+
             const maxMoveBody = 15
             const bodyX = Math.sign(deltaX) * maxMoveBody * ratioX
             const bodyY = Math.sign(deltaY) * maxMoveBody * ratioY
-            
+
             const maxMoveEyes = 25
             const eyesX = Math.sign(deltaX) * maxMoveEyes * ratioX
             const eyesY = Math.sign(deltaY) * maxMoveEyes * ratioY
-            
+
             diaBody.style.transform = `translate(${bodyX}px, ${bodyY}px)`
-            
+
             const relativeX = eyesX - bodyX
             const relativeY = eyesY - bodyY
             leftEye.style.transform = `translate(${relativeX}px, ${relativeY}px)`
             rightEye.style.transform = `translate(${relativeX}px, ${relativeY}px)`
-            
+
             this.eyesAnimationTimer = setTimeout(() => {
               diaBody.style.transform = 'translate(0, 0)'
               leftEye.style.transform = 'translate(0, 0)'
@@ -498,30 +534,132 @@ export default {
       this.handleClick()
     },
 
-    // 发送消息的异步方法
+    // 格式化时间戳为后端所需格式
+    formatTimestampForBackend(timestamp) {
+      const date = new Date(timestamp)
+      return date.getFullYear() +
+        String(date.getMonth() + 1).padStart(2, '0') +
+        String(date.getDate()).padStart(2, '0') +
+        String(date.getHours()).padStart(2, '0') +
+        String(date.getMinutes()).padStart(2, '0') +
+        String(date.getSeconds()).padStart(2, '0')
+    },
+
+    // 获取语音URL
+    async getVoiceUrl(text, timestamp) {
+      const formattedTimestamp = this.formatTimestampForBackend(timestamp)
+      console.log('请求语音URL - 文本:', text)
+      console.log('请求语音URL - 时间戳:', formattedTimestamp)
+
+      try {
+        const formData = new FormData()
+        formData.append('timestamp', formattedTimestamp)
+        formData.append('text', text)
+
+        const response = await fetch('http://10.0.28.47:8081/cosy/voicepath', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!response.ok) {
+          console.error('获取语音URL失败 - HTTP状态:', response.status)
+          throw new Error('获取语音URL失败')
+        }
+
+        const audioUrl = await response.text()
+        console.log('获取到的语音URL:', audioUrl)
+
+        if (audioUrl === '失败') {
+          console.error('后端返回失败状态')
+          return null
+        }
+
+        return audioUrl
+      } catch (error) {
+        console.error('获取语音URL失败:', error)
+        return null
+      }
+    },
+
+    // 添加加载历史记录方法
+    async loadChatHistory() {
+      if (this.isLoadingHistory) return
+
+      this.isLoadingHistory = true
+      try {
+        const response = await fetch(`http://10.0.28.47:8081/ai/history?userId=${this.userId}`)
+        if (!response.ok) {
+          throw new Error('Failed to load chat history')
+        }
+        const history = await response.json()
+        // 转换历史记录格式并添加到消息列表
+        this.messages = history.map(msg => ({
+          type: msg.type,
+          text: msg.content,
+          timestamp: msg.timestamp,
+          audioUrl: msg.audioUrl,
+          ttsStatus: null
+        }))
+      } catch (error) {
+        console.error('加载聊天历史失败:', error)
+      } finally {
+        this.isLoadingHistory = false
+      }
+    },
+
+    // 添加保存消息方法
+    async saveChatMessage(message) {
+      try {
+        const messageData = {
+          type: message.type,
+          content: message.text,
+          audioUrl: message.audioUrl || null,
+          timestamp: message.timestamp,
+          userId: this.userId
+        }
+
+        const response = await fetch('http://10.0.28.47:8081/ai/message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(messageData)
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to save message')
+        }
+      } catch (error) {
+        console.error('保存消息失败:', error)
+      }
+    },
+
+    // 修改发送消息方法
     async sendMessage() {
-      // 如果输入为空则直接返回
       if (!this.userInput.trim()) return
-      
-      // 获取去除首尾空格的输入内容
+
       const currentInput = this.userInput.trim()
-      // 添加用户消息到消息列表
-      this.messages.push({
+      const timestamp = new Date().getTime()
+
+      // 创建用户消息对象
+      const userMessage = {
         type: 'user',
         text: currentInput,
-        timestamp: new Date().getTime()
-      })
+        timestamp: timestamp,
+        audioUrl: null
+      }
 
-      // 清空输入框
+      // 添加到消息列表并保存
+      this.messages.push(userMessage)
+      await this.saveChatMessage(userMessage)
+
       this.userInput = ''
-      
-      // 重置输入框高度
+
       const textarea = document.querySelector('.input-area')
       if (textarea) {
         textarea.style.height = '24px'
       }
 
-      // 等待DOM更新后滚动到底部
       this.$nextTick(() => {
         if (this.$refs.messagesContainer) {
           this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
@@ -529,94 +667,141 @@ export default {
       })
 
       // 添加机器人思考中的消息
-      this.messages.push({
+      const botMessage = {
         type: 'bot',
         text: '正在思考...',
-        timestamp: new Date().getTime()
-      })
+        timestamp: new Date().getTime(),
+        audioUrl: null,
+        ttsStatus: 'loading'
+      }
+      this.messages.push(botMessage)
 
       try {
-        // 创建表单数据
+        console.log('请求AI响应...')
         const formData = new FormData()
-        // 添加用户输入到表单
         formData.append('prompt', currentInput)
 
-        // 发送POST请求到AI接口
         const response = await fetch('http://10.0.28.47:8081/ai/generateStream', {
           method: 'POST',
           body: formData
         })
 
-        // 检查响应状态
         if (!response.ok) {
+          console.error('AI响应请求失败:', response.status)
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
-        // 创建响应流读取器
         const reader = response.body.getReader()
-        // 创建文本解码器
         const decoder = new TextDecoder()
-        // 存储完整的响应消息
         let fullMessage = ''
 
-        // 获取最后一条机器人消息（思考中的消息）
-        const lastBotMessage = this.messages.findLast(msg => msg.type === 'bot')
-
-        // 循环读取响应流
+        console.log('开始读取流式响应...')
         while (true) {
-          // 读取数据块
           const { done, value } = await reader.read()
-          // 如果读取完成则退出循环
           if (done) break
 
-          // 解码数据块
           const chunk = decoder.decode(value, { stream: true })
-          // 按行分割数据
           const lines = chunk.split('\n')
 
-          // 处理每一行数据
           for (const line of lines) {
-            // 跳过空行
             if (!line.trim()) continue
-            // 移除数据前缀并整理
             const jsonStr = line.replace(/^data:/, '').trim()
 
             try {
-              // 解析JSON数据
               const jsonData = JSON.parse(jsonStr)
               if (jsonData.response) {
-                // 获取新的文本片段
                 const newText = jsonData.response
-                // 累加到完整消息中
                 fullMessage += newText
-                // 更新思考中的消息
-                if (lastBotMessage) {
-                  // 更新消息内容
-                  lastBotMessage.text = fullMessage
-                  // 等待DOM更新后滚动到底部
-                  this.$nextTick(() => {
-                    if (this.$refs.messagesContainer) {
-                      this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
-                    }
-                  })
-                }
-                // 添加短暂延迟实现打字机效果
+                botMessage.text = fullMessage
+
+                this.$nextTick(() => {
+                  if (this.$refs.messagesContainer) {
+                    this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
+                  }
+                })
+
                 await new Promise(resolve => setTimeout(resolve, 50))
               }
             } catch (e) {
-              // 打印JSON解析错误
-              console.error('Parsing error: ', e)
+              console.error('解析响应数据失败:', e)
             }
           }
         }
+
+        console.log('AI响应完成，获取语音URL...')
+        const audioUrl = await this.getVoiceUrl(fullMessage, botMessage.timestamp)
+        botMessage.audioUrl = audioUrl
+        botMessage.ttsStatus = null // 加载完成后清除状态，允许显示播放按钮
+        console.log('更新消息的音频URL:', audioUrl)
+
+        // 在获取完整回复后保存机器人消息
+        botMessage.text = fullMessage
+        botMessage.audioUrl = audioUrl
+        botMessage.ttsStatus = null
+        await this.saveChatMessage(botMessage)
+
       } catch (error) {
-        // 打印发送消息失败的错误
         console.error('发送消息失败:', error)
-        // 更新思考中的消息为错误提示
-        const lastBotMessage = this.messages.findLast(msg => msg.type === 'bot')
-        if (lastBotMessage) {
-          lastBotMessage.text = '抱歉，我遇到了一些问题，请稍后再试。'
+        botMessage.ttsStatus = null
+      }
+    },
+
+    // 修改音频播放方法
+    async handleTextToSpeech(message) {
+      console.log('准备播放音频 - 消息:', message)
+
+      if (message.ttsStatus === 'playing') {
+        console.log('暂停当前播放的音频')
+        if (this.currentAudio) {
+          this.currentAudio.pause()
+          this.currentAudio = null
         }
+        this.$set(message, 'ttsStatus', null)
+        return
+      }
+
+      this.$set(message, 'ttsStatus', 'loading')
+      console.log('音频加载中...')
+
+      try {
+        if (!message.audioUrl) {
+          console.log('未找到音频URL，正在获取...')
+          message.audioUrl = await this.getVoiceUrl(message.text, message.timestamp)
+        }
+
+        if (message.audioUrl) {
+          console.log('开始播放音频:', message.audioUrl)
+
+          if (this.currentAudio) {
+            console.log('停止之前的音频播放')
+            this.currentAudio.pause()
+          }
+
+          const audio = new Audio(message.audioUrl)
+          this.currentAudio = audio
+
+          audio.onended = () => {
+            console.log('音频播放完成')
+            this.$set(message, 'ttsStatus', null)
+            this.currentAudio = null
+          }
+
+          audio.onerror = (e) => {
+            console.error('音频播放错误:', e)
+            this.$set(message, 'ttsStatus', null)
+            this.currentAudio = null
+          }
+
+          await audio.play()
+          console.log('音频开始播放')
+          this.$set(message, 'ttsStatus', 'playing')
+        } else {
+          console.error('无法获取音频URL')
+          throw new Error('获取音频URL失败')
+        }
+      } catch (error) {
+        console.error('播放音频失败:', error)
+        this.$set(message, 'ttsStatus', null)
       }
     },
 
@@ -635,18 +820,18 @@ export default {
 
     adjustTextareaHeight(e) {
       const textarea = e.target
-      
+
       textarea.style.height = '24px'
-      
+
       const scrollHeight = textarea.scrollHeight
-      
+
       if (!textarea.value.trim()) {
         textarea.style.height = '24px'
         return
       }
-      
+
       textarea.style.height = Math.min(scrollHeight, 100) + 'px'
-      
+
       if (scrollHeight > 100) {
         const cursorPosition = textarea.selectionStart
         const textBeforeCursor = textarea.value.substring(0, cursorPosition)
@@ -657,10 +842,10 @@ export default {
         dummyElement.style.visibility = 'hidden'
         dummyElement.value = textBeforeCursor
         document.body.appendChild(dummyElement)
-        
+
         const cursorOffset = dummyElement.scrollHeight
         document.body.removeChild(dummyElement)
-        
+
         const scrollOffset = Math.max(0, cursorOffset - 90)
         textarea.scrollTop = scrollOffset
       }
@@ -673,9 +858,9 @@ export default {
         const start = textarea.selectionStart
         const end = textarea.selectionEnd
         const value = textarea.value
-        
+
         this.userInput = value.substring(0, start) + '\n' + value.substring(end)
-        
+
         this.$nextTick(() => {
           textarea.selectionStart = textarea.selectionEnd = start + 1
           textarea.style.height = '24px'
@@ -697,12 +882,12 @@ export default {
 
     toggleChat() {
       this.showChat = !this.showChat
-      
+
       if (!this.showChat) {
         const diaBody = document.getElementById('Aurora-Dia--body')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const voiceBtn = document.querySelector('.voice-btn')
-        
+
         if (diaBody) diaBody.style.display = ''
         if (platform) platform.style.display = ''
         if (voiceBtn) voiceBtn.style.display = ''
@@ -711,58 +896,24 @@ export default {
 
     handleDiaClick() {
       this.showChat = true
-      
+
       const diaBody = document.getElementById('Aurora-Dia--body')
       const platform = document.querySelector('.Aurora-Dia--platform')
       const voiceBtn = document.querySelector('.voice-btn')
-      
+
       if (diaBody) diaBody.style.display = 'none'
       if (platform) platform.style.display = 'none'
       if (voiceBtn) voiceBtn.style.display = 'none'
     },
 
-    async handleTextToSpeech(message, index) {
-      // 如果正在播放，则停止播放
-      if (message.ttsStatus === 'playing') {
-        // TODO: 停止音频播放
-        this.$set(message, 'ttsStatus', null)
-        return
-      }
-      
-      // 设置加载状态
-      this.$set(message, 'ttsStatus', 'loading')
-      
-      try {
-        // TODO: 调用文字转语音API
-        // const audio = await convertTextToSpeech(message.text)
-        
-        // 模拟API调用延迟
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // 设置播放状态
-        this.$set(message, 'ttsStatus', 'playing')
-        
-        // TODO: 播放音频
-        // audio.play()
-        
-        // TODO: 音频播放结束时重置状态
-        // audio.onended = () => {
-        //   this.$set(message, 'ttsStatus', null)
-        // }
-      } catch (error) {
-        console.error('Text to speech failed:', error)
-        this.$set(message, 'ttsStatus', null)
-      }
-    },
-
     // 判断是否需要显示时间戳
     shouldShowTimestamp(currentMsg, index) {
       if (index === 0) return true;
-      
+
       const prevMsg = this.messagesWithTimestamp[index - 1];
       const currentTime = new Date(currentMsg.timestamp);
       const prevTime = new Date(prevMsg.timestamp);
-      
+
       // 如果消息间隔超过5分钟，显示时间戳
       return currentTime - prevTime > 5 * 60 * 1000;
     },
@@ -772,19 +923,19 @@ export default {
       const messageDate = new Date(timestamp);
       const now = new Date();
       const isToday = messageDate.toDateString() === now.toDateString();
-      
+
       // 格式化时间
       const timeStr = messageDate.toLocaleTimeString('zh-CN', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
       });
-      
+
       // 如果是今天的消息，只显示时间
       if (isToday) {
         return timeStr;
       }
-      
+
       // 不是今天的消息，显示日期和时间
       const dateStr = messageDate.toLocaleDateString('zh-CN', {
         month: 'numeric',
@@ -796,7 +947,7 @@ export default {
 }
 </script>
 
-    
+
 
 <style lang="scss" scoped>
 #bot-container {
@@ -1065,7 +1216,7 @@ export default {
 .microphone-icon {
   width: 14px;
   height: 14px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.91 5.78V20c0 .55.45 1 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
   background-repeat: no-repeat;
   background-position: center;
   transition: all 0.3s ease;
@@ -1096,14 +1247,14 @@ export default {
   transform: rotateX(-70deg) scale(0.8);
   opacity: 0;
   transition: 0.3s ease all;
-  box-shadow: 
+  box-shadow:
     0 0 var(--auora-dia--platform-size) var(--aurora-dia--platform-light),
     0 0 15px var(--aurora-dia--platform-light) inset;
 }
 
 .Aurora-Dia:hover ~ .Aurora-Dia--platform.top {
   opacity: 0.3;
-  box-shadow: 
+  box-shadow:
     0 0 var(--auora-dia--platform-size) var(--aurora-dia--platform-light),
     0 0 15px var(--aurora-dia--platform-light) inset;
 }
@@ -1139,7 +1290,7 @@ export default {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(to bottom, 
+    background: linear-gradient(to bottom,
       rgba(0, 0, 0, 0.04),
       rgba(0, 0, 0, 0.01)
     );
@@ -1172,7 +1323,7 @@ export default {
     cursor: pointer;
     font-size: 18px;
     padding: 4px;
-    
+
     &:hover {
       color: #666;
     }
@@ -1184,15 +1335,15 @@ export default {
   padding: 12px;
   overflow-y: auto;
   background: white;
-  
+
   /* 隐藏滚动条 - Webkit 浏览器 */
   &::-webkit-scrollbar {
     display: none;
   }
-  
+
   /* 隐藏滚动条 - Firefox */
   scrollbar-width: none;
-  
+
   /* 隐藏滚动条 - IE/Edge */
   -ms-overflow-style: none;
 
@@ -1200,7 +1351,7 @@ export default {
     display: flex;
     margin-bottom: 24px;
     align-items: flex-start;
-    
+
     .avatar {
       width: 32px;
       height: 32px;
@@ -1211,7 +1362,7 @@ export default {
       border-radius: 50%;
       overflow: hidden;
       background: #f0f0f0;
-      
+
       .avatar-img {
         width: 24px;
         height: 24px;
@@ -1220,60 +1371,70 @@ export default {
       }
     }
 
+    .message-content-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 85%;
+    }
+
     .message-content {
       position: relative;
-      max-width: 70%;
+      max-width: 85%;
       padding: 8px 12px;
       border-radius: 8px;
       font-size: 13px;
       line-height: 1.4;
       background: #f5f5f5;
       color: #333;
-      letter-spacing:0.2px;
+      letter-spacing: 0.2px;
       white-space: pre-line;
       word-wrap: break-word;
-      
-      .text-to-speech-btn {
-        position: absolute;
-        right: 0;
-        bottom: -20px;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-        
-        &:hover {
-          opacity: 1;
-        }
-        
+    }
+
+    .text-to-speech-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 1;
+      }
+
+      svg {
+        width: 16px;
+        height: 16px;
+        color: #666;
+      }
+
+      &.playing {
+        animation: pulse-fade 1.5s ease-in-out infinite;
+
         svg {
-          color: #666;
-        }
-        
-        &.loading svg {
           color: #7aa2f7;
         }
-        
-        &.playing svg {
-          color: #7aa2f7;
-        }
+      }
+
+      &.loading {
+        opacity: 0.4;
+        cursor: default;
       }
     }
 
     &.user {
       flex-direction: row-reverse;
-      
-      .avatar {
-        display: none;
+
+      .message-content-wrapper {
+        flex-direction: row-reverse;
       }
-      
+
       .message-content {
         background: #f0f0f0;
-        margin-right: 8px;
       }
     }
 
@@ -1310,11 +1471,11 @@ export default {
     line-height: 1.4;
     font-family: inherit;
     color: #333;
-    
+
     &::-webkit-scrollbar {
       display: none;
     }
-    
+
     &::placeholder {
       color: #999;
       font-size: 13px;
@@ -1425,5 +1586,16 @@ export default {
   color: #999;
   font-size: 12px;
 }
-</style>
 
+@keyframes pulse-fade {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+</style>
