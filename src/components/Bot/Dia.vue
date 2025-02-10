@@ -36,7 +36,7 @@
                 {{ msg.text }}
                 <div v-if="msg.type === 'bot'" 
                      class="text-to-speech-btn"
-                     @click="handleTextToSpeech(msg, index)"
+                     @click="handleTextToSpeech(msg)"
                      :class="{ 
                        'loading': msg.ttsStatus === 'loading',
                        'playing': msg.ttsStatus === 'playing' 
@@ -142,7 +142,9 @@ export default {
       messages: [
         {
           type: 'bot',
-          text: '你好！我是你的智能助手，有什么可以帮你的吗？'
+          text: '你好！我是你的智能助手，有什么可以帮你的吗？',
+          timestamp: new Date().getTime(),
+          audioUrl: null
         }
       ]
     }
@@ -177,6 +179,7 @@ export default {
   mounted() {
     this.initializeBot()
     this.activateMotion()
+    this.loadHistoryMessages()
   },
 
   methods: {
@@ -498,30 +501,95 @@ export default {
       this.handleClick()
     },
 
-    // 发送消息的异步方法
+    // 加载历史消息
+    loadHistoryMessages() {
+      const historyCookie = this.$cookies.get('chatHistory')
+      if (historyCookie) {
+        console.log('从Cookie加载历史消息:', historyCookie)
+        this.messages = historyCookie
+      } else {
+        console.log('没有找到历史消息Cookie')
+      }
+    },
+
+    // 保存历史消息到cookie
+    saveHistoryMessages() {
+      console.log('保存消息到Cookie:', this.messages)
+      this.$cookies.set('chatHistory', this.messages, '6h')
+    },
+
+    // 格式化时间戳为后端所需格式
+    formatTimestampForBackend(timestamp) {
+      const date = new Date(timestamp)
+      return date.getFullYear() +
+        String(date.getMonth() + 1).padStart(2, '0') +
+        String(date.getDate()).padStart(2, '0') +
+        String(date.getHours()).padStart(2, '0') +
+        String(date.getMinutes()).padStart(2, '0') +
+        String(date.getSeconds()).padStart(2, '0')
+    },
+
+    // 获取语音URL
+    async getVoiceUrl(text, timestamp) {
+      const formattedTimestamp = this.formatTimestampForBackend(timestamp)
+      console.log('请求语音URL - 文本:', text)
+      console.log('请求语音URL - 时间戳:', formattedTimestamp)
+
+      try {
+        const formData = new FormData()
+        formData.append('timestamp', formattedTimestamp)
+        formData.append('text', text)
+
+        const response = await fetch('http://localhost:8081/cosy/voicepath', {
+          method: 'POST',
+          body: formData
+        })
+
+        if (!response.ok) {
+          console.error('获取语音URL失败 - HTTP状态:', response.status)
+          throw new Error('获取语音URL失败')
+        }
+
+        const audioUrl = await response.text()
+        console.log('获取到的语音URL:', audioUrl)
+        
+        if (audioUrl === '失败') {
+          console.error('后端返回失败状态')
+          return null
+        }
+        
+        return audioUrl
+      } catch (error) {
+        console.error('获取语音URL失败:', error)
+        return null
+      }
+    },
+
+    // 修改发送消息方法
     async sendMessage() {
-      // 如果输入为空则直接返回
       if (!this.userInput.trim()) return
       
-      // 获取去除首尾空格的输入内容
       const currentInput = this.userInput.trim()
-      // 添加用户消息到消息列表
+      const timestamp = new Date().getTime()
+      
+      console.log('发送新消息:', currentInput)
+      console.log('消息时间戳:', timestamp)
+      
+      // 添加用户消息
       this.messages.push({
         type: 'user',
         text: currentInput,
-        timestamp: new Date().getTime()
+        timestamp: timestamp,
+        audioUrl: null
       })
 
-      // 清空输入框
       this.userInput = ''
       
-      // 重置输入框高度
       const textarea = document.querySelector('.input-area')
       if (textarea) {
         textarea.style.height = '24px'
       }
 
-      // 等待DOM更新后滚动到底部
       this.$nextTick(() => {
         if (this.$refs.messagesContainer) {
           this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
@@ -529,94 +597,136 @@ export default {
       })
 
       // 添加机器人思考中的消息
-      this.messages.push({
+      const botMessage = {
         type: 'bot',
         text: '正在思考...',
-        timestamp: new Date().getTime()
-      })
+        timestamp: new Date().getTime(),
+        audioUrl: null
+      }
+      this.messages.push(botMessage)
 
       try {
-        // 创建表单数据
+        console.log('请求AI响应...')
         const formData = new FormData()
-        // 添加用户输入到表单
         formData.append('prompt', currentInput)
 
-        // 发送POST请求到AI接口
-        const response = await fetch('http://localhost:8081/ai/generateStream', {
+        const response = await fetch('http://10.0.28.47:8081/ai/generateStream', {
           method: 'POST',
           body: formData
         })
 
-        // 检查响应状态
         if (!response.ok) {
+          console.error('AI响应请求失败:', response.status)
           throw new Error(`HTTP error! status: ${response.status}`)
         }
 
-        // 创建响应流读取器
         const reader = response.body.getReader()
-        // 创建文本解码器
         const decoder = new TextDecoder()
-        // 存储完整的响应消息
         let fullMessage = ''
 
-        // 获取最后一条机器人消息（思考中的消息）
-        const lastBotMessage = this.messages.findLast(msg => msg.type === 'bot')
-
-        // 循环读取响应流
+        console.log('开始读取流式响应...')
         while (true) {
-          // 读取数据块
           const { done, value } = await reader.read()
-          // 如果读取完成则退出循环
           if (done) break
 
-          // 解码数据块
           const chunk = decoder.decode(value, { stream: true })
-          // 按行分割数据
           const lines = chunk.split('\n')
 
-          // 处理每一行数据
           for (const line of lines) {
-            // 跳过空行
             if (!line.trim()) continue
-            // 移除数据前缀并整理
             const jsonStr = line.replace(/^data:/, '').trim()
 
             try {
-              // 解析JSON数据
               const jsonData = JSON.parse(jsonStr)
               if (jsonData.response) {
-                // 获取新的文本片段
                 const newText = jsonData.response
-                // 累加到完整消息中
                 fullMessage += newText
-                // 更新思考中的消息
-                if (lastBotMessage) {
-                  // 更新消息内容
-                  lastBotMessage.text = fullMessage
-                  // 等待DOM更新后滚动到底部
-                  this.$nextTick(() => {
-                    if (this.$refs.messagesContainer) {
-                      this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
-                    }
-                  })
-                }
-                // 添加短暂延迟实现打字机效果
+                botMessage.text = fullMessage
+                
+                this.$nextTick(() => {
+                  if (this.$refs.messagesContainer) {
+                    this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
+                  }
+                })
+                
                 await new Promise(resolve => setTimeout(resolve, 50))
               }
             } catch (e) {
-              // 打印JSON解析错误
-              console.error('Parsing error: ', e)
+              console.error('解析响应数据失败:', e)
             }
           }
         }
+        
+        console.log('AI响应完成，获取语音URL...')
+        const audioUrl = await this.getVoiceUrl(fullMessage, botMessage.timestamp)
+        botMessage.audioUrl = audioUrl
+        console.log('更新消息的音频URL:', audioUrl)
+
+        this.saveHistoryMessages()
+        console.log('消息历史已保存到Cookie')
+        
       } catch (error) {
-        // 打印发送消息失败的错误
         console.error('发送消息失败:', error)
-        // 更新思考中的消息为错误提示
-        const lastBotMessage = this.messages.findLast(msg => msg.type === 'bot')
-        if (lastBotMessage) {
-          lastBotMessage.text = '抱歉，我遇到了一些问题，请稍后再试。'
+        botMessage.text = '抱歉，我遇到了一些问题，请稍后再试。'
+      }
+    },
+
+    // 修改音频播放方法
+    async handleTextToSpeech(message) {
+      console.log('准备播放音频 - 消息:', message)
+      
+      if (message.ttsStatus === 'playing') {
+        console.log('暂停当前播放的音频')
+        if (this.currentAudio) {
+          this.currentAudio.pause()
+          this.currentAudio = null
         }
+        this.$set(message, 'ttsStatus', null)
+        return
+      }
+
+      this.$set(message, 'ttsStatus', 'loading')
+      console.log('音频加载中...')
+
+      try {
+        if (!message.audioUrl) {
+          console.log('未找到音频URL，正在获取...')
+          message.audioUrl = await this.getVoiceUrl(message.text, message.timestamp)
+        }
+
+        if (message.audioUrl) {
+          console.log('开始播放音频:', message.audioUrl)
+          
+          if (this.currentAudio) {
+            console.log('停止之前的音频播放')
+            this.currentAudio.pause()
+          }
+
+          const audio = new Audio(message.audioUrl)
+          this.currentAudio = audio
+
+          audio.onended = () => {
+            console.log('音频播放完成')
+            this.$set(message, 'ttsStatus', null)
+            this.currentAudio = null
+          }
+
+          audio.onerror = (e) => {
+            console.error('音频播放错误:', e)
+            this.$set(message, 'ttsStatus', null)
+            this.currentAudio = null
+          }
+
+          await audio.play()
+          console.log('音频开始播放')
+          this.$set(message, 'ttsStatus', 'playing')
+        } else {
+          console.error('无法获取音频URL')
+          throw new Error('获取音频URL失败')
+        }
+      } catch (error) {
+        console.error('播放音频失败:', error)
+        this.$set(message, 'ttsStatus', null)
       }
     },
 
@@ -719,40 +829,6 @@ export default {
       if (diaBody) diaBody.style.display = 'none'
       if (platform) platform.style.display = 'none'
       if (voiceBtn) voiceBtn.style.display = 'none'
-    },
-
-    async handleTextToSpeech(message, index) {
-      // 如果正在播放，则停止播放
-      if (message.ttsStatus === 'playing') {
-        // TODO: 停止音频播放
-        this.$set(message, 'ttsStatus', null)
-        return
-      }
-      
-      // 设置加载状态
-      this.$set(message, 'ttsStatus', 'loading')
-      
-      try {
-        // TODO: 调用文字转语音API
-        // const audio = await convertTextToSpeech(message.text)
-        
-        // 模拟API调用延迟
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        // 设置播放状态
-        this.$set(message, 'ttsStatus', 'playing')
-        
-        // TODO: 播放音频
-        // audio.play()
-        
-        // TODO: 音频播放结束时重置状态
-        // audio.onended = () => {
-        //   this.$set(message, 'ttsStatus', null)
-        // }
-      } catch (error) {
-        console.error('Text to speech failed:', error)
-        this.$set(message, 'ttsStatus', null)
-      }
     },
 
     // 判断是否需要显示时间戳
@@ -1065,7 +1141,7 @@ export default {
 .microphone-icon {
   width: 14px;
   height: 14px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
   background-repeat: no-repeat;
   background-position: center;
   transition: all 0.3s ease;
