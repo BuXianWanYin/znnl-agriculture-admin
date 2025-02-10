@@ -32,7 +32,7 @@
                   </feMerge>
                 </filter>
               </defs>
-              <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" 
+              <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
                     fill="url(#gradient)" filter="url(#glow)" class="title-text">
                 {{loginTitle}}
               </text>
@@ -354,7 +354,7 @@ export default {
     .login-title {
       height: 100px;
       margin-top: 15vh;
-      
+
       .title-text {
         font-size: 50px;
         font-weight: 500;
@@ -371,19 +371,19 @@ export default {
       padding-bottom: 26px;
       color: #fff;
       font-size: 20px;
-      
+
       .word {
         display: inline-block;
         margin: 0 2px;
         opacity: 0;
         animation: gather 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        
+
         &:hover {
           animation: swing 0.8s ease-in-out;
           opacity: 1;
         }
       }
-      
+
       .word:nth-child(1) { --x: -1000px; --y: -500px; animation-delay: 0.1s; }
       .word:nth-child(2) { --x: 1000px; --y: -800px; animation-delay: 0.2s; }
       .word:nth-child(3) { --x: -800px; --y: 1000px; animation-delay: 0.3s; }
@@ -397,7 +397,7 @@ export default {
       .word:nth-child(13) { --x: -700px; --y: 900px; animation-delay: 1.1s; }
       .word:nth-child(14) { --x: 600px; --y: -900px; animation-delay: 1.2s; }
       .word:nth-child(15) { --x: -800px; --y: -800px; animation-delay: 1.3s; }
-      
+
       .separator {
         margin: 0 8px;
         opacity: 0.7;
@@ -419,7 +419,7 @@ export default {
     position: relative;
     margin-left: -50px;
     padding-left: 50px;
-    
+
     &::before {
       content: '';
       position: absolute;
@@ -427,7 +427,7 @@ export default {
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, 
+      background: linear-gradient(135deg,
         rgba(255, 255, 255, 0.7) 0%,
         rgba(255, 255, 255, 0.3) 100%
       );
@@ -518,7 +518,7 @@ export default {
           position: relative;
           z-index: 2;
         }
-        
+
         .el-input__inner {
           background: rgba(245, 245, 245, 0.5);
           backdrop-filter: blur(5px);
@@ -551,15 +551,15 @@ export default {
           position: relative;
           background-size: 200% auto;
           background-image: linear-gradient(
-            45deg, 
-            #109b5e 0%, 
-            #00c853 50%, 
+            45deg,
+            #109b5e 0%,
+            #00c853 50%,
             #109b5e 100%
           );
           box-shadow: 0 4px 15px rgba(16, 155, 94, 0.2);
           transition: all 0.5s ease;
           animation: gradientMove 3s ease infinite;
-          
+
           &::before {
             content: '';
             position: absolute;
@@ -574,17 +574,17 @@ export default {
             opacity: 0;
             transition: opacity 0.3s ease;
           }
-          
+
           &:hover {
             transform: translateY(-2px);
             background-position: right center;
             box-shadow: 0 6px 20px rgba(16, 155, 94, 0.3);
-            
+
             &::before {
               opacity: 1;
             }
           }
-          
+
           &:active {
             transform: translateY(1px);
             box-shadow: 0 2px 10px rgba(16, 155, 94, 0.2);

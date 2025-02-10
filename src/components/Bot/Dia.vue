@@ -14,7 +14,7 @@
         <div class="chat-messages" ref="messagesContainer">
           <template v-for="(msg, index) in messagesWithTimestamp">
             <!-- 时间显示 -->
-            <div v-if="shouldShowTimestamp(msg, index)" 
+            <div v-if="shouldShowTimestamp(msg, index)"
                  :key="`time-${index}`"
                  class="message-timestamp">
               {{ formatMessageTime(msg.timestamp) }}
@@ -34,12 +34,12 @@
               </div>
               <div class="message-content">
                 {{ msg.text }}
-                <div v-if="msg.type === 'bot'" 
+                <div v-if="msg.type === 'bot'"
                      class="text-to-speech-btn"
                      @click="handleTextToSpeech(msg, index)"
-                     :class="{ 
+                     :class="{
                        'loading': msg.ttsStatus === 'loading',
-                       'playing': msg.ttsStatus === 'playing' 
+                       'playing': msg.ttsStatus === 'playing'
                      }">
                   <svg v-if="!msg.ttsStatus" class="tts-icon" viewBox="0 0 24 24" width="16" height="16">
                     <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/>
@@ -65,8 +65,8 @@
         </div>
 
         <div class="chat-input">
-          <textarea 
-            v-model="userInput" 
+          <textarea
+            v-model="userInput"
             @keydown.enter.prevent="handleEnterPress"
             @input="adjustTextareaHeight"
             @keydown.delete="adjustTextareaHeight"
@@ -76,7 +76,7 @@
             rows="1"
           ></textarea>
           <div class="button-group">
-            <div class="voice-input-btn" 
+            <div class="voice-input-btn"
                  :class="{ 'listening': isChatListening }"
                  @click="handleChatVoiceClick">
               <div class="microphone-icon" :class="{ 'stop-icon': isChatListening }"></div>
@@ -93,14 +93,14 @@
         <div id="Aurora-Dia--tips-wrapper">
           <div id="Aurora-Dia--tips" class="Aurora-Dia--tips">你好呀～</div>
         </div>
-        <div class="voice-btn" 
+        <div class="voice-btn"
              :class="{ 'listening': isListening, 'show': isHovering || isListening }"
              @click="handleVoiceClick"
              @mouseenter="handleVoiceBtnHover(true)"
              @mouseleave="handleVoiceBtnHover(false)">
           <div class="microphone-icon" :class="{ 'stop-icon': isListening }"></div>
         </div>
-        <div id="Aurora-Dia" class="Aurora-Dia" 
+        <div id="Aurora-Dia" class="Aurora-Dia"
              @mouseenter="handleDiaHover(true)"
              @mouseleave="handleDiaHover(false)"
              @click="handleDiaClick">
@@ -230,7 +230,7 @@ export default {
           })
           // 启动机器人
           this.diaInstance.on()
-          
+
           // 设置录音结束的回调函数
           this.diaInstance.onRecordingEnd((text, isChat, isAIResponse, isTyping = false) => {
             // 判断是否是聊天模式
@@ -283,16 +283,16 @@ export default {
       if (!this.isListening) {
         this.isHovering = hovering
       }
-      
+
       if (!hovering && !document.querySelector('.Aurora-Dia:hover')) {
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
-        
+
         diaElement.classList.remove('hover-effect')
         if (platform) platform.classList.remove('hover-effect')
         if (topPlatform) topPlatform.classList.remove('hover-effect')
-        
+
         if (this.isListening) {
           this.handleClick()
         }
@@ -300,7 +300,7 @@ export default {
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
-        
+
         diaElement.classList.add('hover-effect')
         if (platform) platform.classList.add('hover-effect')
         if (topPlatform) topPlatform.classList.add('hover-effect')
@@ -314,11 +314,11 @@ export default {
           const diaElement = document.querySelector('.Aurora-Dia')
           const platform = document.querySelector('.Aurora-Dia--platform')
           const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
-          
+
           diaElement.classList.remove('hover-effect')
           if (platform) platform.classList.remove('hover-effect')
           if (topPlatform) topPlatform.classList.remove('hover-effect')
-          
+
           if (this.isListening) {
             this.handleClick()
           }
@@ -328,7 +328,7 @@ export default {
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
-        
+
         diaElement.classList.add('hover-effect')
         if (platform) platform.classList.add('hover-effect')
         if (topPlatform) topPlatform.classList.add('hover-effect')
@@ -339,7 +339,7 @@ export default {
     async handleVoiceRecognition(isChatMode = false) {
       // 如果机器人实例不存在则直接返回
       if (!this.diaInstance) return
-      
+
       try {
         // 判断当前是否正在录音（根据模式判断不同的状态）
         if (isChatMode ? !this.isChatListening : !this.isListening) {
@@ -351,10 +351,10 @@ export default {
             // 设置普通模式的录音状态为true
             this.isListening = true
           }
-          
+
           // 调用机器人实例开始录音
           await this.diaInstance.startListening(isChatMode)
-          
+
           // 设置录音结束后的回调函数
           this.diaInstance.onRecordingEnd((text, isChat, isAIResponse, shouldUpdate = false) => {
             // 判断是否为聊天模式
@@ -389,7 +389,7 @@ export default {
                     this.adjustTextareaHeight({ target: textarea })
                   }
                 });
-                
+
                 // // 将用户消息添加到消息列表
                 // this.messages.push({
                 //   type: 'user',
@@ -404,7 +404,7 @@ export default {
               });
             }
           })
-          
+
         } else {
           // 如果已经在录音，则停止录音
           await this.diaInstance.stopListening(isChatMode)
@@ -436,50 +436,50 @@ export default {
       const rightEye = document.getElementById('Aurora-Dia--right-eye')
       const eyesEl = document.getElementById('Aurora-Dia--eyes')
       const diaBody = document.getElementById('Aurora-Dia')
-      
+
       if (leftEye && rightEye && eyesEl && diaBody) {
         let rafId = null
-        
+
         document.addEventListener('mousemove', evt => {
           if (rafId) {
             cancelAnimationFrame(rafId)
           }
-          
+
           rafId = requestAnimationFrame(() => {
             clearTimeout(this.eyesAnimationTimer)
             eyesEl.classList.add('moving')
-            
+
             const viewportWidth = window.innerWidth
             const viewportHeight = window.innerHeight
-            
+
             const diaRect = diaBody.getBoundingClientRect()
             const diaCenterX = diaRect.left + diaRect.width / 2
             const diaCenterY = diaRect.top + diaRect.height / 2
-            
+
             const deltaX = evt.clientX - diaCenterX
             const deltaY = evt.clientY - diaCenterY
-            
+
             const maxPossibleX = Math.max(diaCenterX, viewportWidth - diaCenterX)
             const maxPossibleY = Math.max(diaCenterY, viewportHeight - diaCenterY)
-            
+
             const ratioX = Math.abs(deltaX) / maxPossibleX
             const ratioY = Math.abs(deltaY) / maxPossibleY
-            
+
             const maxMoveBody = 15
             const bodyX = Math.sign(deltaX) * maxMoveBody * ratioX
             const bodyY = Math.sign(deltaY) * maxMoveBody * ratioY
-            
+
             const maxMoveEyes = 25
             const eyesX = Math.sign(deltaX) * maxMoveEyes * ratioX
             const eyesY = Math.sign(deltaY) * maxMoveEyes * ratioY
-            
+
             diaBody.style.transform = `translate(${bodyX}px, ${bodyY}px)`
-            
+
             const relativeX = eyesX - bodyX
             const relativeY = eyesY - bodyY
             leftEye.style.transform = `translate(${relativeX}px, ${relativeY}px)`
             rightEye.style.transform = `translate(${relativeX}px, ${relativeY}px)`
-            
+
             this.eyesAnimationTimer = setTimeout(() => {
               diaBody.style.transform = 'translate(0, 0)'
               leftEye.style.transform = 'translate(0, 0)'
@@ -502,7 +502,7 @@ export default {
     async sendMessage() {
       // 如果输入为空则直接返回
       if (!this.userInput.trim()) return
-      
+
       // 获取去除首尾空格的输入内容
       const currentInput = this.userInput.trim()
       // 添加用户消息到消息列表
@@ -514,7 +514,7 @@ export default {
 
       // 清空输入框
       this.userInput = ''
-      
+
       // 重置输入框高度
       const textarea = document.querySelector('.input-area')
       if (textarea) {
@@ -635,18 +635,18 @@ export default {
 
     adjustTextareaHeight(e) {
       const textarea = e.target
-      
+
       textarea.style.height = '24px'
-      
+
       const scrollHeight = textarea.scrollHeight
-      
+
       if (!textarea.value.trim()) {
         textarea.style.height = '24px'
         return
       }
-      
+
       textarea.style.height = Math.min(scrollHeight, 100) + 'px'
-      
+
       if (scrollHeight > 100) {
         const cursorPosition = textarea.selectionStart
         const textBeforeCursor = textarea.value.substring(0, cursorPosition)
@@ -657,10 +657,10 @@ export default {
         dummyElement.style.visibility = 'hidden'
         dummyElement.value = textBeforeCursor
         document.body.appendChild(dummyElement)
-        
+
         const cursorOffset = dummyElement.scrollHeight
         document.body.removeChild(dummyElement)
-        
+
         const scrollOffset = Math.max(0, cursorOffset - 90)
         textarea.scrollTop = scrollOffset
       }
@@ -673,9 +673,9 @@ export default {
         const start = textarea.selectionStart
         const end = textarea.selectionEnd
         const value = textarea.value
-        
+
         this.userInput = value.substring(0, start) + '\n' + value.substring(end)
-        
+
         this.$nextTick(() => {
           textarea.selectionStart = textarea.selectionEnd = start + 1
           textarea.style.height = '24px'
@@ -697,12 +697,12 @@ export default {
 
     toggleChat() {
       this.showChat = !this.showChat
-      
+
       if (!this.showChat) {
         const diaBody = document.getElementById('Aurora-Dia--body')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const voiceBtn = document.querySelector('.voice-btn')
-        
+
         if (diaBody) diaBody.style.display = ''
         if (platform) platform.style.display = ''
         if (voiceBtn) voiceBtn.style.display = ''
@@ -711,11 +711,11 @@ export default {
 
     handleDiaClick() {
       this.showChat = true
-      
+
       const diaBody = document.getElementById('Aurora-Dia--body')
       const platform = document.querySelector('.Aurora-Dia--platform')
       const voiceBtn = document.querySelector('.voice-btn')
-      
+
       if (diaBody) diaBody.style.display = 'none'
       if (platform) platform.style.display = 'none'
       if (voiceBtn) voiceBtn.style.display = 'none'
@@ -728,23 +728,23 @@ export default {
         this.$set(message, 'ttsStatus', null)
         return
       }
-      
+
       // 设置加载状态
       this.$set(message, 'ttsStatus', 'loading')
-      
+
       try {
         // TODO: 调用文字转语音API
         // const audio = await convertTextToSpeech(message.text)
-        
+
         // 模拟API调用延迟
         await new Promise(resolve => setTimeout(resolve, 1000))
-        
+
         // 设置播放状态
         this.$set(message, 'ttsStatus', 'playing')
-        
+
         // TODO: 播放音频
         // audio.play()
-        
+
         // TODO: 音频播放结束时重置状态
         // audio.onended = () => {
         //   this.$set(message, 'ttsStatus', null)
@@ -758,11 +758,11 @@ export default {
     // 判断是否需要显示时间戳
     shouldShowTimestamp(currentMsg, index) {
       if (index === 0) return true;
-      
+
       const prevMsg = this.messagesWithTimestamp[index - 1];
       const currentTime = new Date(currentMsg.timestamp);
       const prevTime = new Date(prevMsg.timestamp);
-      
+
       // 如果消息间隔超过5分钟，显示时间戳
       return currentTime - prevTime > 5 * 60 * 1000;
     },
@@ -772,19 +772,19 @@ export default {
       const messageDate = new Date(timestamp);
       const now = new Date();
       const isToday = messageDate.toDateString() === now.toDateString();
-      
+
       // 格式化时间
       const timeStr = messageDate.toLocaleTimeString('zh-CN', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false
       });
-      
+
       // 如果是今天的消息，只显示时间
       if (isToday) {
         return timeStr;
       }
-      
+
       // 不是今天的消息，显示日期和时间
       const dateStr = messageDate.toLocaleDateString('zh-CN', {
         month: 'numeric',
@@ -796,7 +796,7 @@ export default {
 }
 </script>
 
-    
+
 
 <style lang="scss" scoped>
 #bot-container {
@@ -1096,14 +1096,14 @@ export default {
   transform: rotateX(-70deg) scale(0.8);
   opacity: 0;
   transition: 0.3s ease all;
-  box-shadow: 
+  box-shadow:
     0 0 var(--auora-dia--platform-size) var(--aurora-dia--platform-light),
     0 0 15px var(--aurora-dia--platform-light) inset;
 }
 
 .Aurora-Dia:hover ~ .Aurora-Dia--platform.top {
   opacity: 0.3;
-  box-shadow: 
+  box-shadow:
     0 0 var(--auora-dia--platform-size) var(--aurora-dia--platform-light),
     0 0 15px var(--aurora-dia--platform-light) inset;
 }
@@ -1139,7 +1139,7 @@ export default {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(to bottom, 
+    background: linear-gradient(to bottom,
       rgba(0, 0, 0, 0.04),
       rgba(0, 0, 0, 0.01)
     );
@@ -1172,7 +1172,7 @@ export default {
     cursor: pointer;
     font-size: 18px;
     padding: 4px;
-    
+
     &:hover {
       color: #666;
     }
@@ -1184,15 +1184,15 @@ export default {
   padding: 12px;
   overflow-y: auto;
   background: white;
-  
+
   /* 隐藏滚动条 - Webkit 浏览器 */
   &::-webkit-scrollbar {
     display: none;
   }
-  
+
   /* 隐藏滚动条 - Firefox */
   scrollbar-width: none;
-  
+
   /* 隐藏滚动条 - IE/Edge */
   -ms-overflow-style: none;
 
@@ -1200,7 +1200,7 @@ export default {
     display: flex;
     margin-bottom: 24px;
     align-items: flex-start;
-    
+
     .avatar {
       width: 32px;
       height: 32px;
@@ -1211,7 +1211,7 @@ export default {
       border-radius: 50%;
       overflow: hidden;
       background: #f0f0f0;
-      
+
       .avatar-img {
         width: 24px;
         height: 24px;
@@ -1232,7 +1232,7 @@ export default {
       letter-spacing:0.2px;
       white-space: pre-line;
       word-wrap: break-word;
-      
+
       .text-to-speech-btn {
         position: absolute;
         right: 0;
@@ -1245,19 +1245,19 @@ export default {
         cursor: pointer;
         opacity: 0.6;
         transition: opacity 0.2s;
-        
+
         &:hover {
           opacity: 1;
         }
-        
+
         svg {
           color: #666;
         }
-        
+
         &.loading svg {
           color: #7aa2f7;
         }
-        
+
         &.playing svg {
           color: #7aa2f7;
         }
@@ -1266,11 +1266,11 @@ export default {
 
     &.user {
       flex-direction: row-reverse;
-      
+
       .avatar {
         display: none;
       }
-      
+
       .message-content {
         background: #f0f0f0;
         margin-right: 8px;
@@ -1310,11 +1310,11 @@ export default {
     line-height: 1.4;
     font-family: inherit;
     color: #333;
-    
+
     &::-webkit-scrollbar {
       display: none;
     }
-    
+
     &::placeholder {
       color: #999;
       font-size: 13px;

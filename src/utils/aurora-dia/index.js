@@ -35,7 +35,7 @@ import WebSocketConnectMethod from '../websocket-connector'
 
 import { botAiStream } from '@/api/bot/botai'
 
-export class AuroraDia {  
+export class AuroraDia {
   constructor() {
     this.configs = {
       locale: 'zh-CN',
@@ -45,7 +45,7 @@ export class AuroraDia {
 
     this.handleWSMessage = this.handleWSMessage.bind(this)
     this.handleWSState = this.handleWSState.bind(this)
-    
+
     // 确保 DOM 加载完成后再初始化
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => this.init())
@@ -55,7 +55,7 @@ export class AuroraDia {
 
     // 预初始化WebSocket连接器
     this.initWebSocket()
-    
+
     this.recordingEndCallback = null;
     this.offlineText = '';
     this.recText = '';
@@ -74,12 +74,12 @@ export class AuroraDia {
       if (!WebSocketConnectMethod) {
         throw new Error('WebSocketConnectMethod not loaded')
       }
-      
+
       this.wsConnector = new WebSocketConnectMethod({
         msgHandle: this.handleWSMessage,
         stateHandle: this.handleWSState
       })
-      
+
       // 预连接WebSocket
       this.wsConnector.wsStart()
       console.log('WebSocket预连接初始化完成')
@@ -93,18 +93,18 @@ export class AuroraDia {
       if (typeof Recorder === 'undefined') {
         throw new Error('Recorder is not loaded')
       }
-      
+
       this.recorder = new Recorder({
         type: "pcm",
         bitRate: 16,
         sampleRate: 16000,
         onProcess: this.handleRecordProcess.bind(this)
       })
-      
+
       this.sampleBuffer = new Int16Array()
       this.recognitionText = ''
       this.isListening = false
-      
+
       console.log('初始化成功')
     } catch (error) {
       console.error('初始化失败:', error)
@@ -136,50 +136,50 @@ export class AuroraDia {
     const rightEye = document.getElementById('Aurora-Dia--right-eye')
     const eyesEl = document.getElementById('Aurora-Dia--eyes')
     const diaBody = document.getElementById('Aurora-Dia')
-    
+
     if (leftEye && rightEye && eyesEl && diaBody) {
       let rafId = nulls
-      
+
       document.addEventListener('mousemove', evt => {
         if (rafId) {
           cancelAnimationFrame(rafId)
         }
-        
+
         rafId = requestAnimationFrame(() => {
           clearTimeout(this.eyesAnimationTimer)
           eyesEl.classList.add('moving')
-          
+
           const viewportWidth = window.innerWidth
           const viewportHeight = window.innerHeight
-          
+
           const diaRect = diaBody.getBoundingClientRect()
           const diaCenterX = diaRect.left + diaRect.width / 2
           const diaCenterY = diaRect.top + diaRect.height / 2
-          
+
           const deltaX = evt.clientX - diaCenterX
           const deltaY = evt.clientY - diaCenterY
-          
+
           const maxPossibleX = Math.max(diaCenterX, viewportWidth - diaCenterX)
           const maxPossibleY = Math.max(diaCenterY, viewportHeight - diaCenterY)
-          
+
           const ratioX = Math.abs(deltaX) / maxPossibleX
           const ratioY = Math.abs(deltaY) / maxPossibleY
-          
+
           const maxMoveBody = 15
           const bodyX = Math.sign(deltaX) * maxMoveBody * ratioX
           const bodyY = Math.sign(deltaY) * maxMoveBody * ratioY
-          
+
           const maxMoveEyes = 25
           const eyesX = Math.sign(deltaX) * maxMoveEyes * ratioX
           const eyesY = Math.sign(deltaY) * maxMoveEyes * ratioY
-          
+
           diaBody.style.transform = `translate(${bodyX}px, ${bodyY}px)`
-          
+
           const relativeX = eyesX - bodyX
           const relativeY = eyesY - bodyY
           leftEye.style.transform = `translate(${relativeX}px, ${relativeY}px)`
           rightEye.style.transform = `translate(${relativeX}px, ${relativeY}px)`
-          
+
           this.eyesAnimationTimer = setTimeout(() => {
             diaBody.style.transform = 'translate(0, 0)'
             leftEye.style.transform = 'translate(0, 0)'
@@ -193,18 +193,18 @@ export class AuroraDia {
 
   async startListening(isChatMode = false) {
     if (this.isListening) return
-    
+
     try {
       // 如果WebSocket未连接或已断开，重新连接
       if (!this.wsConnector?.speechSocket || this.wsConnector.speechSocket.readyState !== 1) {
         await this.initWebSocket()
       }
-      
+
       // 检查录音器是否已初始化
       if (!this.recorder) {
         await this.init()
       }
-      
+
       // 请求麦克风权限并打开录音设备
       await new Promise((resolve, reject) => {
         this.recorder.open(() => {
@@ -213,27 +213,27 @@ export class AuroraDia {
           reject(new Error((isUserNotAllow ? 'UserNotAllow，' : '') + '无法录音:' + msg))
         })
       })
-      
+
       // 开始录音
       this.recorder.start()
       // 设置录音状态标志
       this.isListening = true
       this.isRecording = true
-      
+
       // 根据模式显示不同的提示
       if (!isChatMode) {
         this.software?.showMessage('我在听...', 3000)
       } else {
         console.log('聊天输入模式录音开始')
       }
-      
+
       // 清空之前的文本记录
       this.offlineText = ''
       this.recText = ''
-      
+
       console.log('开始录音')
       return true
-      
+
     } catch (error) {
       console.error('启动录音失败:', error)
       if (!isChatMode) {
@@ -249,12 +249,12 @@ export class AuroraDia {
   async stopListening(isChatMode = false) {
     // 如果当前没有在监听状态，直接返回
     if (!this.isListening) return
-    
+
     try {
       // 停止录音并获取录音数据
       this.recorder.stop((blob, duration) => {
         console.log('录音结束，时长:', duration)
-        
+
         // 构建语音识别请求参数
         const request = {
           chunk_size: [5, 10, 5],    // 音频分块大小
@@ -264,16 +264,16 @@ export class AuroraDia {
           mode: "2pass",             // 识别模式：双重识别
           itn: true                  // 是否进行数字转换
         }
-        
+
         // 发送剩余的音频数据
         if (this.sampleBuffer.length > 0) {
           this.wsConnector.wsSend(this.sampleBuffer)
           this.sampleBuffer = new Int16Array()
         }
-        
+
         // 发送结束请求
         this.wsConnector.wsSend(JSON.stringify(request))
-        
+
         // 延迟处理识别结果
         setTimeout(async() => {
           if (this.recText) {
@@ -294,52 +294,52 @@ export class AuroraDia {
               // 非聊天模式：显示识别结果并调用AI接口
               this.software?.showMessage(this.recText, 3000);
               this.software?.showMessage("我在思考...");
-  
+
               if(this.recText == null || this.recText == '') return;
-  
+
               // 准备发送给AI的数据
               const formData = new FormData();
               formData.append('prompt', this.recText);
-              
+
               // 创建可中断的请求控制器
               this.controller = new AbortController();
-              
+
               // 发送AI请求
               const response = await fetch('http://10.0.28.47:8081/ai/generateStream', {
                 method: 'POST',
                 body: formData,
                 signal: this.controller.signal,
                 headers: {
-                   'Accept': 'text/event-stream', 
+                   'Accept': 'text/event-stream',
                    'Cache-Control': 'no-cache',
                    'Connection': 'keep-alive'
                 }
               });
-              
+
               // 检查响应状态
               if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
               }
-              
+
               // 处理流式响应
               const reader = response.body.getReader();
               const decoder = new TextDecoder();
               let fullMessage = '';
-              
+
               // 循环读取响应流
               while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
-                
+
                 // 解码响应数据
                 const chunk = decoder.decode(value, { stream: true });
                 const lines = chunk.split('\n');
-                
+
                 // 处理每一行响应
                 for (const line of lines) {
                   if (!line.trim()) continue;
                   const jsonStr = line.replace(/^data:/, '').trim();
-                  
+
                   try {
                     const jsonData = JSON.parse(jsonStr);
                     if (jsonData.response) {
@@ -363,17 +363,17 @@ export class AuroraDia {
               this.software?.showMessage('未能识别，请重试', 3000)
             }
           }
-          
+
           // 清理资源
           this.recText = ''
           this.recorder.close()
           this.wsConnector.wsStop()
         }, 500)
       })
-      
+
       // 设置监听状态为false
       this.isListening = false
-      
+
     } catch (error) {
       // 错误处理
       console.error('停止录音失败:', error)
@@ -391,14 +391,14 @@ export class AuroraDia {
 
   handleRecordProcess(buffer) {
     if (!this.isListening) return
-    
+
     const data48k = buffer[buffer.length-1]
     const array48k = new Array(data48k)
     const data16k = Recorder.SampleData(array48k, 48000, 16000).data
-    
+
     this.sampleBuffer = Int16Array.from([...this.sampleBuffer, ...data16k])
     const chunkSize = 960
-    
+
     while (this.sampleBuffer.length >= chunkSize) {
       const sendBuf = this.sampleBuffer.slice(0, chunkSize)
       this.sampleBuffer = this.sampleBuffer.slice(chunkSize)
@@ -413,7 +413,7 @@ export class AuroraDia {
         const newText = data.text;
         const asrModel = data.mode;
         const isFinal = data.is_final;
-        
+
         // 根据模式处理文本
         if (asrModel === "2pass-offline" || asrModel === "offline") {
           // 离线模式，累加离线文本
@@ -431,12 +431,12 @@ export class AuroraDia {
           if (this.isRecording && !isFinal) {
             this.software?.showMessage("我在听~");
           }
-          
+
           if (isFinal) {
             this.software?.showMessage(this.recText, 3000);
           }
         }
-        
+
         console.log('识别文本累加中:', this.recText);
       }
     } catch (error) {
@@ -487,7 +487,7 @@ class AuroraBotSoftware {
       botId: 'Aurora-Did',
       locale: config.locale ? config.locale : 'en'
     }
-    
+
     this.messageCacheKey = '__AURORA_BOT_MESSAGE__'
     this.mouseoverEventCacheKey = '__AURORA_BOT_MOUSE_OVER__'
     this.userAction = false
@@ -666,7 +666,7 @@ class AuroraBotSoftware {
     const messages = {
         'zh-CN': require('./messages/zh-CN.json'),
     };
-    
+
     this.messages = messages;
     return messages;
   }
