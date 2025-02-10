@@ -40,7 +40,7 @@ export class AuroraDia {
     this.configs = {
       locale: 'zh-CN',
       tips: {},
-      wsEndpoint: 'ws://127.0.0.1:8081/ws/asr/90'
+      wsEndpoint: 'ws://10.0.28.47:8081/ws/asr/90'
     }
 
     this.handleWSMessage = this.handleWSMessage.bind(this)
@@ -305,11 +305,12 @@ export class AuroraDia {
               this.controller = new AbortController();
               
               // 发送AI请求
-              const response = await fetch('http://localhost:8081/ai/generateStream', {
+              const response = await fetch('http://10.0.28.47:8081/ai/generateStream', {
                 method: 'POST',
                 body: formData,
                 signal: this.controller.signal,
                 headers: {
+
                    'Accept': 'text/event-stream', 
                    'Cache-Control': 'no-cache',
                    'Connection': 'keep-alive'

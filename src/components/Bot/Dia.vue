@@ -542,7 +542,7 @@ export default {
         formData.append('prompt', currentInput)
 
         // 发送POST请求到AI接口
-        const response = await fetch('http://localhost:8081/ai/generateStream', {
+        const response = await fetch('http://10.0.28.47:8081/ai/generateStream', {
           method: 'POST',
           body: formData
         })
