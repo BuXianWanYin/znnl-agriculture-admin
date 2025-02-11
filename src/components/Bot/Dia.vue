@@ -165,7 +165,7 @@ export default {
     messagesWithTimestamp() {
       return this.messages.map(msg => ({
         ...msg,
-        timestamp: msg.timestamp || new Date().getTime()
+        timestamp: typeof msg.timestamp === 'number' ? msg.timestamp : new Date().getTime()
       }));
     },
     isLoginPage() {
@@ -183,19 +183,22 @@ export default {
             text: '你好！我是你的智能助手，有什么可以帮你的吗？',
             timestamp: new Date().getTime(),
             audioUrl: null,
-            ttsStatus: 'loading' // 添加 ttsStatus 来控制按钮显示
+            ttsStatus: 'loading'
           }
 
           // 添加消息
           this.messages.push(welcomeMessage)
 
-          // 请求语音URL
           try {
+            // 请求语音URL
             const audioUrl = await this.getVoiceUrl(welcomeMessage.text, welcomeMessage.timestamp)
             welcomeMessage.audioUrl = audioUrl
-            welcomeMessage.ttsStatus = null // 加载完成后清除状态，允许显示播放按钮
+            welcomeMessage.ttsStatus = null
+
+            // 保存欢迎消息到数据库
+            await this.saveChatMessage(welcomeMessage)
           } catch (error) {
-            console.error('获取欢迎消息语音URL失败:', error)
+            console.error('处理欢迎消息失败:', error)
             welcomeMessage.ttsStatus = null
           }
         }
@@ -547,14 +550,19 @@ export default {
 
     // 获取语音URL
     async getVoiceUrl(text, timestamp) {
+      // 处理文本：去除*号、-号和空格
+      const processedText = text.replace(/[*\-\s]/g, '')
+      
       const formattedTimestamp = this.formatTimestampForBackend(timestamp)
-      console.log('请求语音URL - 文本:', text)
+      
+      console.log('请求语音URL - 原始文本:', text)
+      console.log('请求语音URL - 处理后文本:', processedText)
       console.log('请求语音URL - 时间戳:', formattedTimestamp)
 
       try {
         const formData = new FormData()
         formData.append('timestamp', formattedTimestamp)
-        formData.append('text', text)
+        formData.append('text', processedText) // 使用处理后的文本
 
         const response = await fetch('http://10.0.28.47:8081/cosy/voicepath', {
           method: 'POST',
@@ -581,7 +589,7 @@ export default {
       }
     },
 
-    // 添加加载历史记录方法
+    // 修改加载历史记录的方法，处理 create_time 字段
     async loadChatHistory() {
       if (this.isLoadingHistory) return
 
@@ -592,14 +600,36 @@ export default {
           throw new Error('Failed to load chat history')
         }
         const history = await response.json()
-        // 转换历史记录格式并添加到消息列表
-        this.messages = history.map(msg => ({
-          type: msg.type,
-          text: msg.content,
-          timestamp: msg.timestamp,
-          audioUrl: msg.audioUrl,
-          ttsStatus: null
-        }))
+        
+        // 输出原始历史记录数据
+        console.log('原始历史记录数据:', history)
+        
+        // 转换历史记录格式，使用 createTime 作为时间戳
+        this.messages = history.map(msg => {
+          const convertedMsg = {
+            type: msg.type,
+            text: msg.content,
+            timestamp: msg.createTime ? new Date(msg.createTime).getTime() : 
+                     (typeof msg.timestamp === 'number' ? msg.timestamp : new Date().getTime()),
+            audioUrl: msg.audioUrl,
+            ttsStatus: null
+          }
+          
+          // 输出每条消息的转换信息
+          console.log('消息转换:', {
+            原始数据: msg,
+            转换后数据: convertedMsg,
+            原始时间: msg.create_time,
+            转换后时间戳: convertedMsg.timestamp,
+            格式化后时间: this.formatMessageTime(convertedMsg.createTime)
+          })
+          
+          return convertedMsg
+        })
+        
+        // 输出最终转换后的消息数组
+        console.log('最终转换后的消息数组:', this.messages)
+        
       } catch (error) {
         console.error('加载聊天历史失败:', error)
       } finally {
@@ -607,14 +637,14 @@ export default {
       }
     },
 
-    // 添加保存消息方法
+    // 修改保存消息的方法，使用后端返回的 create_time
     async saveChatMessage(message) {
       try {
         const messageData = {
           type: message.type,
           content: message.text,
           audioUrl: message.audioUrl || null,
-          timestamp: message.timestamp,
+          timestamp: typeof message.timestamp === 'number' ? message.timestamp : new Date().getTime(),
           userId: this.userId
         }
 
@@ -628,6 +658,12 @@ export default {
 
         if (!response.ok) {
           throw new Error('Failed to save message')
+        }
+
+        // 获取后端返回的数据（假设后端会返回包含 create_time 的消息数据）
+        const savedMessage = await response.json()
+        if (savedMessage.create_time) {
+          message.timestamp = new Date(savedMessage.create_time).getTime()
         }
       } catch (error) {
         console.error('保存消息失败:', error)
@@ -698,7 +734,27 @@ export default {
         console.log('开始读取流式响应...')
         while (true) {
           const { done, value } = await reader.read()
-          if (done) break
+          
+          // 如果读取完成，开始获取语音URL
+          if (done) {
+            // 提前开始获取语音URL
+            console.log('AI响应完成，开始获取语音URL...')
+
+            const audioUrlPromise = this.getVoiceUrl(fullMessage, botMessage.timestamp)
+            
+            // 更新消息文本
+            botMessage.text = fullMessage
+            
+            // 等待语音URL获取完成
+            const audioUrl = await audioUrlPromise
+            botMessage.audioUrl = audioUrl
+            botMessage.ttsStatus = null
+            console.log('更新消息的音频URL:', audioUrl)
+            
+            // 保存完整的机器人消息
+            await this.saveChatMessage(botMessage)
+            break
+          }
 
           const chunk = decoder.decode(value, { stream: true })
           const lines = chunk.split('\n')
@@ -727,18 +783,6 @@ export default {
             }
           }
         }
-
-        console.log('AI响应完成，获取语音URL...')
-        const audioUrl = await this.getVoiceUrl(fullMessage, botMessage.timestamp)
-        botMessage.audioUrl = audioUrl
-        botMessage.ttsStatus = null // 加载完成后清除状态，允许显示播放按钮
-        console.log('更新消息的音频URL:', audioUrl)
-
-        // 在获取完整回复后保存机器人消息
-        botMessage.text = fullMessage
-        botMessage.audioUrl = audioUrl
-        botMessage.ttsStatus = null
-        await this.saveChatMessage(botMessage)
 
       } catch (error) {
         console.error('发送消息失败:', error)
@@ -906,42 +950,61 @@ export default {
       if (voiceBtn) voiceBtn.style.display = 'none'
     },
 
-    // 判断是否需要显示时间戳
+    // 修改判断是否显示时间戳的方法
     shouldShowTimestamp(currentMsg, index) {
       if (index === 0) return true;
-
+      
       const prevMsg = this.messagesWithTimestamp[index - 1];
-      const currentTime = new Date(currentMsg.timestamp);
-      const prevTime = new Date(prevMsg.timestamp);
-
-      // 如果消息间隔超过5分钟，显示时间戳
-      return currentTime - prevTime > 5 * 60 * 1000;
+      const currentTime = currentMsg.timestamp;
+      const prevTime = prevMsg.timestamp;
+      
+      // 如果消息间隔超过5分钟（300000毫秒），显示时间戳
+      return currentTime - prevTime > 300000;
     },
 
-    // 格式化时间显示
+    // 修改格式化时间显示的方法
     formatMessageTime(timestamp) {
-      const messageDate = new Date(timestamp);
-      const now = new Date();
-      const isToday = messageDate.toDateString() === now.toDateString();
-
-      // 格式化时间
-      const timeStr = messageDate.toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
-
-      // 如果是今天的消息，只显示时间
-      if (isToday) {
-        return timeStr;
+      // 确保timestamp是数字类型
+      if (typeof timestamp !== 'number') {
+        console.warn('Invalid timestamp format:', timestamp);
+        timestamp = new Date().getTime();
       }
 
-      // 不是今天的消息，显示日期和时间
-      const dateStr = messageDate.toLocaleDateString('zh-CN', {
-        month: 'numeric',
-        day: 'numeric'
-      });
-      return `${dateStr} ${timeStr}`;
+      try {
+        const messageDate = new Date(timestamp);
+        // 验证日期是否有效
+        if (isNaN(messageDate.getTime())) {
+          console.error('Invalid date created from timestamp:', timestamp);
+          return '时间未知';
+        }
+
+        const now = new Date();
+        const isToday = messageDate.toDateString() === now.toDateString();
+        const isYesterday = new Date(now - 86400000).toDateString() === messageDate.toDateString();
+
+        // 格式化时间
+        const timeStr = messageDate.toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+
+        if (isToday) {
+          return `今天 ${timeStr}`;
+        } else if (isYesterday) {
+          return `昨天 ${timeStr}`;
+        } else {
+          // 显示完整日期
+          const dateStr = messageDate.toLocaleDateString('zh-CN', {
+            month: 'numeric',
+            day: 'numeric'
+          });
+          return `${dateStr} ${timeStr}`;
+        }
+      } catch (error) {
+        console.error('Error formatting message time:', error);
+        return '时间未知';
+      }
     }
   }
 }
@@ -1216,7 +1279,7 @@ export default {
 .microphone-icon {
   width: 14px;
   height: 14px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.91 5.78V20c0 .55.45 1 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.91 5.91 5.78V20c0 .55.45 1 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
   background-repeat: no-repeat;
   background-position: center;
   transition: all 0.3s ease;

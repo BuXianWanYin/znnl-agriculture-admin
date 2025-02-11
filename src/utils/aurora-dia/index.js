@@ -40,7 +40,7 @@ export class AuroraDia {
     this.configs = {
       locale: 'zh-CN',
       tips: {},
-      wsEndpoint: 'ws://10.0.28.47:8081/ws/asr/90'
+      wsEndpoint: 'ws://10.0.28.47:8081/ws/asr/' + new Date().getTime()
     }
 
     this.handleWSMessage = this.handleWSMessage.bind(this)
