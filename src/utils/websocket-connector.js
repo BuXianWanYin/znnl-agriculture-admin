@@ -6,8 +6,10 @@ export default class WebSocketConnectMethod {
   }
 
   wsStart() {
-    const Uri = 'ws://10.0.28.47:8081/ws/asr/90'
-    
+
+    const Uri = 'ws://10.0.28.47:8081/ws/asr/' + new Date().getTime(); 
+    console.log('WebSocket连接地址:', Uri)
+
     if (!Uri.match(/wss?:\S*/)) {
       console.error("请检查WebSocket地址")
       return 0
