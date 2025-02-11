@@ -17,14 +17,7 @@
                         <el-button type="primary" plain icon="el-icon-plus" size="mini"
                             @click="addHouse()">新增</el-button>
                     </el-form-item>
-                    <!-- <el-form-item>
-                        <el-button type="success" size="mini" @click="houseSearch">&nbsp;查询&nbsp;</el-button>
-                        <el-button @click="resetName" size="mini">&nbsp;重置&nbsp;</el-button>
-                    </el-form-item> -->
                 </el-form>
-                <!-- <div class="do-right">
-                    <el-button type="success" size="mini" plain @click="addHouse()">&nbsp; 新增 &nbsp;</el-button>
-                </div> -->
             </div>
         </el-card>
         <div class="plant-table">
