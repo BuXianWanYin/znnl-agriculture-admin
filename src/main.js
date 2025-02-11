@@ -165,29 +165,29 @@ Vue.use(Element, {
 // 使用 Element UI 的 Notification 组件来推送预警通知。
 
 
-// 初始化 MQTT 连接
-mqttTool.connect();
+// // 初始化 MQTT 连接
+// mqttTool.connect();
 
-// 订阅主题 'qianduan'
-mqttTool.subscribe('warning').then(() => {
-        console.log('主题订阅成功');
-    })
-    .catch((err) => {
-        console.error('订阅失败:', err);
-    });
+// // 订阅主题 'qianduan'
+// mqttTool.subscribe('warning').then(() => {
+//         console.log('主题订阅成功');
+//     })
+//     .catch((err) => {
+//         console.error('订阅失败:', err);
+//     });
 
-// 设置消息处理回调，接收到消息后推送通知
-mqttTool.setMessageHandler((topic, message) => {
-    console.log(`收到消息 - 主题: ${topic}, 内容: ${message}`);
-    // 使用 Element UI Notification 推送通知
-    Vue.prototype.$notify({
-        title: '预警通知',
-        message: message,
-        type: 'warning',
-        duration: 5000,
-        showClose: true,
-    });
-});
+// // 设置消息处理回调，接收到消息后推送通知
+// mqttTool.setMessageHandler((topic, message) => {
+//     console.log(`收到消息 - 主题: ${topic}, 内容: ${message}`);
+//     // 使用 Element UI Notification 推送通知
+//     Vue.prototype.$notify({
+//         title: '预警通知',
+//         message: message,
+//         type: 'warning',
+//         duration: 5000,
+//         showClose: true,
+//     });
+// });
 
 
 Vue.config.productionTip = false
