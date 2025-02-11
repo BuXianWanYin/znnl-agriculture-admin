@@ -367,7 +367,7 @@ export class AuroraDia {
           // 清理资源
           this.recText = ''
           this.recorder.close()
-          this.wsConnector.wsStop()
+        //  this.wsConnector.wsStop()
         }, 500)
       })
 
