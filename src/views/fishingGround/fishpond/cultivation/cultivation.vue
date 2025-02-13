@@ -1,6 +1,6 @@
 <template>
-    <!-- 
-    分区养殖页面 
+    <!--
+    分区养殖页面
     -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">

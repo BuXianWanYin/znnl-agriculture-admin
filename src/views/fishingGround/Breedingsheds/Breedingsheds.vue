@@ -1,5 +1,5 @@
 <template>
-    <!-- 
+    <!--
      养殖棚管理页面
     -->
     <div class="list-content">
