@@ -1,5 +1,5 @@
 <template>
-    <!-- 
+    <!--
      养殖棚管理页面
     -->
     <div class="list-content">
@@ -199,7 +199,7 @@
                 })
             },
             getHouseData(val) {
-                this.$http.post("/dev-api/iaPasture/page", {
+                this.$http.post("/dev-api/fishPasture/page", {
                     currentPage: this.currentPage,
                     pageSize: this.pSize,
                     keyword: val
@@ -230,7 +230,7 @@
                 if (n) {
                     console.log("编辑")
                     this.btnTxt = 1
-                    this.$http.post("/dev-api/iaPasture/detail?id=" + n).then(res => {
+                    this.$http.post("/dev-api/fishPasture/detail?id=" + n).then(res => {
                         console.log(res)
                         this.houseDoForm = res.data.data
                     })
@@ -255,7 +255,7 @@
                 this.plantDetail(id)
             },
             plantDetail(n) {
-                this.$http.post("/dev-api/iaPasture/detail?id=" + n).then(res => {
+                this.$http.post("/dev-api/fishPasture/detail?id=" + n).then(res => {
                     console.log(res)
                     this.houseDoForm = res.data.data;
                     const dvId = res.data.data.devices;
@@ -282,7 +282,7 @@
             houseCheck(n, val) {
                 this.checkId = n
                 this.houseStatusDialog = true
-                this.$http.post("/dev-api/iaPasture/ivPastureSensorValuePage", {
+                this.$http.post("/dev-api/fishPasture/ivPastureSensorValuePage", {
                     currentPage: this.scurrentPage,
                     keyword: this.mcName,
                     pageSize: this.spSize,
@@ -300,7 +300,7 @@
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
-                    this.$http.post("/dev-api/iaPasture/delete?id=" + id).then(res => {
+                    this.$http.post("/dev-api/fishPasture/delete?id=" + id).then(res => {
                         // console.log(res)
                         if (res.data.code == 0) {
                             this.getHouseData()
@@ -321,7 +321,7 @@
             //   弹框确定按钮
             houseDoBtn() {
                 if (this.btnTxt == 0) {
-                    this.$http.post("/dev-api/iaPasture/create", this.houseDoForm).then(res => {
+                    this.$http.post("/dev-api/fishPasture/create", this.houseDoForm).then(res => {
                         console.log(res)
                         if (res.data.code == 0) {
                             this.$message.success("数据新增成功");
@@ -338,7 +338,7 @@
                             this.houseDoForm.deviceId = item.id
                         }
                     })
-                    this.$http.post("/dev-api/iaPasture/update", this.houseDoForm).then(res => {
+                    this.$http.post("/dev-api/fishPasture/update", this.houseDoForm).then(res => {
                         console.log(res)
                         if (res.data.code == 0) {
                             this.$message.success("数据修改成功");

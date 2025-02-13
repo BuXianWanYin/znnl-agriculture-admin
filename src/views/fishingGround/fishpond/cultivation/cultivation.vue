@@ -1,6 +1,6 @@
 <template>
-    <!-- 
-    分区养殖页面 
+    <!--
+    分区养殖页面
     -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
@@ -255,7 +255,7 @@
             this.getLandList();
             this.getGermplasmList();
             this.getUserList();
-            this.$http.get("/dev-api/iaPasture/list").then(res => {
+            this.$http.get("/dev-api/fishPasture/list").then(res => {
                 this.houeList = res.data.data;
                 console.log(this.houe)
             })
