@@ -115,7 +115,7 @@
   import { listStandardJob, getStandardJob, delStandardJob, addStandardJob, updateStandardJob } from "@/api/agriculture/standardJob";
   
   export default {
-    name: "GrowthProcess",  //组件的名称
+    name: "GrowthProcess",
     dicts: ['agriculture_cycle_unit'],
     props:{
       germplasmId:{

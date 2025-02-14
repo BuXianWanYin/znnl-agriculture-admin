@@ -10,8 +10,8 @@
                     <el-input v-model="queryParams.batchName" placeholder="请输入批次名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
                 </el-form-item>
-                <el-form-item label="种质" prop="germplasmId">
-                    <el-select v-model="queryParams.germplasmId" size="small" placeholder="请选择种质">
+                <el-form-item label="鱼种" prop="germplasmId">
+                    <el-select v-model="queryParams.germplasmId" size="small" placeholder="请选择鱼种">
                         <el-option v-for="germplasm in germplasmList" :key="germplasm.germplasmId"
                             :label="germplasm.germplasmName" :value="germplasm.germplasmId"></el-option>
                     </el-select>
@@ -32,7 +32,7 @@
             <el-table v-loading="loading" :data="batchList">
                 <el-table-column type="index" label="序号"> </el-table-column>
                 <el-table-column label="批次名称" align="center" prop="batchName" />
-                <el-table-column label="种质" align="center" prop="germplasmId">
+                <el-table-column label="鱼种" align="center" prop="germplasmId">
                     <template slot-scope="scope">
                         <data-tag :options="germplasmList" :value="scope.row.germplasmId" labelName="germplasmName"
                             valueName="germplasmId" type="" />
@@ -44,7 +44,7 @@
                             valueName="userId" type="notag" />
                     </template>
                 </el-table-column>
-                <el-table-column label="种质图片" align="center" prop="introImg" width="180">
+                <el-table-column label="鱼种图片" align="center" prop="introImg" width="180">
                     <template v-slot:default="{ row }">
                         <div class="image" @click="previewImage(`${image.baseUrl + row.germplasmImg}`, row)">
                             <img style="width:50px;height:50px;" :src="`${image.baseUrl + row.germplasmImg}`" />
@@ -89,7 +89,7 @@
         </el-card>
         <!-- 添加或修改作物批次对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-            <el-alert class="margin-bottom-10" title="新建批次会根据选择种质的种植流程生成批次任务，新增完成可以到批次任务管理界面调整批次任务！" type="warning"
+            <el-alert class="margin-bottom-10" title="新建批次会根据选择鱼种的养殖流程生成批次任务，新增完成可以到批次任务管理界面调整批次任务！" type="warning"
                 effect="light" show-icon closable></el-alert>
 
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
@@ -102,8 +102,8 @@
                 <el-form-item label="分区名称" prop="batchName">
                     <el-input v-model="form.batchName" placeholder="请输入分区名称" />
                 </el-form-item>
-                <el-form-item label="种质" prop="germplasmId">
-                    <el-select v-model="form.germplasmId" placeholder="请选择种质">
+                <el-form-item label="鱼种" prop="germplasmId">
+                    <el-select v-model="form.germplasmId" placeholder="请选择鱼种">
                         <el-option v-for="germplasm in germplasmList" :key="germplasm.germplasmId"
                             :label="germplasm.cropName" :value="germplasm.germplasmId"></el-option>
                     </el-select>
@@ -224,7 +224,7 @@
                     }],
                     germplasmId: [{
                         required: true,
-                        message: "种质ID不能为空",
+                        message: "鱼种ID不能为空",
                         trigger: "blur"
                     }],
                     landId: [{
@@ -332,7 +332,7 @@
             handleAdd() {
                 this.reset();
                 this.open = true;
-                this.title = "添加作物批次";
+                this.title = "添加鱼种批次";
             },
             /** 修改按钮操作 */
             handleUpdate(row) {
@@ -341,7 +341,7 @@
                 getBatch(batchId).then(response => {
                     this.form = response.data;
                     this.open = true;
-                    this.title = "修改作物批次";
+                    this.title = "修改鱼种批次";
                 });
             },
             /** 提交按钮 */
@@ -367,7 +367,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const batchIds = row.batchId || this.ids;
-                this.$modal.confirm('是否确认删除作物批次编号为"' + batchIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除鱼种批次编号为"' + batchIds + '"的数据项？').then(function() {
                     return delBatch(batchIds);
                 }).then(() => {
                     this.getList();

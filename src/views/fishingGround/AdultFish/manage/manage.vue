@@ -56,7 +56,7 @@
 
             <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body
                 @close="closeStandardJob">
-                <standard-job :speciesId="currentspeciesId" v-if="showStandardJobComponent" />
+                <standard-job :germplasm-id="currentspeciesId" v-if="showStandardJobComponent" />
             </el-dialog>
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
@@ -108,7 +108,7 @@
     export default {
         name: "Germplasm",
         components: {
-            GrowthProcess
+            'standard-job': GrowthProcess
         },
         data() {
             return {

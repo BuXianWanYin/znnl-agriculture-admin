@@ -28,14 +28,13 @@
                 <el-table v-loading="loading" :data="germplasmList">
                     <el-table-column label="批次ID" align="center" prop="字段名" width="100" /> 
                     <el-table-column label="批次名称" align="center" prop="字段名" />
-                    <!-- <el-table-column label="种类ID" align="center" prop="" /> -->
                     <el-table-column label="养殖面积（亩）" align="center" prop="" width="120" />
                     <el-table-column label="饵料编码" align="center" prop="" />
                     <el-table-column label="饵料名称" align="center" prop="" />
                     <el-table-column label="投喂量" align="center" prop="" />
                     <el-table-column label="计量单位" align="center" prop="" />
                     <el-table-column label="投喂人" align="center" prop="" />
-                    <!-- <el-table-column label="投喂人电话" align="center" prop="" /> -->
+                    <el-table-column label="投喂人电话" align="center" prop="" />
                     <el-table-column label="开始投喂时间" align="center" prop="startTime" width="180" />
                     <el-table-column label="结束投喂时间" align="center" prop="endTime" width="180" />
                     <el-table-column label="备注" align="center" prop="" width="150" />
@@ -46,25 +45,13 @@
                             <el-button size="mini" type="danger" class="padding-5" icon="el-icon-delete"
                                 @click="handleDelete(scope.row)"
                                 v-hasPermi="['agriculture:germplasm:remove']">删除</el-button>
-                            <!-- <el-button size="mini" type="success" class="padding-5" icon="el-icon-document"
-                                @click="GrowthProcess(scope.row)"
-                                v-hasPermi="['agriculture:germplasm:jobProcess']">作业流程</el-button> -->
                         </template>
                     </el-table-column>
                 </el-table>
-             <!-- <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body>
-                <growth-process :germplasm-id="currentGermplasmId" />
-                </el-dialog> -->
-    
-                <!-- <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
-                    :limit.sync="queryParams.pageSize" @pagination="getList" /> -->
             </el-card>
             <!-- 添加或修改种质对话框 -->
             <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
                 <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                    <!-- <el-form-item label="饵料ID" prop="">
-                        <el-input v-model="x" placeholder="请输入饵料ID" />
-                    </el-form-item> -->
                     <el-form-item label="饵料名称" prop="">
                         <el-input v-model="x" placeholder="请输入饵料名称" />
                     </el-form-item>
@@ -74,9 +61,9 @@
                     <el-form-item label="投喂人" prop="">
                         <el-input v-model="x" placeholder="请输入投喂人" />
                     </el-form-item>
-                    <!-- <el-form-item label="投喂人电话" prop="germplasmImg">
-                        <el-input v-model="form.germplasmEnName" placeholder="请输入投喂人电话" />
-                    </el-form-item> -->
+                    <el-form-item label="投喂人电话" prop="">
+                        <el-input v-model="X" placeholder="请输入投喂人电话" />
+                    </el-form-item>
                     <el-form-item label="开始投喂时间" prop="startTime">
                         <el-date-picker
                             v-model="form.startTime"
