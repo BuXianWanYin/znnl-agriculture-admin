@@ -1,17 +1,17 @@
  <template>
-<!-- 
- 管理成鱼页面 
+<!--
+ 管理成鱼页面
  -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
             <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px"
                 class="form-minus-bottom">
-                <el-form-item label="鱼名称" prop="cropName">
-                    <el-input v-model="queryParams.cropName" placeholder="请输入鱼名称" clearable size="small"
+                <el-form-item label="鱼名称" prop="fishName">
+                    <el-input v-model="queryParams.fishName" placeholder="请输入鱼名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
                 </el-form-item>
-                <el-form-item label="鱼类名称" prop="germplasmName">
-                    <el-input v-model="queryParams.germplasmName" placeholder="请输入鱼类名称" clearable size="small"
+                <el-form-item label="鱼类名称" prop="fishSpeciesName">
+                    <el-input v-model="queryParams.fishSpeciesName" placeholder="请输入鱼类名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
                 </el-form-item>
                 <el-form-item>
@@ -20,43 +20,43 @@
                 </el-form-item>
                 <el-form-item class="fr">
                     <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                        v-hasPermi="['agriculture:germplasm:add']">新增</el-button>
+                        v-hasPermi="['fishPasture:species:add']">新增</el-button>
                     <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
-                        v-hasPermi="['agriculture:germplasm:export']">导出</el-button>
+                        v-hasPermi="['fishPasture:species:export']">导出</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="germplasmList">
+            <el-table v-loading="loading" :data="speciesList">
                 <el-table-column type="index" label="序号"> </el-table-column>
-                <el-table-column label="鱼名称" align="center" prop="cropName" />
-                <el-table-column label="鱼英文名称" align="center" prop="cropEnName" />
-                <el-table-column label="鱼类名称" align="center" prop="germplasmName" />
-                <el-table-column label="鱼类英文名称" align="center" prop="germplasmEnName" />
-                <el-table-column label="鱼类图片" align="center" prop="germplasmImg" width="180">
+                <el-table-column label="鱼名称" align="center" prop="fishName" />
+                <el-table-column label="鱼英文名称" align="center" prop="fishEnName" />
+                <el-table-column label="鱼类名称" align="center" prop="fishSpeciesName" />
+                <el-table-column label="鱼类英文名称" align="center" prop="fishSpeciesEnName" />
+                <el-table-column label="鱼类图片" align="center" prop="fishSpeciesImg" width="180">
                     <template v-slot:default="{ row }">
-                        <div class="image" @click="previewImage(`${image.baseUrl + row.germplasmImg}`, row)">
-                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + row.germplasmImg}`" />
+                        <div class="image" @click="previewImage(`${image.baseUrl + row.fishSpeciesImg}`, row)">
+                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + row.fishSpeciesImg}`" />
                         </div>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                     <template slot-scope="scope">
                         <el-button size="mini" type="primary" class="padding-5" icon="el-icon-edit"
-                            @click="handleUpdate(scope.row)" v-hasPermi="['agriculture:germplasm:edit']">修改</el-button>
+                            @click="handleUpdate(scope.row)" v-hasPermi="['fishPasture:species:edit']">修改</el-button>
                         <el-button size="mini" type="danger" class="padding-5" icon="el-icon-delete"
                             @click="handleDelete(scope.row)"
-                            v-hasPermi="['agriculture:germplasm:remove']">删除</el-button>
+                            v-hasPermi="['fishPasture:species:remove']">删除</el-button>
                         <el-button size="mini" type="success" class="padding-5" icon="el-icon-document"
                             @click="showStandardJob(scope.row)"
-                            v-hasPermi="['agriculture:germplasm:jobProcess']">作业流程</el-button>
+                            v-hasPermi="['fishPasture:species:jobProcess']">作业流程</el-button>
                     </template>
                 </el-table-column>
             </el-table>
 
             <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body
                 @close="closeStandardJob">
-                <standard-job :germplasmId="currentGermplasmId" v-if="showStandardJobComponent" />
+                <standard-job :speciesId="currentspeciesId" v-if="showStandardJobComponent" />
             </el-dialog>
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
@@ -64,23 +64,23 @@
         <!-- 添加或修改种质对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                <el-form-item label="鱼名称" prop="cropName">
-                    <el-input v-model="form.cropName" placeholder="请输入鱼名称" />
+                <el-form-item label="鱼名称" prop="fishName">
+                    <el-input v-model="form.fishName" placeholder="请输入鱼名称" />
                 </el-form-item>
-                <el-form-item label="鱼英文名称" prop="cropEnName">
-                    <el-input v-model="form.cropEnName" placeholder="请输入鱼英文名称" />
+                <el-form-item label="鱼英文名称" prop="fishEnName">
+                    <el-input v-model="form.fishEnName" placeholder="请输入鱼英文名称" />
                 </el-form-item>
-                <el-form-item label="鱼类名称" prop="germplasmName">
-                    <el-input v-model="form.germplasmName" placeholder="请输入鱼类名称" />
+                <el-form-item label="鱼类名称" prop="fishSpeciesName">
+                    <el-input v-model="form.fishSpeciesName" placeholder="请输入鱼类名称" />
                 </el-form-item>
-                <el-form-item label="鱼类英文名称" prop="germplasmEnName">
-                    <el-input v-model="form.germplasmEnName" placeholder="请输入鱼类英文名称" />
+                <el-form-item label="鱼类英文名称" prop="fishSpeciesEnName">
+                    <el-input v-model="form.fishSpeciesEnName" placeholder="请输入鱼类英文名称" />
                 </el-form-item>
-                <el-form-item label="鱼类图片" prop="germplasmImg">
-                    <imageUpload v-model="form.germplasmImg" />
+                <el-form-item label="鱼类图片" prop="fishSpeciesImg">
+                    <imageUpload v-model="form.fishSpeciesImg" />
                 </el-form-item>
-                <el-form-item label="宣传语" prop="germplasmDes">
-                    <el-input v-model="form.germplasmDes" type="textarea" placeholder="请输入内容" />
+                <el-form-item label="宣传语" prop="fishSpeciesDes">
+                    <el-input v-model="form.fishSpeciesDes" type="textarea" placeholder="请输入内容" />
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -102,7 +102,7 @@
         delGermplasm,
         addGermplasm,
         updateGermplasm
-    } from "@/api/agriculture/germplasm";
+    } from "@/api/fishingGround/species";
     import GrowthProcess from "@/views/fishingGround/AdultFish/manage/GrowthProcess.vue"
 
     export default {
@@ -113,7 +113,7 @@
         data() {
             return {
                 showStandardJobComponent: false, // 控制组件显示的变量
-                currentGermplasmId: null, // 当前选中的种质ID
+                speciesId: null, // 当前选中的种质ID
                 //图片预览
                 image: {
                     baseUrl: window.location.origin + process.env.VUE_APP_BASE_API,
@@ -134,7 +134,7 @@
                 // 总条数
                 total: 0,
                 // 种质表格数据
-                germplasmList: [],
+                speciesList: [],
                 // 弹出层标题
                 title: "",
                 // 是否显示弹出层
@@ -143,39 +143,39 @@
                 queryParams: {
                     pageNum: 1,
                     pageSize: 10,
-                    cropName: null,
-                    germplasmName: null,
+                    fishName: null,
+                    fishSpeciesName: null,
                 },
                 // 表单参数
                 form: {},
                 // 表单校验
                 rules: {
-                    germplasmId: [{
+                    speciesId: [{
                         required: true,
                         message: "鱼类ID不能为空",
                         trigger: "blur"
                     }],
-                    cropName: [{
+                    fishName: [{
                         required: true,
                         message: "鱼名称不能为空",
                         trigger: "blur"
                     }],
-                    cropEnName: [{
+                    fishEnName: [{
                         required: true,
                         message: "鱼英文名称不能为空",
                         trigger: "blur"
                     }],
-                    germplasmName: [{
+                    fishSpeciesName: [{
                         required: true,
                         message: "鱼类名称不能为空",
                         trigger: "blur"
                     }],
-                    germplasmEnName: [{
+                    fishSpeciesEnName: [{
                         required: true,
                         message: "鱼类英文名称不能为空",
                         trigger: "blur"
                     }],
-                    germplasmImg: [{
+                    fishSpeciesImg: [{
                         required: true,
                         message: "鱼类图片不能为空",
                         trigger: "blur"
@@ -188,7 +188,7 @@
         },
         methods: {
             showStandardJob(row) {
-                this.currentGermplasmId = row.germplasmId; // 获取当前行的鱼类ID
+                this.currentspeciesId = row.speciesId; // 获取当前行的鱼类ID
                 this.showStandardJobComponent = true; // 显示组件
             },
             closeStandardJob() {
@@ -198,7 +198,7 @@
             getList() {
                 this.loading = true;
                 listGermplasm(this.queryParams).then(response => {
-                    this.germplasmList = response.rows;
+                    this.speciesList = response.rows;
                     this.total = response.total;
                     this.loading = false;
                 });
@@ -211,8 +211,8 @@
             // 表单重置
             reset() {
                 this.form = {
-                    germplasmId: null,
-                    cropName: null,
+                    speciesId: null,
+                    fishName: null,
                     cropEnName: null,
                     germplasmName: null,
                     germplasmEnName: null,
@@ -248,8 +248,8 @@
             /** 修改按钮操作 */
             handleUpdate(row) {
                 this.reset();
-                const germplasmId = row.germplasmId || this.ids
-                getGermplasm(germplasmId).then(response => {
+                const speciesId = row.speciesId || this.ids
+                getGermplasm(speciesId).then(response => {
                     this.form = response.data;
                     this.open = true;
                     this.title = "修改鱼类";
@@ -259,7 +259,7 @@
             submitForm() {
                 this.$refs["form"].validate(valid => {
                     if (valid) {
-                        if (this.form.germplasmId != null) {
+                        if (this.form.speciesId != null) {
                             updateGermplasm(this.form).then(response => {
                                 this.$modal.msgSuccess("修改成功");
                                 this.open = false;
@@ -277,9 +277,9 @@
             },
             /** 删除按钮操作 */
             handleDelete(row) {
-                const germplasmIds = row.germplasmId || this.ids;
-                this.$modal.confirm('是否确认删除鱼类编号为"' + germplasmIds + '"的数据项？').then(function() {
-                    return delGermplasm(germplasmIds);
+                const speciesIds = row.speciesId || this.ids;
+                this.$modal.confirm('是否确认删除鱼类编号为"' + speciesIds + '"的数据项？').then(function() {
+                    return delGermplasm(speciesIds);
                 }).then(() => {
                     this.getList();
                     this.$modal.msgSuccess("删除成功");
@@ -293,7 +293,7 @@
             },
             /** 导出按钮操作 */
             handleExport() {
-                this.download('agriculture/germplasm/export', {
+                this.download('fishPasture/species/export', {
                     ...this.queryParams
                 }, `germplasm_${new Date().getTime()}.xlsx`)
             }
