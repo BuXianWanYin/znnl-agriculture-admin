@@ -111,10 +111,11 @@
   </template>
   
   <script>
+  // 查询标准作业任务列表,查询标准作业任务详细,删除标准作业任务,新增标准作业任务,修改标准作业任务 
   import { listStandardJob, getStandardJob, delStandardJob, addStandardJob, updateStandardJob } from "@/api/agriculture/standardJob";
   
   export default {
-    name: "GrowthProcess",
+    name: "GrowthProcess",  //组件的名称
     dicts: ['agriculture_cycle_unit'],
     props:{
       germplasmId:{
