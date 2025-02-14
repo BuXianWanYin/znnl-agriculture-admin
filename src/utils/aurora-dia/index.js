@@ -39,8 +39,7 @@ export class AuroraDia {
   constructor() {
     this.configs = {
       locale: 'zh-CN',
-      tips: {},
-      wsEndpoint: 'ws://10.0.28.47:8081/ws/asr/' + new Date().getTime()
+      tips: {}
     }
 
     this.handleWSMessage = this.handleWSMessage.bind(this)
@@ -636,62 +635,38 @@ class AuroraBotSoftware {
   }
 
   showWelcomeMessage() {
-    let text
-    if (location.pathname === '/') {
-      // Home page
-      const now = new Date().getHours()
-      if (now > 5 && now <= 7) text = this.botTips['5_7']
-      else if (now > 7 && now <= 11) text = this.botTips['welcome']['7_11']
-      else if (now > 11 && now <= 13) text = this.botTips['welcome']['11_13']
-      else if (now > 13 && now <= 17) text = this.botTips['welcome']['13_17']
-      else if (now > 17 && now <= 19) text = this.botTips['welcome']['17_19']
-      else if (now > 19 && now <= 21) text = this.botTips['welcome']['19_21']
-      else if (now > 21 && now <= 23) text = this.botTips['welcome']['21_23']
-      else text = this.botTips['welcome']['24']
-    } else if (document.referrer !== '') {
-      const referrer = new URL(document.referrer),
-        domain = referrer.hostname.split('.')[1]
-      if (location.hostname === referrer.hostname)
-        text = this.botTips['referrer']['self'].replace(
-          '[PLACEHOLDER]',
-          document.title.split(' - ')[0]
-        )
-      else if (domain === 'baidu')
-        text = this.botTips['referrer']['baidu'].replace(
-          '[PLACEHOLDER]',
-          referrer.search.split('&wd=')[1].split('&')[0]
-        )
-      else if (domain === 'so')
-        text = this.botTips['referrer']['so'].replace(
-          '[PLACEHOLDER]',
-          referrer.search.split('&q=')[1].split('&')[0]
-        )
-      else if (domain === 'google')
-        text = this.botTips['referrer']['google'].replace(
-          '[PLACEHOLDER]',
-          document.title.split(' - ')[0]
-        )
-      else
-        text = this.botTips['referrer']['site'].replace(
-          '[PLACEHOLDER]',
-          referrer.hostname
-        )
-    } else {
-      text = this.botTips['referrer'].replace(
-        '[PLACEHOLDER]',
-        document.title.split(' - ')[0]
-      )
+    try {
+      let text
+      if (location.pathname === '/') {
+        const now = new Date().getHours()
+        if (now > 7 && now <= 11) text = this.botTips.welcome['7_11']
+        else if (now > 11 && now <= 13) text = this.botTips.welcome['11_13']
+        else if (now > 13 && now <= 17) text = this.botTips.welcome['13_17']
+        else if (now > 17 && now <= 19) text = this.botTips.welcome['17_19']
+        else if (now > 19 && now <= 21) text = this.botTips.welcome['19_21']
+        else if (now > 21 && now <= 23) text = this.botTips.welcome['21_23']
+        else text = this.botTips.welcome['24']
+      } else {
+        // 如果不是首页，使用默认欢迎语
+        text = this.randomSelection(this.botTips.messages)
+      }
+      this.showMessage(text, 7000, 8)
+    } catch (error) {
+      console.error('显示欢迎消息失败:', error)
     }
-    this.showMessage(text, 7000, 8)
   }
 
   loadLocaleMessages() {
-    const messages = {
-        'zh-CN': require('./messages/zh-CN.json'),
-    };
-
-    this.messages = messages;
-    return messages;
+    try {
+      const messages = {
+        'zh-CN': require('./messages/zh-CN.json')
+      }
+      this.locales = messages
+      return messages
+    } catch (error) {
+      console.error('加载本地化消息失败:', error)
+      return {}
+    }
   }
 
   showMessage(text, timeout, priority) {
