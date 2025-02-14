@@ -3,11 +3,23 @@ export default class WebSocketConnectMethod {
     this.msgHandle = config.msgHandle || function(){}
     this.stateHandle = config.stateHandle || function(){}
     this.speechSocket = null
+    this.userId = this.getOrCreateUserId()
+  }
+
+  getOrCreateUserId() {
+    let userId = sessionStorage.getItem('wsUserId')
+    if (!userId) {
+      // 生成纯数字ID：时间戳后8位 + 5位随机数
+      const timestamp = Date.now().toString().slice(-8)
+      const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0')
+      userId = timestamp + random
+      sessionStorage.setItem('wsUserId', userId)
+    }
+    return userId
   }
 
   wsStart() {
-
-    const Uri = 'ws://10.0.28.47:8081/ws/asr/' + new Date().getTime(); 
+    const Uri = `ws://10.0.28.47:8081/ws/asr/${this.userId}`
     console.log('WebSocket连接地址:', Uri)
 
     if (!Uri.match(/wss?:\S*/)) {
@@ -15,25 +27,48 @@ export default class WebSocketConnectMethod {
       return 0
     }
     
+    if (this.speechSocket?.readyState === 1) {
+      console.log('WebSocket已连接')
+      return 1
+    }
+    
     if ('WebSocket' in window) {
       try {
         this.speechSocket = new WebSocket(Uri)
         
         this.speechSocket.onopen = () => {
-          // 发送初始化请求
           const request = {
             chunk_size: [5, 10, 5],
             wav_name: "h5",
             is_speaking: true,
             chunk_interval: 10,
-            mode: "2pass"
+            mode: "2pass",
+            userId: this.userId
           }
           this.speechSocket.send(JSON.stringify(request))
           this.stateHandle(0)
         }
 
-        this.speechSocket.onclose = () => this.stateHandle(1)
-        this.speechSocket.onmessage = (e) => this.msgHandle(e)
+        this.speechSocket.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data)
+            if (data.userId && data.userId !== this.userId) {
+              return
+            }
+            this.msgHandle(e)
+          } catch (error) {
+            this.msgHandle(e)
+          }
+        }
+
+        this.speechSocket.onclose = () => {
+          this.stateHandle(1)
+          setTimeout(() => {
+            console.log('尝试重新连接WebSocket...')
+            this.wsStart()
+          }, 3000)
+        }
+
         this.speechSocket.onerror = () => this.stateHandle(2)
 
         return 1
@@ -47,15 +82,25 @@ export default class WebSocketConnectMethod {
     return 0
   }
 
-  wsStop() {
-    if (this.speechSocket) {
-      this.speechSocket.close()
+  wsSend(data) {
+    if (this.speechSocket?.readyState === 1) {
+      if (typeof data === 'string') {
+        try {
+          const jsonData = JSON.parse(data)
+          jsonData.userId = this.userId
+          this.speechSocket.send(JSON.stringify(jsonData))
+        } catch {
+          this.speechSocket.send(data)
+        }
+      } else {
+        this.speechSocket.send(data)
+      }
     }
   }
 
-  wsSend(data) {
-    if (this.speechSocket?.readyState === 1) {
-      this.speechSocket.send(data)
+  wsStop() {
+    if (this.speechSocket) {
+      this.speechSocket.close()
     }
   }
 } 
