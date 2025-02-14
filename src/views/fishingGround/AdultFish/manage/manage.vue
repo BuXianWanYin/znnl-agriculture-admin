@@ -48,16 +48,21 @@
                             @click="handleDelete(scope.row)"
                             v-hasPermi="['agriculture:germplasm:remove']">删除</el-button>
                         <el-button size="mini" type="success" class="padding-5" icon="el-icon-document"
-                            @click="showStandardJob(scope.row)"
+                            @click="GrowthProcess(scope.row)"
                             v-hasPermi="['agriculture:germplasm:jobProcess']">作业流程</el-button>
                     </template>
                 </el-table-column>
             </el-table>
 
-            <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body
+            <!-- <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body
                 @close="closeStandardJob">
                 <standard-job :germplasmId="currentGermplasmId" v-if="showStandardJobComponent" />
+            </el-dialog> -->
+
+         <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body>
+            <growth-process :germplasm-id="currentGermplasmId" />
             </el-dialog>
+
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
         </el-card>
@@ -108,7 +113,7 @@
     export default {
         name: "Germplasm",
         components: {
-            GrowthProcess
+            'growth-process': GrowthProcess
         },
         data() {
             return {
@@ -187,12 +192,9 @@
             this.getList();
         },
         methods: {
-            showStandardJob(row) {
+            GrowthProcess(row) {
                 this.currentGermplasmId = row.germplasmId; // 获取当前行的鱼类ID
                 this.showStandardJobComponent = true; // 显示组件
-            },
-            closeStandardJob() {
-                this.showStandardJobComponent = false; // 关闭组件
             },
             /** 查询鱼类列表 */
             getList() {
