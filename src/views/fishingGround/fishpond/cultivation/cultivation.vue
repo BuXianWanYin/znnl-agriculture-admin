@@ -10,10 +10,10 @@
                     <el-input v-model="queryParams.batchName" placeholder="请输入批次名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
                 </el-form-item>
-                <el-form-item label="种质" prop="speciesId">
-                    <el-select v-model="queryParams.speciesId" size="small" placeholder="请选择种质">
-                        <el-option v-for="fishPasture in speciesList" :key="fishPasture.speciesId"
-                            :label="fishPasture.fishName" :value="fishPasture.speciesId"></el-option>
+                <el-form-item label="鱼种" prop="germplasmId">
+                    <el-select v-model="queryParams.germplasmId" size="small" placeholder="请选择鱼种">
+                        <el-option v-for="germplasm in germplasmList" :key="germplasm.germplasmId"
+                            :label="germplasm.germplasmName" :value="germplasm.germplasmId"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item>
@@ -22,9 +22,9 @@
                 </el-form-item>
                 <el-form-item class="fr">
                     <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                        v-hasPermi="['fishPasture:batch:add']">新增</el-button>
+                        v-hasPermi="['agriculture:batch:add']">新增</el-button>
                     <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
-                        v-hasPermi="['fishPasture:batch:export']">导出</el-button>
+                        v-hasPermi="['agriculture:batch:export']">导出</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
@@ -32,10 +32,10 @@
             <el-table v-loading="loading" :data="batchList">
                 <el-table-column type="index" label="序号"> </el-table-column>
                 <el-table-column label="批次名称" align="center" prop="batchName" />
-                <el-table-column label="种质" align="center" prop="speciesId">
+                <el-table-column label="鱼种" align="center" prop="germplasmId">
                     <template slot-scope="scope">
-                        <data-tag :options="speciesList" :value="scope.row.speciesId" labelName="fishName"
-                            valueName="speciesId" type="" />
+                        <data-tag :options="germplasmList" :value="scope.row.germplasmId" labelName="germplasmName"
+                            valueName="germplasmId" type="" />
                     </template>
                 </el-table-column>
                 <el-table-column label="负责人" align="center" prop="batchHead">
@@ -44,10 +44,10 @@
                             valueName="userId" type="notag" />
                     </template>
                 </el-table-column>
-                <el-table-column label="种质图片" align="center" prop="introImg" width="180">
+                <el-table-column label="鱼种图片" align="center" prop="introImg" width="180">
                     <template v-slot:default="{ row }">
-                        <div class="image" @click="previewImage(`${image.baseUrl + row.fishSpeciesImg}`, row)">
-                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + row.fishSpeciesImg}`" />
+                        <div class="image" @click="previewImage(`${image.baseUrl + row.germplasmImg}`, row)">
+                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + row.germplasmImg}`" />
                         </div>
                     </template>
                 </el-table-column>
@@ -74,12 +74,12 @@
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="300">
                     <template slot-scope="scope">
                         <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
-                            @click="handleUpdate(scope.row)" v-hasPermi="['fishPasture:batch:edit']">修改</el-button>
+                            @click="handleUpdate(scope.row)" v-hasPermi="['agriculture:batch:edit']">修改</el-button>
                         <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
-                            @click="handleDelete(scope.row)" v-hasPermi="['fishPasture:batch:remove']">删除</el-button>
+                            @click="handleDelete(scope.row)" v-hasPermi="['agriculture:batch:remove']">删除</el-button>
                         <el-button size="small" class="padding-5" plain type="warning" icon="el-icon-s-claim"
                             @click="handleBatchTask(scope.row)"
-                            v-hasPermi="['fishPasture:batchTask:list']">批次任务</el-button>
+                            v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -89,7 +89,7 @@
         </el-card>
         <!-- 添加或修改作物批次对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-            <el-alert class="margin-bottom-10" title="新建批次会根据选择种质的种植流程生成批次任务，新增完成可以到批次任务管理界面调整批次任务！" type="warning"
+            <el-alert class="margin-bottom-10" title="新建批次会根据选择鱼种的养殖流程生成批次任务，新增完成可以到批次任务管理界面调整批次任务！" type="warning"
                 effect="light" show-icon closable></el-alert>
 
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
@@ -102,10 +102,10 @@
                 <el-form-item label="分区名称" prop="batchName">
                     <el-input v-model="form.batchName" placeholder="请输入分区名称" />
                 </el-form-item>
-                <el-form-item label="种质" prop="speciesId">
-                    <el-select v-model="form.speciesId" placeholder="请选择种质">
-                        <el-option v-for="fishPasture in speciesList" :key="fishPasture.speciesId"
-                            :label="fishPasture.fishName" :value="fishPasture.speciesId"></el-option>
+                <el-form-item label="鱼种" prop="germplasmId">
+                    <el-select v-model="form.germplasmId" placeholder="请选择鱼种">
+                        <el-option v-for="germplasm in germplasmList" :key="germplasm.germplasmId"
+                            :label="germplasm.cropName" :value="germplasm.germplasmId"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="养殖面积" prop="cropArea">
@@ -150,10 +150,10 @@
         delBatch,
         addBatch,
         updateBatch
-    } from "@/api/fishingGround/batch";
+    } from "@/api/agriculture/batch";
     import {
         listGermplasm
-    } from "@/api/fishingGround/species";
+    } from "@/api/agriculture/germplasm";
     import {
         listUser
     } from "@/api/system/user";
@@ -164,7 +164,7 @@
 
     export default {
         name: "Batch",
-        dicts: ['fishPasture_batch_task_status'],
+        dicts: ['agriculture_batch_task_status'],
         data() {
             return {
                 //图片预览
@@ -198,7 +198,7 @@
                 //地块下拉数据
                 landList: [],
                 //种质下拉数据
-                speciesList: [],
+                germplasmList: [],
                 //用户下拉数据
                 userList: [],
                 // 弹出层标题
@@ -210,7 +210,7 @@
                     pageNum: 1,
                     pageSize: 10,
                     batchName: null,
-                    speciesId: null,
+                    germplasmId: null,
                     landId: null,
                 },
                 // 表单参数
@@ -222,9 +222,9 @@
                         message: "批次名称不能为空",
                         trigger: "blur"
                     }],
-                    speciesId: [{
+                    germplasmId: [{
                         required: true,
-                        message: "种质ID不能为空",
+                        message: "鱼种ID不能为空",
                         trigger: "blur"
                     }],
                     landId: [{
@@ -253,7 +253,7 @@
         created() {
             this.getList();
             this.getLandList();
-            this.getspeciesList();
+            this.getGermplasmList();
             this.getUserList();
             this.$http.get("/dev-api/fishPasture/list").then(res => {
                 this.houeList = res.data.data;
@@ -281,9 +281,9 @@
                 });
             },
             /** 查询种质列表 */
-            getspeciesList() {
+            getGermplasmList() {
                 listGermplasm().then(response => {
-                    this.speciesList = response.rows;
+                    this.germplasmList = response.rows;
                 });
             },
             /** 查询用户列表 */
@@ -302,7 +302,7 @@
                 this.form = {
                     batchId: null,
                     batchName: null,
-                    speciesId: null,
+                    germplasmId: null,
                     landId: null,
                     cropArea: null,
                     startTime: null,
@@ -332,7 +332,7 @@
             handleAdd() {
                 this.reset();
                 this.open = true;
-                this.title = "添加作物批次";
+                this.title = "添加鱼种批次";
             },
             /** 修改按钮操作 */
             handleUpdate(row) {
@@ -341,7 +341,7 @@
                 getBatch(batchId).then(response => {
                     this.form = response.data;
                     this.open = true;
-                    this.title = "修改作物批次";
+                    this.title = "修改鱼种批次";
                 });
             },
             /** 提交按钮 */
@@ -367,7 +367,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const batchIds = row.batchId || this.ids;
-                this.$modal.confirm('是否确认删除作物批次编号为"' + batchIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除鱼种批次编号为"' + batchIds + '"的数据项？').then(function() {
                     return delBatch(batchIds);
                 }).then(() => {
                     this.getList();
@@ -382,7 +382,7 @@
             },
             /** 导出按钮操作 */
             handleExport() {
-                this.download('fishPasture/batch/export', {
+                this.download('agriculture/batch/export', {
                     ...this.queryParams
                 }, `batch_${new Date().getTime()}.xlsx`)
             },

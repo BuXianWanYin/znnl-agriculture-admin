@@ -108,3 +108,29 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* 添加以下样式 */
+.el-menu-item, .el-submenu__title {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* 确保菜单项内容不会溢出 */
+.el-menu-item [data-menu],
+.el-submenu__title [data-menu] {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  width: 100% !important;
+}
+
+/* 处理折叠状态 */
+.el-menu--collapse {
+  .el-menu-item [data-menu],
+  .el-submenu__title [data-menu] {
+    display: none;
+  }
+}
+</style>
