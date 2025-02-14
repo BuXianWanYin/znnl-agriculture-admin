@@ -237,7 +237,7 @@
   ],
   "copy": "你都复制了些什么呀，有不懂的可以问我哦~",
   "visibility_change": "欢迎回来~有什么新鲜事要告诉我吗？",
-  "messageTimer": 3000,
+  "messageTimer": 1500,
   "priorityMouse": true,
-  "visibility_change_timeout": 3000
+  "visibility_change_timeout": 1500
 }
