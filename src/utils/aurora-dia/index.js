@@ -138,7 +138,7 @@ export class AuroraDia {
     const diaBody = document.getElementById('Aurora-Dia')
 
     if (leftEye && rightEye && eyesEl && diaBody) {
-      let rafId = nulls
+      let rafId = null
 
       document.addEventListener('mousemove', evt => {
         if (rafId) {
@@ -195,10 +195,25 @@ export class AuroraDia {
     if (this.isListening) return
 
     try {
+      // 重置识别文本
+      this.recText = ''
+      this.offlineText = ''
+      
       // 如果WebSocket未连接或已断开，重新连接
       if (!this.wsConnector?.speechSocket || this.wsConnector.speechSocket.readyState !== 1) {
         await this.initWebSocket()
       }
+
+      // 发送新的识别会话初始化请求
+      const initRequest = {
+        chunk_size: [5, 10, 5],
+        wav_name: "h5",
+        is_speaking: true,
+        chunk_interval: 10,
+        mode: "2pass",
+        itn: true
+      }
+      this.wsConnector.wsSend(JSON.stringify(initRequest))
 
       // 检查录音器是否已初始化
       if (!this.recorder) {
@@ -227,10 +242,6 @@ export class AuroraDia {
         console.log('聊天输入模式录音开始')
       }
 
-      // 清空之前的文本记录
-      this.offlineText = ''
-      this.recText = ''
-
       console.log('开始录音')
       return true
 
@@ -241,7 +252,6 @@ export class AuroraDia {
       }
       this.isListening = false
       this.isRecording = false
-      this.wsConnector?.wsStop()
       throw error
     }
   }
@@ -367,7 +377,6 @@ export class AuroraDia {
           // 清理资源
           this.recText = ''
           this.recorder.close()
-        //  this.wsConnector.wsStop()
         }, 500)
       })
 
@@ -380,7 +389,6 @@ export class AuroraDia {
       if (!isChatMode) {
         this.software?.showMessage('停止录音失败', 3000)
       }
-      this.wsConnector.wsStop()
       this.isListening = false
     }
   }
@@ -410,37 +418,52 @@ export class AuroraDia {
     try {
       const data = JSON.parse(e.data)
       if (data.text) {
-        const newText = data.text;
-        const asrModel = data.mode;
-        const isFinal = data.is_final;
+        const newText = data.text
+        const asrModel = data.mode
+        const isFinal = data.is_final
+
+        console.log('收到识别结果:', {
+          text: newText,
+          mode: asrModel,
+          isFinal: isFinal
+        })
 
         // 根据模式处理文本
         if (asrModel === "2pass-offline" || asrModel === "offline") {
-          // 离线模式，累加离线文本
-          this.offlineText += newText;
-          this.recText = this.offlineText;
+          // 离线模式，更新离线文本
+          this.offlineText = newText
+          this.recText = this.offlineText
         } else {
           // 在线模式，累加文本
-          this.recText += newText;
+          if (isFinal) {
+            // 如果是最终结果，直接设置文本
+            this.recText = newText
+          } else {
+            // 如果是中间结果，累加文本
+            this.recText = newText
+          }
         }
-        // // 实时更新聊天输入框
-        this.recordingEndCallback(this.recText, true, false, true);
+
+        // 实时更新聊天输入框
+        if (this.recordingEndCallback) {
+          this.recordingEndCallback(this.recText, true, false, true)
+        }
 
         // 非聊天模式下显示实时识别结果
         if (!this.isChatMode) {
           if (this.isRecording && !isFinal) {
-            this.software?.showMessage("我在听~");
+            this.software?.showMessage("我在听~")
           }
 
           if (isFinal) {
-            this.software?.showMessage(this.recText, 3000);
+            this.software?.showMessage(this.recText, 3000)
           }
         }
 
-        console.log('识别文本累加中:', this.recText);
+        console.log('当前识别文本:', this.recText)
       }
     } catch (error) {
-      console.error('处理消息失败:', error);
+      console.error('处理消息失败:', error)
     }
   }
 
@@ -654,7 +677,7 @@ class AuroraBotSoftware {
           referrer.hostname
         )
     } else {
-      text = this.botTips['referrer']['other'].replace(
+      text = this.botTips['referrer'].replace(
         '[PLACEHOLDER]',
         document.title.split(' - ')[0]
       )
