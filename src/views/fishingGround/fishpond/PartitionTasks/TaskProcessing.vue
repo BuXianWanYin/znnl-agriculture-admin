@@ -84,7 +84,7 @@
                     <cost-machine :task-id="taskId" @log="getLoglist"></cost-machine>
                 </el-tab-pane> -->
                 <el-tab-pane name="costMaterial"><template #label>
-                        <i class="el-icon-suitcase-1"></i> 农资用量
+                        <i class="el-icon-suitcase-1"></i> 饵料投喂
                     </template>
                     <cost-material :taskId="taskId" @log="getLoglist"></cost-material>
                 </el-tab-pane>

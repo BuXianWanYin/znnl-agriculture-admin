@@ -1,21 +1,12 @@
 <template>
-    <!-- 
-    饵料信息管理页面 
-    -->
+    <!-- 药品类别页面 -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
             <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px"
                 class="form-minus-bottom">
-                <el-form-item label="饵料名称" prop="materialName">
-                    <el-input v-model="queryParams.materialName" placeholder="请输入饵料名称" clearable size="small"
+                <el-form-item label="类别名称" prop="materialTypeName">
+                    <el-input v-model="queryParams.materialTypeName" placeholder="请输入药品类别名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
-                </el-form-item>
-                <el-form-item label="饵料类别" prop="materialTypeId">
-                    <el-select v-model="queryParams.materialTypeId" size="small" placeholder="请选择饵料类别" clearable
-                        @change="handleQuery">
-                        <el-option v-for="item in materialTypeList" :key="item.materialTypeId"
-                            :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
-                    </el-select>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -23,25 +14,23 @@
                 </el-form-item>
                 <el-form-item class="fr">
                     <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                        v-hasPermi="['agriculture:materialInfo:add']">新增</el-button>
+                        v-hasPermi="['agriculture:materialType:add']">新增</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="materialInfoList">
-                <el-table-column label="饵料编码" align="center" prop="materialCode" />
-                <el-table-column label="饵料名称" align="center" prop="materialName" />
-                <el-table-column label="饵料类别" align="center" prop="materialTypeId" />
-                <el-table-column label="饵料单位" align="center" prop="measureUnit" />
+            <el-table v-loading="loading" :data="materialTypeList">
+                <el-table-column label="药品类别名称" align="center" prop="materialTypeName" />
                 <el-table-column label="备注" align="center" prop="remark" />
+                <el-table-column label="排序" align="center" prop="orderNum" />
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                     <template slot-scope="scope">
                         <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
                             @click="handleUpdate(scope.row)"
-                            v-hasPermi="['agriculture:materialInfo:edit']">修改</el-button>
+                            v-hasPermi="['agriculture:materialType:edit']">修改</el-button>
                         <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
                             @click="handleDelete(scope.row)"
-                            v-hasPermi="['agriculture:materialInfo:remove']">删除</el-button>
+                            v-hasPermi="['agriculture:materialType:remove']">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -49,27 +38,17 @@
             <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
         </el-card>
-        <!-- 添加或修改饵料信息对话框 -->
+        <!-- 添加或修改药品类别对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                <el-form-item label="饵料编码" prop="materialCode">
-                    <el-input v-model="form.materialCode" placeholder="请输入饵料编码" />
-                </el-form-item>
-                <el-form-item label="饵料名称" prop="materialName">
-                    <el-input v-model="form.materialName" placeholder="请输入饵料名称" />
-                </el-form-item>
-                <el-form-item label="饵料类别" prop="materialTypeId">
-                    <el-select v-model="form.materialTypeId" placeholder="请选择饵料类别" class="display-block" clearable
-                        @change="handleQuery">
-                        <el-option v-for="item in materialTypeList" :key="item.materialTypeId"
-                            :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="计量单位" prop="measureUnit">
-                    <el-input v-model="form.measureUnit" placeholder="请输入计量单位" />
+                <el-form-item label="类别名称" prop="materialTypeName">
+                    <el-input v-model="form.materialTypeName" placeholder="请输入药品类别名称" />
                 </el-form-item>
                 <el-form-item label="备注" prop="remark">
                     <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+                </el-form-item>
+                <el-form-item label="排序" prop="orderNum">
+                    <el-input v-model="form.orderNum" placeholder="请输入排序" />
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -82,18 +61,15 @@
 
 <script>
     import {
-        listMaterialInfo,
-        getMaterialInfo,
-        delMaterialInfo,
-        addMaterialInfo,
-        updateMaterialInfo
-    } from "@/api/agriculture/materialInfo";
-    import {
-        listMaterialType
+        listMaterialType,
+        getMaterialType,
+        delMaterialType,
+        addMaterialType,
+        updateMaterialType
     } from "@/api/agriculture/materialType";
 
     export default {
-        name: "MaterialInfo",
+        name: "MaterialType",
         data() {
             return {
                 // 遮罩层
@@ -108,65 +84,39 @@
                 showSearch: true,
                 // 总条数
                 total: 0,
-                // 农资信息表格数据
-                materialInfoList: [],
+                // 农资类别表格数据
+                materialTypeList: [],
                 // 弹出层标题
                 title: "",
                 // 是否显示弹出层
                 open: false,
-                // 农资类别数据源
-                materialTypeList: [],
                 // 查询参数
                 queryParams: {
                     pageNum: 1,
                     pageSize: 10,
-                    materialCode: null,
-                    materialName: null,
-                    materialTypeId: null,
-                    measureUnit: null,
+                    materialTypeName: null,
                 },
                 // 表单参数
                 form: {},
                 // 表单校验
                 rules: {
-                    materialCode: [{
+                    materialTypeName: [{
                         required: true,
-                        message: "饵料编码不能为空",
+                        message: "药品类别名称不能为空",
                         trigger: "blur"
                     }],
-                    materialName: [{
-                        required: true,
-                        message: "饵料名称不能为空",
-                        trigger: "blur"
-                    }],
-                    materialTypeId: [{
-                        required: true,
-                        message: "饵料类别不能为空",
-                        trigger: "blur"
-                    }],
-                    measureUnit: [{
-                        required: true,
-                        message: "计量单位不能为空",
-                        trigger: "blur"
-                    }],
-                    delFlag: [{
-                        required: true,
-                        message: "删除标志不能为空",
-                        trigger: "blur"
-                    }]
                 }
             };
         },
         created() {
             this.getList();
-            this.getMaterialTypeList();
         },
         methods: {
-            /** 查询饵料信息列表 */
+            /** 查询药品类别列表 */
             getList() {
                 this.loading = true;
-                listMaterialInfo(this.queryParams).then(response => {
-                    this.materialInfoList = response.rows;
+                listMaterialType(this.queryParams).then(response => {
+                    this.materialTypeList = response.rows;
                     this.total = response.total;
                     this.loading = false;
                 });
@@ -179,11 +129,8 @@
             // 表单重置
             reset() {
                 this.form = {
-                    materialId: null,
-                    materialCode: null,
-                    materialName: null,
                     materialTypeId: null,
-                    measureUnit: null,
+                    materialTypeName: null,
                     remark: null,
                     status: "0",
                     orderNum: null,
@@ -194,12 +141,6 @@
                     delFlag: null
                 };
                 this.resetForm("form");
-            },
-            /** 获取饵料类别数据源信息 */
-            getMaterialTypeList() {
-                listMaterialType().then(response => {
-                    this.materialTypeList = response.rows
-                });
             },
             /** 搜索按钮操作 */
             handleQuery() {
@@ -215,30 +156,30 @@
             handleAdd() {
                 this.reset();
                 this.open = true;
-                this.title = "添加饵料信息";
+                this.title = "添加药品类别";
             },
             /** 修改按钮操作 */
             handleUpdate(row) {
                 this.reset();
-                const materialId = row.materialId || this.ids
-                getMaterialInfo(materialId).then(response => {
+                const materialTypeId = row.materialTypeId || this.ids
+                getMaterialType(materialTypeId).then(response => {
                     this.form = response.data;
                     this.open = true;
-                    this.title = "修改饵料信息";
+                    this.title = "修改药品类别";
                 });
             },
             /** 提交按钮 */
             submitForm() {
                 this.$refs["form"].validate(valid => {
                     if (valid) {
-                        if (this.form.materialId != null) {
-                            updateMaterialInfo(this.form).then(response => {
+                        if (this.form.materialTypeId != null) {
+                            updateMaterialType(this.form).then(response => {
                                 this.$modal.msgSuccess("修改成功");
                                 this.open = false;
                                 this.getList();
                             });
                         } else {
-                            addMaterialInfo(this.form).then(response => {
+                            addMaterialType(this.form).then(response => {
                                 this.$modal.msgSuccess("新增成功");
                                 this.open = false;
                                 this.getList();
@@ -249,9 +190,9 @@
             },
             /** 删除按钮操作 */
             handleDelete(row) {
-                const materialIds = row.materialId || this.ids;
-                this.$modal.confirm('是否确认删除饵料信息编号为"' + materialIds + '"的数据项？').then(function() {
-                    return delMaterialInfo(materialIds);
+                const materialTypeIds = row.materialTypeId || this.ids;
+                this.$modal.confirm('是否确认删除药品类别编号为"' + materialTypeIds + '"的数据项？').then(function() {
+                    return delMaterialType(materialTypeIds);
                 }).then(() => {
                     this.getList();
                     this.$modal.msgSuccess("删除成功");
@@ -259,9 +200,9 @@
             },
             /** 导出按钮操作 */
             handleExport() {
-                this.download('agriculture/materialInfo/export', {
+                this.download('agriculture/materialType/export', {
                     ...this.queryParams
-                }, `materialInfo_${new Date().getTime()}.xlsx`)
+                }, `materialType_${new Date().getTime()}.xlsx`)
             }
         }
     };

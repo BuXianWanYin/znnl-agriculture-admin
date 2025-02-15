@@ -4,51 +4,41 @@
       -->
     <div class="padding-bottom-10">
       <el-alert
-        title="登记农资消耗"
+        title="登记饵料投喂"
         type="info"
         show-icon
-        description="此处可以登记农资消耗"
+        description="此处可以登记饵料投喂"
       >
       </el-alert>
-  
       <el-table
         v-loading="loading"
         :data="costMaterialList"
         class="margin-top-10"
       >
-        <el-table-column label="农资" align="center" prop="materialId">
-          <template v-slot:default="scope">
-            <data-tag
-              :options="materialInfoList"
-              :value="scope.row.materialId"
-              labelName="materialName"
-              valueName="materialId"
-              type="notag"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="使用数量" align="center" prop="materialCount" />
+        <el-table-column label="饵料名称" align="center" prop="materialName" /> 
+        <el-table-column label="投喂数量" align="center" prop="materialCount" />
         <el-table-column label="计量单位" align="center" prop="measureUnit" />
         <el-table-column
-          label="开始日期"
+          label="开始投喂时间"
           align="center"
           prop="workingStart"
-          width="180"
+          width="140"
         >
           <template slot-scope="scope">
             <span>{{ parseTime(scope.row.workingStart, "{y}-{m}-{d}") }}</span>
           </template>
         </el-table-column>
         <el-table-column
-          label="结束日期"
+          label="结束结束日期"
           align="center"
           prop="workingFinish"
-          width="180"
+          width="140"
         >
           <template slot-scope="scope">
             <span>{{ parseTime(scope.row.workingFinish, "{y}-{m}-{d}") }}</span>
           </template>
         </el-table-column>
+        <el-table-column label="备注" align="center" prop="materialCount" /> 
         <el-table-column
           label="操作"
           align="center"
@@ -59,8 +49,7 @@
               @click="handleAdd"
               v-hasPermi="['agriculture:costMaterial:add']"
               class="cursor-pointer"
-              >新增</el-tag
-            >
+              >新增</el-tag>
           </template>
           <template slot-scope="scope">
             <el-button
@@ -93,10 +82,10 @@
       <!-- 添加或修改农资用量对话框 -->
       <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
         <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-          <el-form-item label="农资" prop="materialId">
+          <el-form-item label="饵料名称" prop="materialId">
             <el-select
               v-model="form.materialId"
-              placeholder="请选择农资"
+              placeholder="请选择饵料名称"
               class="display-block"
             >
               <el-option
@@ -135,6 +124,9 @@
               placeholder="选择结束日期"
             >
             </el-date-picker>
+          </el-form-item>
+          <el-form-item label="备注" prop="materialCount">
+            <el-input v-model="form.materialCount" placeholder="请输入备注" />
           </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
@@ -280,7 +272,7 @@
       handleAdd() {
         this.reset();
         this.open = true;
-        this.title = "添加农资用量";
+        this.title = "添加投喂用量";
       },
       /** 修改按钮操作 */
       handleUpdate(row) {
@@ -289,7 +281,7 @@
         getCostMaterial(costId).then((response) => {
           this.form = response.data;
           this.open = true;
-          this.title = "修改农资用量";
+          this.title = "修改投喂用量";
         });
       },
       /** 提交按钮 */
@@ -299,14 +291,14 @@
             if (this.form.costId != null) {
               updateCostMaterial(this.form).then((response) => {
                 this.$modal.msgSuccess("修改成功");
-                this.addTaskLog("修改农资用量")
+                this.addTaskLog("修改投喂用量")
                 this.open = false;
                 this.getList();
               });
             } else {
               addCostMaterial(this.form).then((response) => {
                 this.$modal.msgSuccess("新增成功");
-                this.addTaskLog("新增农资用量")
+                this.addTaskLog("新增投喂用量")
                 this.open = false;
                 this.getList();
               });
@@ -318,14 +310,14 @@
       handleDelete(row) {
         const costIds = row.costId || this.ids;
         this.$modal
-          .confirm('是否确认删除农资用量编号为"' + costIds + '"的数据项？')
+          .confirm('是否确认删除投喂用量编号为"' + costIds + '"的数据项？')
           .then(function () {
             return delCostMaterial(costIds);
           })
           .then(() => {
             this.getList();
             this.$modal.msgSuccess("删除成功");
-            this.addTaskLog("删除农资用量")
+            this.addTaskLog("删除投喂用量")
           })
           .catch(() => {});
       },

@@ -18,7 +18,7 @@
 import Task from "@/views/fishingGround/Task/task";
 import SearchMenu from "@/views/agriculture/components/SearchMenu";
   import { listLand } from "@/api/agriculture/land";
-  import { listBatch} from "@/api/agriculture/batch";
+  import { listBatch} from "@/api/fishingGround/batch";
   export default {
     components: { Task,SearchMenu },
     data() {

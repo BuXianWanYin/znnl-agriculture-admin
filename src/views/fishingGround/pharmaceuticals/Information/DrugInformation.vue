@@ -1,17 +1,17 @@
 <template>
     <!-- 
-    饵料信息管理页面 
+    药品信息管理页面 
     -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
             <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px"
                 class="form-minus-bottom">
-                <el-form-item label="饵料名称" prop="materialName">
-                    <el-input v-model="queryParams.materialName" placeholder="请输入饵料名称" clearable size="small"
+                <el-form-item label="药品名称" prop="materialName">
+                    <el-input v-model="queryParams.materialName" placeholder="请输入药品名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
                 </el-form-item>
-                <el-form-item label="饵料类别" prop="materialTypeId">
-                    <el-select v-model="queryParams.materialTypeId" size="small" placeholder="请选择饵料类别" clearable
+                <el-form-item label="药品类别" prop="materialTypeId">
+                    <el-select v-model="queryParams.materialTypeId" size="small" placeholder="请选择药品类别" clearable
                         @change="handleQuery">
                         <el-option v-for="item in materialTypeList" :key="item.materialTypeId"
                             :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
@@ -29,10 +29,10 @@
         </el-card>
         <el-card class="card-padding-bottom">
             <el-table v-loading="loading" :data="materialInfoList">
-                <el-table-column label="饵料编码" align="center" prop="materialCode" />
-                <el-table-column label="饵料名称" align="center" prop="materialName" />
-                <el-table-column label="饵料类别" align="center" prop="materialTypeId" />
-                <el-table-column label="饵料单位" align="center" prop="measureUnit" />
+                <el-table-column label="药品编码" align="center" prop="materialCode" />
+                <el-table-column label="药品名称" align="center" prop="materialName" />
+                <el-table-column label="药品类别" align="center" prop="materialTypeId" />
+                <el-table-column label="药品单位" align="center" prop="measureUnit" />
                 <el-table-column label="备注" align="center" prop="remark" />
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                     <template slot-scope="scope">
@@ -49,17 +49,17 @@
             <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
         </el-card>
-        <!-- 添加或修改饵料信息对话框 -->
+        <!-- 添加或修改药品信息对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                <el-form-item label="饵料编码" prop="materialCode">
-                    <el-input v-model="form.materialCode" placeholder="请输入饵料编码" />
+                <el-form-item label="药品编码" prop="materialCode">
+                    <el-input v-model="form.materialCode" placeholder="请输入药品编码" />
                 </el-form-item>
-                <el-form-item label="饵料名称" prop="materialName">
-                    <el-input v-model="form.materialName" placeholder="请输入饵料名称" />
+                <el-form-item label="药品名称" prop="materialName">
+                    <el-input v-model="form.materialName" placeholder="请输入药品名称" />
                 </el-form-item>
-                <el-form-item label="饵料类别" prop="materialTypeId">
-                    <el-select v-model="form.materialTypeId" placeholder="请选择饵料类别" class="display-block" clearable
+                <el-form-item label="药品类别" prop="materialTypeId">
+                    <el-select v-model="form.materialTypeId" placeholder="请选择药品类别" class="display-block" clearable
                         @change="handleQuery">
                         <el-option v-for="item in materialTypeList" :key="item.materialTypeId"
                             :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
@@ -131,17 +131,17 @@
                 rules: {
                     materialCode: [{
                         required: true,
-                        message: "饵料编码不能为空",
+                        message: "药品编码不能为空",
                         trigger: "blur"
                     }],
                     materialName: [{
                         required: true,
-                        message: "饵料名称不能为空",
+                        message: "药品名称不能为空",
                         trigger: "blur"
                     }],
                     materialTypeId: [{
                         required: true,
-                        message: "饵料类别不能为空",
+                        message: "药品类别不能为空",
                         trigger: "blur"
                     }],
                     measureUnit: [{
@@ -162,7 +162,7 @@
             this.getMaterialTypeList();
         },
         methods: {
-            /** 查询饵料信息列表 */
+            /** 查询药品信息列表 */
             getList() {
                 this.loading = true;
                 listMaterialInfo(this.queryParams).then(response => {
@@ -195,7 +195,7 @@
                 };
                 this.resetForm("form");
             },
-            /** 获取饵料类别数据源信息 */
+            /** 获取药品类别数据源信息 */
             getMaterialTypeList() {
                 listMaterialType().then(response => {
                     this.materialTypeList = response.rows
@@ -215,7 +215,7 @@
             handleAdd() {
                 this.reset();
                 this.open = true;
-                this.title = "添加饵料信息";
+                this.title = "添加药品信息";
             },
             /** 修改按钮操作 */
             handleUpdate(row) {
@@ -224,7 +224,7 @@
                 getMaterialInfo(materialId).then(response => {
                     this.form = response.data;
                     this.open = true;
-                    this.title = "修改饵料信息";
+                    this.title = "修改药品信息";
                 });
             },
             /** 提交按钮 */
@@ -250,7 +250,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const materialIds = row.materialId || this.ids;
-                this.$modal.confirm('是否确认删除饵料信息编号为"' + materialIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除药品信息编号为"' + materialIds + '"的数据项？').then(function() {
                     return delMaterialInfo(materialIds);
                 }).then(() => {
                     this.getList();
