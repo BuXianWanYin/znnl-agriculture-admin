@@ -1,6 +1,6 @@
  <template>
 <!--
- 管理成鱼页面
+ 鱼类管理页面
  -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">

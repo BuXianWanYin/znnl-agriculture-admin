@@ -80,13 +80,13 @@
                     <template #label> <i class="el-icon-user"></i> 人工工时 </template>
                     <cost-employee :task-id="taskId" @log="getLoglist"></cost-employee>
                 </el-tab-pane>
-                <!-- <el-tab-pane name="costMachine"><template #label> <i class="el-icon-truck"></i> 机械工时 </template>
-                    <cost-machine :task-id="taskId" @log="getLoglist"></cost-machine>
-                </el-tab-pane> -->
                 <el-tab-pane name="costMaterial"><template #label>
                         <i class="el-icon-suitcase-1"></i> 饵料投喂
                     </template>
                     <cost-material :taskId="taskId" @log="getLoglist"></cost-material>
+                </el-tab-pane>
+                    <el-tab-pane name="costMachine"><template #label> <i class="el-icon-truck"></i> 用药记录 </template>
+                    <cost-machine :task-id="taskId" @log="getLoglist"></cost-machine>
                 </el-tab-pane>
                 <el-tab-pane name="annex"><template #label> <i class="el-icon-paperclip"></i> 附件 </template>
                     <div class="font-weight-bold">图片:</div>
@@ -104,10 +104,10 @@
         getBatchTask,
         addBatchTask,
         updateBatchTask,
-    } from "@/api/agriculture/batchTask";
+    } from "@/api/fishingGround/batchTask";
     import {
         listBatch
-    } from "@/api/agriculture/batch";
+    } from "@/api/fishingGround/batch";
     import {
         listUser
     } from "@/api/system/user";
@@ -129,13 +129,13 @@
         addTaskEmployee,
         delTaskEmployeeByTaskIdAndEmployeeId
     } from "@/api/agriculture/taskEmployee";
-    
+
     import RadioSelect from "@/views/fishingGround/fishpond/PartitionTasks/RadioSelect";
     import CalendarSelect from "@/views/fishingGround/fishpond/PartitionTasks/CalendarSelect";
     import MultipleSelect from "@/views/fishingGround/fishpond/PartitionTasks/MultipleSelect";
     import StatusSelect from "@/views/fishingGround/fishpond/PartitionTasks/StatusSelect";
     import CostEmployee from "@/views/fishingGround/fishpond/PartitionTasks/CostEmployee";
-    // import CostMachine from "@/views/fishingGround/fishpond/PartitionTasks/CostMachine";
+    import CostMachine from "@/views/fishingGround/fishpond/PartitionTasks/CostMachine";
     import CostMaterial from "@/views/fishingGround/fishpond/PartitionTasks/CostMaterial";
     export default {
         name: "TaskDetail",
@@ -145,7 +145,7 @@
             RadioSelect,
             StatusSelect,
             CostEmployee,
-            // CostMachine,
+            CostMachine,
             CostMaterial
         },
         props: {

@@ -1,20 +1,20 @@
 <template>
-    <!-- 
-    饵料信息管理页面 
+    <!--
+    饵料信息管理页面
     -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
             <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px"
                 class="form-minus-bottom">
-                <el-form-item label="饵料名称" prop="materialName">
-                    <el-input v-model="queryParams.materialName" placeholder="请输入饵料名称" clearable size="small"
+                <el-form-item label="饵料名称" prop="baitName">
+                    <el-input v-model="queryParams.baitName" placeholder="请输入饵料名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
                 </el-form-item>
-                <el-form-item label="饵料类别" prop="materialTypeId">
-                    <el-select v-model="queryParams.materialTypeId" size="small" placeholder="请选择饵料类别" clearable
+                <el-form-item label="饵料类别" prop="baitTypeId">
+                    <el-select v-model="queryParams.baitTypeId" size="small" placeholder="请选择饵料类别" clearable
                         @change="handleQuery">
-                        <el-option v-for="item in materialTypeList" :key="item.materialTypeId"
-                            :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
+                        <el-option v-for="item in BaitTypeList" :key="item.baitTypeId"
+                            :label="item.baitTypeName" :value="item.baitTypeId"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item>
@@ -23,25 +23,25 @@
                 </el-form-item>
                 <el-form-item class="fr">
                     <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                        v-hasPermi="['agriculture:materialInfo:add']">新增</el-button>
+                        v-hasPermi="['fishingGround:BaitInfo:add']">新增</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="materialInfoList">
-                <el-table-column label="饵料编码" align="center" prop="materialCode" />
-                <el-table-column label="饵料名称" align="center" prop="materialName" />
-                <el-table-column label="饵料类别" align="center" prop="materialTypeId" />
+            <el-table v-loading="loading" :data="BaitInfoList">
+                <el-table-column label="饵料编码" align="center" prop="baitCode" />
+                <el-table-column label="饵料名称" align="center" prop="baitName" />
+                <el-table-column label="饵料类别" align="center" prop="baitTypeId" />
                 <el-table-column label="饵料单位" align="center" prop="measureUnit" />
                 <el-table-column label="备注" align="center" prop="remark" />
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                     <template slot-scope="scope">
                         <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
                             @click="handleUpdate(scope.row)"
-                            v-hasPermi="['agriculture:materialInfo:edit']">修改</el-button>
+                            v-hasPermi="['fishingGround:BaitInfo:edit']">修改</el-button>
                         <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
                             @click="handleDelete(scope.row)"
-                            v-hasPermi="['agriculture:materialInfo:remove']">删除</el-button>
+                            v-hasPermi="['fishingGround:BaitInfo:remove']">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -52,17 +52,17 @@
         <!-- 添加或修改饵料信息对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                <el-form-item label="饵料编码" prop="materialCode">
-                    <el-input v-model="form.materialCode" placeholder="请输入饵料编码" />
+                <el-form-item label="饵料编码" prop="baitCode">
+                    <el-input v-model="form.baitCode" placeholder="请输入饵料编码" />
                 </el-form-item>
-                <el-form-item label="饵料名称" prop="materialName">
-                    <el-input v-model="form.materialName" placeholder="请输入饵料名称" />
+                <el-form-item label="饵料名称" prop="baitName">
+                    <el-input v-model="form.baitName" placeholder="请输入饵料名称" />
                 </el-form-item>
-                <el-form-item label="饵料类别" prop="materialTypeId">
-                    <el-select v-model="form.materialTypeId" placeholder="请选择饵料类别" class="display-block" clearable
+                <el-form-item label="饵料类别" prop="baitTypeId">
+                    <el-select v-model="form.baitTypeId" placeholder="请选择饵料类别" class="display-block" clearable
                         @change="handleQuery">
-                        <el-option v-for="item in materialTypeList" :key="item.materialTypeId"
-                            :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
+                        <el-option v-for="item in BaitTypeList" :key="item.baitTypeId"
+                            :label="item.baitTypeName" :value="item.baitTypeId"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="计量单位" prop="measureUnit">
@@ -82,18 +82,18 @@
 
 <script>
     import {
-        listMaterialInfo,
-        getMaterialInfo,
-        delMaterialInfo,
-        addMaterialInfo,
-        updateMaterialInfo
-    } from "@/api/agriculture/materialInfo";
+        listBaitInfo,
+        getBaitInfo,
+        delBaitInfo,
+        addBaitInfo,
+        updateBaitInfo
+    } from "@/api/fishingGround/BaitInfo";
     import {
-        listMaterialType
-    } from "@/api/agriculture/materialType";
+        listBaitType
+    } from "@/api/fishingGround/BaitType";
 
     export default {
-        name: "MaterialInfo",
+        name: "BaitInfo",
         data() {
             return {
                 // 遮罩层
@@ -109,37 +109,37 @@
                 // 总条数
                 total: 0,
                 // 农资信息表格数据
-                materialInfoList: [],
+                BaitInfoList: [],
                 // 弹出层标题
                 title: "",
                 // 是否显示弹出层
                 open: false,
                 // 农资类别数据源
-                materialTypeList: [],
+                BaitTypeList: [],
                 // 查询参数
                 queryParams: {
                     pageNum: 1,
                     pageSize: 10,
-                    materialCode: null,
-                    materialName: null,
-                    materialTypeId: null,
+                    baitCode: null,
+                    baitName: null,
+                    baitTypeId: null,
                     measureUnit: null,
                 },
                 // 表单参数
                 form: {},
                 // 表单校验
                 rules: {
-                    materialCode: [{
+                    baitCode: [{
                         required: true,
                         message: "饵料编码不能为空",
                         trigger: "blur"
                     }],
-                    materialName: [{
+                    baitName: [{
                         required: true,
                         message: "饵料名称不能为空",
                         trigger: "blur"
                     }],
-                    materialTypeId: [{
+                    baitTypeId: [{
                         required: true,
                         message: "饵料类别不能为空",
                         trigger: "blur"
@@ -159,14 +159,14 @@
         },
         created() {
             this.getList();
-            this.getMaterialTypeList();
+            this.getBaitTypeList();
         },
         methods: {
             /** 查询饵料信息列表 */
             getList() {
                 this.loading = true;
-                listMaterialInfo(this.queryParams).then(response => {
-                    this.materialInfoList = response.rows;
+                listBaitInfo(this.queryParams).then(response => {
+                    this.BaitInfoList = response.rows;
                     this.total = response.total;
                     this.loading = false;
                 });
@@ -179,10 +179,10 @@
             // 表单重置
             reset() {
                 this.form = {
-                    materialId: null,
-                    materialCode: null,
-                    materialName: null,
-                    materialTypeId: null,
+                    baitId: null,
+                    baitCode: null,
+                    baitName: null,
+                    baitTypeId: null,
                     measureUnit: null,
                     remark: null,
                     status: "0",
@@ -196,9 +196,9 @@
                 this.resetForm("form");
             },
             /** 获取饵料类别数据源信息 */
-            getMaterialTypeList() {
-                listMaterialType().then(response => {
-                    this.materialTypeList = response.rows
+            getBaitTypeList() {
+                listBaitType().then(response => {
+                    this.BaitTypeList = response.rows
                 });
             },
             /** 搜索按钮操作 */
@@ -220,8 +220,8 @@
             /** 修改按钮操作 */
             handleUpdate(row) {
                 this.reset();
-                const materialId = row.materialId || this.ids
-                getMaterialInfo(materialId).then(response => {
+                const baitId = row.baitId || this.ids
+                getBaitInfo(baitId).then(response => {
                     this.form = response.data;
                     this.open = true;
                     this.title = "修改饵料信息";
@@ -231,14 +231,14 @@
             submitForm() {
                 this.$refs["form"].validate(valid => {
                     if (valid) {
-                        if (this.form.materialId != null) {
-                            updateMaterialInfo(this.form).then(response => {
+                        if (this.form.baitId != null) {
+                            updateBaitInfo(this.form).then(response => {
                                 this.$modal.msgSuccess("修改成功");
                                 this.open = false;
                                 this.getList();
                             });
                         } else {
-                            addMaterialInfo(this.form).then(response => {
+                            addBaitInfo(this.form).then(response => {
                                 this.$modal.msgSuccess("新增成功");
                                 this.open = false;
                                 this.getList();
@@ -249,9 +249,9 @@
             },
             /** 删除按钮操作 */
             handleDelete(row) {
-                const materialIds = row.materialId || this.ids;
-                this.$modal.confirm('是否确认删除饵料信息编号为"' + materialIds + '"的数据项？').then(function() {
-                    return delMaterialInfo(materialIds);
+                const baitIds = row.baitId || this.ids;
+                this.$modal.confirm('是否确认删除饵料信息编号为"' + baitIds + '"的数据项？').then(function() {
+                    return delBaitInfo(baitIds);
                 }).then(() => {
                     this.getList();
                     this.$modal.msgSuccess("删除成功");
@@ -259,9 +259,9 @@
             },
             /** 导出按钮操作 */
             handleExport() {
-                this.download('agriculture/materialInfo/export', {
+                this.download('fishingGround/BaitInfo/export', {
                     ...this.queryParams
-                }, `materialInfo_${new Date().getTime()}.xlsx`)
+                }, `BaitInfo_${new Date().getTime()}.xlsx`)
             }
         }
     };

@@ -1,6 +1,6 @@
 <template>
-    <!-- 
-       分区养殖 批次任务 页面 
+    <!--
+       分区养殖 批次任务 页面
     -->
     <div class="gantt-container">
         <div class="search">
@@ -53,7 +53,7 @@
                 </el-table-column>
                 <el-table-column label="状态" align="center" prop="status">
                     <template slot-scope="scope">
-                        <dict-tag :options="dict.type.fishPasture_batch_task_status" :value="scope.row.status" />
+                        <dict-tag :options="dict.type.agriculture_batch_task_status" :value="scope.row.status" />
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
@@ -138,7 +138,7 @@
                 default: false,
             },
         },
-        dicts: ['fishPasture_batch_task_status'],
+        dicts: ['agriculture_batch_task_status'],
         data() {
             return {
                 //gantt

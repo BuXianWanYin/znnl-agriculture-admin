@@ -6,15 +6,15 @@
         <el-card class="card-margin-bottom">
             <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px"
                 class="form-minus-bottom">
-                <el-form-item label="药品名称" prop="materialName">
-                    <el-input v-model="queryParams.materialName" placeholder="请输入药品名称" clearable size="small"
+                <el-form-item label="药品名称" prop="medicineName">
+                    <el-input v-model="queryParams.medicineName" placeholder="请输入药品名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
                 </el-form-item>
-                <el-form-item label="药品类别" prop="materialTypeId">
-                    <el-select v-model="queryParams.materialTypeId" size="small" placeholder="请选择药品类别" clearable
+                <el-form-item label="药品类别" prop="medicineTypeId">
+                    <el-select v-model="queryParams.medicineTypeId" size="small" placeholder="请选择药品类别" clearable
                         @change="handleQuery">
-                        <el-option v-for="item in materialTypeList" :key="item.materialTypeId"
-                            :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
+                        <el-option v-for="item in medicineTypeList" :key="item.medicineTypeId"
+                            :label="item.medicineTypeName" :value="item.medicineTypeId"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item>
@@ -23,25 +23,25 @@
                 </el-form-item>
                 <el-form-item class="fr">
                     <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                        v-hasPermi="['agriculture:materialInfo:add']">新增</el-button>
+                        v-hasPermi="['agriculture:medicineInfo:add']">新增</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="materialInfoList">
-                <el-table-column label="药品编码" align="center" prop="materialCode" />
-                <el-table-column label="药品名称" align="center" prop="materialName" />
-                <el-table-column label="药品类别" align="center" prop="materialTypeId" />
+            <el-table v-loading="loading" :data="medicineInfoList">
+                <el-table-column label="药品编码" align="center" prop="medicineCode" />
+                <el-table-column label="药品名称" align="center" prop="medicineName" />
+                <el-table-column label="药品类别" align="center" prop="medicineTypeId" />
                 <el-table-column label="药品单位" align="center" prop="measureUnit" />
                 <el-table-column label="备注" align="center" prop="remark" />
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                     <template slot-scope="scope">
                         <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
                             @click="handleUpdate(scope.row)"
-                            v-hasPermi="['agriculture:materialInfo:edit']">修改</el-button>
+                            v-hasPermi="['agriculture:medicineInfo:edit']">修改</el-button>
                         <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
                             @click="handleDelete(scope.row)"
-                            v-hasPermi="['agriculture:materialInfo:remove']">删除</el-button>
+                            v-hasPermi="['agriculture:medicineInfo:remove']">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -52,17 +52,17 @@
         <!-- 添加或修改药品信息对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                <el-form-item label="药品编码" prop="materialCode">
-                    <el-input v-model="form.materialCode" placeholder="请输入药品编码" />
+                <el-form-item label="药品编码" prop="medicineCode">
+                    <el-input v-model="form.medicineCode" placeholder="请输入药品编码" />
                 </el-form-item>
-                <el-form-item label="药品名称" prop="materialName">
-                    <el-input v-model="form.materialName" placeholder="请输入药品名称" />
+                <el-form-item label="药品名称" prop="medic  ineName">
+                    <el-input v-model="form.medicineName" placeholder="请输入药品名称" />
                 </el-form-item>
-                <el-form-item label="药品类别" prop="materialTypeId">
-                    <el-select v-model="form.materialTypeId" placeholder="请选择药品类别" class="display-block" clearable
+                <el-form-item label="药品类别" prop="medicineTypeId">
+                    <el-select v-model="form.medicineTypeId" placeholder="请选择药品类别" class="display-block" clearable
                         @change="handleQuery">
-                        <el-option v-for="item in materialTypeList" :key="item.materialTypeId"
-                            :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
+                        <el-option v-for="item in medicineTypeList" :key="item.medicineTypeId"
+                            :label="item.medicineTypeName" :value="item.medicineTypeId"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="计量单位" prop="measureUnit">
@@ -82,18 +82,18 @@
 
 <script>
     import {
-        listMaterialInfo,
-        getMaterialInfo,
-        delMaterialInfo,
-        addMaterialInfo,
-        updateMaterialInfo
-    } from "@/api/agriculture/materialInfo";
+        listMedicineInfo,
+        getMedicineInfo,
+        delMedicineInfo,
+        addMedicineInfo,
+        updateMedicineInfo
+    } from "@/api/fishingGround/MedicineInfo";
     import {
-        listMaterialType
-    } from "@/api/agriculture/materialType";
+        listMedicineType
+    } from "@/api/fishingGround/MedicineType";
 
     export default {
-        name: "MaterialInfo",
+        name: "MedicineInfo",
         data() {
             return {
                 // 遮罩层
@@ -109,37 +109,37 @@
                 // 总条数
                 total: 0,
                 // 农资信息表格数据
-                materialInfoList: [],
+                medicineInfoList: [],
                 // 弹出层标题
                 title: "",
                 // 是否显示弹出层
                 open: false,
                 // 农资类别数据源
-                materialTypeList: [],
+                medicineTypeList: [],
                 // 查询参数
                 queryParams: {
                     pageNum: 1,
                     pageSize: 10,
-                    materialCode: null,
-                    materialName: null,
-                    materialTypeId: null,
+                    medicineCode: null,
+                    medicineName: null,
+                    medicineTypeId: null,
                     measureUnit: null,
                 },
                 // 表单参数
                 form: {},
                 // 表单校验
                 rules: {
-                    materialCode: [{
+                    medicineCode: [{
                         required: true,
                         message: "药品编码不能为空",
                         trigger: "blur"
                     }],
-                    materialName: [{
+                    medicineName: [{
                         required: true,
                         message: "药品名称不能为空",
                         trigger: "blur"
                     }],
-                    materialTypeId: [{
+                    medicineTypeId: [{
                         required: true,
                         message: "药品类别不能为空",
                         trigger: "blur"
@@ -159,14 +159,14 @@
         },
         created() {
             this.getList();
-            this.getMaterialTypeList();
+            this.getMedicineTypeList();
         },
         methods: {
             /** 查询药品信息列表 */
             getList() {
                 this.loading = true;
-                listMaterialInfo(this.queryParams).then(response => {
-                    this.materialInfoList = response.rows;
+                listMedicineInfo(this.queryParams).then(response => {
+                    this.medicineInfoList = response.rows;
                     this.total = response.total;
                     this.loading = false;
                 });
@@ -179,10 +179,10 @@
             // 表单重置
             reset() {
                 this.form = {
-                    materialId: null,
-                    materialCode: null,
-                    materialName: null,
-                    materialTypeId: null,
+                    medicineId: null,
+                    medicineCode: null,
+                    medicineName: null,
+                    medicineTypeId: null,
                     measureUnit: null,
                     remark: null,
                     status: "0",
@@ -196,9 +196,9 @@
                 this.resetForm("form");
             },
             /** 获取药品类别数据源信息 */
-            getMaterialTypeList() {
-                listMaterialType().then(response => {
-                    this.materialTypeList = response.rows
+            getMedicineTypeList() {
+                listMedicineType().then(response => {
+                    this.medicineTypeList = response.rows
                 });
             },
             /** 搜索按钮操作 */
@@ -220,8 +220,8 @@
             /** 修改按钮操作 */
             handleUpdate(row) {
                 this.reset();
-                const materialId = row.materialId || this.ids
-                getMaterialInfo(materialId).then(response => {
+                const medicineId = row.medicineId || this.ids
+                getMedicineInfo(medicineId).then(response => {
                     this.form = response.data;
                     this.open = true;
                     this.title = "修改药品信息";
@@ -231,14 +231,14 @@
             submitForm() {
                 this.$refs["form"].validate(valid => {
                     if (valid) {
-                        if (this.form.materialId != null) {
-                            updateMaterialInfo(this.form).then(response => {
+                        if (this.form.medicineId != null) {
+                            updateMedicineInfo(this.form).then(response => {
                                 this.$modal.msgSuccess("修改成功");
                                 this.open = false;
                                 this.getList();
                             });
                         } else {
-                            addMaterialInfo(this.form).then(response => {
+                            addMedicineInfo(this.form).then(response => {
                                 this.$modal.msgSuccess("新增成功");
                                 this.open = false;
                                 this.getList();
@@ -249,9 +249,9 @@
             },
             /** 删除按钮操作 */
             handleDelete(row) {
-                const materialIds = row.materialId || this.ids;
-                this.$modal.confirm('是否确认删除药品信息编号为"' + materialIds + '"的数据项？').then(function() {
-                    return delMaterialInfo(materialIds);
+                const medicineIds = row.medicineId || this.ids;
+                this.$modal.confirm('是否确认删除药品信息编号为"' + medicineIds + '"的数据项？').then(function() {
+                    return delMedicineInfo(medicineIds);
                 }).then(() => {
                     this.getList();
                     this.$modal.msgSuccess("删除成功");
@@ -259,9 +259,9 @@
             },
             /** 导出按钮操作 */
             handleExport() {
-                this.download('agriculture/materialInfo/export', {
+                this.download('agriculture/medicineInfo/export', {
                     ...this.queryParams
-                }, `materialInfo_${new Date().getTime()}.xlsx`)
+                }, `medicineInfo_${new Date().getTime()}.xlsx`)
             }
         }
     };

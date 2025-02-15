@@ -1,17 +1,17 @@
 <template>
     <!-- 
-     负责管理和登记机械工时数据
+     负责管理和登记用药记录的数据
       -->
     <div class="padding-bottom-10">
       <el-alert
-        title="登记机械工时"
+        title="登记用药记录"
         type="info"
         show-icon
-        description="此处可以登记机械工时"
+        description="此处可以登记用药记录"
       >
       </el-alert>
       <el-table v-loading="loading" :data="costMachineList"  class="margin-top-10" >
-        <el-table-column label="机械" align="center" prop="machineId" >
+        <el-table-column label="用药名称" align="center" prop="machineId" >
             <template v-slot:default="scope">
               <data-tag
                 :options="machineInfoList"
@@ -22,14 +22,14 @@
               />
             </template>
         </el-table-column>
-        <el-table-column label="机械数量" align="center" prop="machineCount" />
-        <el-table-column label="工时" align="center" prop="workingHours" />
-        <el-table-column label="开始日期" align="center" prop="workingStart" width="180">
+        <el-table-column label="用药数量" align="center" prop="machineCount" />
+        <el-table-column label="计量单位" align="center" prop="workingHours" />
+        <el-table-column label="开始用药日期" align="center" prop="workingStart" width="180">
           <template slot-scope="scope">
             <span>{{ parseTime(scope.row.workingStart, '{y}-{m}-{d}') }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="结束日期" align="center" prop="workingFinish" width="180">
+        <el-table-column label="结束用药日期" align="center" prop="workingFinish" width="180">
           <template slot-scope="scope">
             <span>{{ parseTime(scope.row.workingFinish, '{y}-{m}-{d}') }}</span>
           </template>
@@ -69,11 +69,11 @@
         :limit.sync="queryParams.pageSize"
         @pagination="getList"
       />
-      <!-- 添加或修改机械工时对话框 -->
+      <!-- 添加或修改用药对话框 -->
       <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
         <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-          <el-form-item label="机械" prop="machineId">
-            <el-select v-model="form.machineId" placeholder="请选择机械" class="display-block">
+          <el-form-item label="药品" prop="machineId">
+            <el-select v-model="form.machineId" placeholder="请选择药品" class="display-block">
                 <el-option v-for="item in machineInfoList"
                     :key="item.machineId"
                     :label="item.machineName"
@@ -82,26 +82,26 @@
             </el-select>
   
           </el-form-item>
-          <el-form-item label="机械数量" prop="machineCount">
-            <el-input v-model="form.machineCount" placeholder="请输入机械数量" />
+          <el-form-item label="药品数量" prop="machineCount">
+            <el-input v-model="form.machineCount" placeholder="请输入药品数量" />
           </el-form-item>
-          <el-form-item label="工时" prop="workingHours">
-            <el-input v-model="form.workingHours" placeholder="请输入工时" />
+          <el-form-item label="计量" prop="workingHours">
+            <el-input v-model="form.workingHours" placeholder="请输入计量单位" />
           </el-form-item>
-          <el-form-item label="开始日期" prop="workingStart">
+          <el-form-item label="开始用药日期" prop="workingStart">
             <el-date-picker clearable class="w100"
               v-model="form.workingStart"
               type="date"
               value-format="yyyy-MM-dd"
-              placeholder="选择开始日期">
+              placeholder="选择开始用药日期">
             </el-date-picker>
           </el-form-item>
-          <el-form-item label="结束日期" prop="workingFinish">
+          <el-form-item label="结束用药日期" prop="workingFinish">
             <el-date-picker clearable s class="w100"
               v-model="form.workingFinish"
               type="date"
               value-format="yyyy-MM-dd"
-              placeholder="选择结束日期">
+              placeholder="选择结束用药日期">
             </el-date-picker>
           </el-form-item>
         </el-form>
@@ -160,20 +160,20 @@
             { required: true, message: "任务ID不能为空", trigger: "blur" }
           ],
           machineId: [
-            { required: true, message: "机械ID不能为空", trigger: "blur" }
+            { required: true, message: "药品ID不能为空", trigger: "blur" }
           ],
           machineCount: [
-            { required: true, message: "机械数量不能为空", trigger: "blur" }
+            { required: true, message: "药品数量不能为空", trigger: "blur" }
           ],
           workingHours: [
-            { required: true, message: "工时不能为空", trigger: "blur" }
+            { required: true, message: "计量单位不能为空", trigger: "blur" }
           ],
           workingStart: [
-            { required: true, message: "开始日期不能为空", trigger: "blur" }
+            { required: true, message: "开始用药日期不能为空", trigger: "blur" }
           ],
           workingFinish: [
-            { required: true, message: "结束日期不能为空", trigger: "blur" }
-          ],
+            { required: true, message: "结束用药日期不能为空", trigger: "blur" }
+          ],  
           delFlag: [
             { required: true, message: "删除标志不能为空", trigger: "blur" }
           ]
@@ -185,7 +185,7 @@
       this.getMachineInfList();
     },
     methods: {
-      /** 查询机械工时列表 */
+      /** 查询用药记录列表 */
       getList() {
         this.loading = true;
         listCostMachine(this.queryParams).then(response => {
@@ -245,7 +245,7 @@
       handleAdd() {
         this.reset();
         this.open = true;
-        this.title = "添加机械工时";
+        this.title = "添加用药记录";
       },
       /** 修改按钮操作 */
       handleUpdate(row) {
@@ -254,7 +254,7 @@
         getCostMachine(costId).then(response => {
           this.form = response.data;
           this.open = true;
-          this.title = "修改机械工时";
+          this.title = "修改用药记录";
         });
       },
       /** 提交按钮 */
@@ -264,14 +264,14 @@
             if (this.form.costId != null) {
               updateCostMachine(this.form).then(response => {
                 this.$modal.msgSuccess("修改成功");
-                this.addTaskLog("修改机械工时")
+                this.addTaskLog("修改用药记录")
                 this.open = false;
                 this.getList();
               });
             } else {
               addCostMachine(this.form).then(response => {
                 this.$modal.msgSuccess("新增成功");
-                this.addTaskLog("新增机械工时")
+                this.addTaskLog("新增用药记录")
                 this.open = false;
                 this.getList();
               });
@@ -282,12 +282,12 @@
       /** 删除按钮操作 */
       handleDelete(row) {
         const costIds = row.costId || this.ids;
-        this.$modal.confirm('是否确认删除机械工时编号为"' + costIds + '"的数据项？').then(function() {
+        this.$modal.confirm('是否确认删除用药记录编号为"' + costIds + '"的数据项？').then(function() {
           return delCostMachine(costIds);
         }).then(() => {
           this.getList();
           this.$modal.msgSuccess("删除成功");
-          this.addTaskLog("删除机械工时")
+          this.addTaskLog("删除用药记录")
         }).catch(() => {});
       },
       /** 导出按钮操作 */
