@@ -53,25 +53,25 @@
                 </el-table-column>
                 <el-table-column label="状态" align="center" prop="status">
                     <template slot-scope="scope">
-                        <dict-tag :options="dict.type.agriculture_batch_task_status" :value="scope.row.status" />
+                        <dict-tag :options="dict.type.fishPasture_batch_task_status" :value="scope.row.status" />
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
                     <template #header>
                         <el-button class="width-90" v-if="tableBorder" type="primary"
-                            :disabled="!checkPermi(['agriculture:batchTask:add'])" size="mini" plain icon="el-icon-plus"
+                            :disabled="!checkPermi(['fishPasture:batchTask:add'])" size="mini" plain icon="el-icon-plus"
                             @click="handleAdd">新增任务</el-button>
                         <span v-else>操作</span>
                     </template>
                     <template slot-scope="scope">
                         <el-button size="small" type="primary" class="padding-5" plain icon="el-icon-edit"
                             @click="handleTask(scope.row.taskId)" v-if="!tableBorder"
-                            v-hasPermi="['agriculture:batchTask:query']">任务处理</el-button>
+                            v-hasPermi="['fishPasture:batchTask:query']">任务处理</el-button>
                         <el-button size="small" type="primary" class="padding-5" icon="el-icon-edit"
                             @click="handleUpdate(scope.row)" v-if="tableBorder"
-                            v-hasPermi="['agriculture:batchTask:edit']">修改</el-button>
+                            v-hasPermi="['fishPasture:batchTask:edit']">修改</el-button>
                         <el-button size="small" type="danger" class="padding-5" icon="el-icon-delete"
-                            @click="handleDelete(scope.row)" v-hasPermi="['agriculture:batchTask:remove']"
+                            @click="handleDelete(scope.row)" v-hasPermi="['fishPasture:batchTask:remove']"
                             v-if="tableBorder">删除</el-button>
                     </template>
                 </el-table-column>
@@ -122,7 +122,7 @@
         addBatchTask,
         updateBatchTask,
         delBatchTask
-    } from "@/api/agriculture/batchTask";
+    } from "@/api/fishingGround/batchTask";
     import TaskProcessing from "@/views/fishingGround/fishpond/PartitionTasks/TaskProcessing";
     import Gantt from "@/components/Gantt";
     export default {
@@ -138,7 +138,7 @@
                 default: false,
             },
         },
-        dicts: ['agriculture_batch_task_status'],
+        dicts: ['fishPasture_batch_task_status'],
         data() {
             return {
                 //gantt
@@ -369,7 +369,7 @@
             /** 导出按钮操作 */
             handleExport() {
                 this.download(
-                    "agriculture/task/export", {
+                    "fishPasture/task/export", {
                         ...this.queryParams,
                     },
                     `task_${new Date().getTime()}.xlsx`
