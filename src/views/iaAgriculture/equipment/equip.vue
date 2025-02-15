@@ -17,44 +17,56 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <div class="plant-table">
-                <el-table :data="equipmentData" :stripe="true" tooltip-effect="dark" border size="mini"
-                    style="width: 100%" class="table-content">
-                    <el-table-column type="index" label="序号"> </el-table-column>
-                    <el-table-column prop="id" label="ID"></el-table-column>
-                    <el-table-column prop="deviceName" label="设备名称"></el-table-column>
-                    <el-table-column prop="address" label="合约地址"></el-table-column>
-                    <el-table-column prop="status" label="状态">
-                        <template slot-scope="scope">
-                            {{ scope.row.status==0 ? '不在线':'在线' }}
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="remark" label="备注"></el-table-column>
-                    <el-table-column prop="address" label="操作">
-                        <template slot-scope="scope">
-                            <div class="do-text">
-                                <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
-                                    @click="deleteData(scope.row.id)"
-                                    v-hasPermi="['agriculture:materialType:remove']">删除</el-button>
+            <div class="equipment-grid">
+                <el-row :gutter="20">
+                    <el-col :span="8" v-for="(item, index) in equipmentData" :key="item.id">
+                        <el-card class="equipment-card" shadow="hover">
+                            <div class="card-header">
+                                <span class="device-name">{{ item.deviceName }}</span>
+                                <el-tag :type="item.status == 0 ? 'danger' : 'success'" size="small">
+                                    {{ item.status == 0 ? '不在线' : '在线' }}
+                                </el-tag>
                             </div>
-                        </template>
-                    </el-table-column>
-                </el-table>
-                 <pagination v-show="total>0" :total="total" :page.sync="pager.page"
-                      :limit.sync="pager.pages" @pagination="handleCurrentChange" />
-                <!-- <div class="page-block">
-                    <el-pagination @current-change="handleCurrentChange" :current-page="pager.page"
-                        :page-size="pager.size" :page-count="" layout="total, prev, pager, next, jumper">
-                    </el-pagination>
-                </div> -->
+                            <div class="card-content">
+                                <div class="info-item">
+                                    <i class="el-icon-cpu"></i>
+                                    <span class="label">设备ID:</span>
+                                    <span class="value">{{ item.id }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="el-icon-link"></i>
+                                    <span class="label">合约地址:</span>   
+                                    <span class="value">{{ item.address }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="el-icon-notebook-2"></i>
+                                    <span class="label">备注:</span>
+                                    <span class="value">{{ item.remark || '/' }}</span>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <el-button 
+                                    size="small" 
+                                    type="danger" 
+                                    icon="el-icon-delete"
+                                    @click="deleteData(item.id)"
+                                    v-hasPermi="['agriculture:materialType:remove']">
+                                    删除
+                                </el-button>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
             </div>
-
-
-
-          <!--  <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum"
-                :limit.sync="queryParams.pageSize" @pagination="getList" /> -->
+            <pagination 
+                v-show="total>0" 
+                :total="total" 
+                :page.sync="pager.page"
+                :limit.sync="pager.pages" 
+                @pagination="handleCurrentChange" 
+            />
         </el-card>
-        <!-- 添加或修改农资类别对话框 -->
+        <!-- 添加或修改农资类别对话 框 -->
         <!-- 新增/修改弹框 -->
         <el-dialog :title="dialogTitle" :visible.sync="equipmentEditDialog" width="30%">
             <el-form :model="equipmentForm" ref="equipmentForm" :rules="rules" label-width="120px">
@@ -323,4 +335,59 @@
     //     justify-content: flex-end;
     //     margin-top: 10px;
     // }
+
+    .equipment-grid {
+        margin-bottom: 20px;
+    }
+
+    .equipment-card {
+        margin-bottom: 20px;
+        transition: all 0.3s;
+
+        &:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+
+            .device-name {
+                font-size: 16px;
+                font-weight: bold;
+            }
+        }
+
+        .card-content {
+            .info-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                
+                i {
+                    margin-right: 8px;
+                    color: #409EFF;
+                }
+
+                .label {
+                    color: #606266;
+                    margin-right: 8px;
+                    min-width: 70px;
+                }
+
+                .value {
+                    color: #303133;
+                    word-break: break-all;
+                }
+            }
+        }
+
+        .card-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+        }
+    }
 </style>
