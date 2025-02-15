@@ -92,7 +92,8 @@
                 </el-tab-pane>
                 <el-tab-pane name="costEmployee">
                     <template #label> <i class="el-icon-user"></i> 人工工时 </template>
-                    <cost-employee :task-id="taskId" @log="getLoglist"></cost-employee>
+                    <!-- <cost-employee :task-id="taskId" @log="getLoglist"></cost-employee> -->
+                    <cost-employee ref="costEmployee" :task-id="taskId" @log="getLoglist"></cost-employee>
                 </el-tab-pane>
                 <el-tab-pane name="costMachine"><template #label> <i class="el-icon-truck"></i> 机械工时 </template>
                     <cost-machine :task-id="taskId" @log="getLoglist"></cost-machine>
@@ -366,11 +367,15 @@
                     }).then(respose => {
                         this.addTaskLog("增加参与人员")
                         this.$modal.msgSuccess("添加成功");
+                         // 通知子组件更新人员列表
+                         this.$refs.costEmployee.getTaskEmployeeList();
                     });
                 } else if (type === 'del') {
                     delTaskEmployeeByTaskIdAndEmployeeId(this.taskId, value).then(respose => {
                         this.addTaskLog("删除参与人员")
                         this.$modal.msgSuccess("删除成功");
+                        // 通知子组件更新人员列表
+                        this.$refs.costEmployee.getTaskEmployeeList();
                     });
                 }
             }
