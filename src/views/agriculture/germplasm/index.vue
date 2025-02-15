@@ -74,7 +74,15 @@
                     <el-input v-model="form.germplasmEnName" placeholder="请输入种质英文名称" />
                 </el-form-item>
                 <el-form-item label="种质图片" prop="germplasmImg">
-                    <imageUpload v-model="form.germplasmImg" />
+                    <!-- <imageUpload v-model="form.germplasmImg" /> -->
+                    <div v-if="form.germplasmImg">
+                        <!-- 已有图片时显示图片 -->
+                        <div class="image">
+                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + form.germplasmImg}`" />
+                        </div>
+                    </div>
+                    <!-- 没有图片时显示上传组件 -->
+                    <imageUpload v-else v-model="form.germplasmImg" />
                 </el-form-item>
                 <el-form-item label="宣传语" prop="germplasmDes">
                     <el-input v-model="form.germplasmDes" type="textarea" placeholder="请输入内容" />

@@ -77,7 +77,14 @@
                     <el-input v-model="form.fishSpeciesEnName" placeholder="请输入鱼类英文名称" />
                 </el-form-item>
                 <el-form-item label="鱼类图片" prop="fishSpeciesImg">
-                    <imageUpload v-model="form.fishSpeciesImg" />
+                    <div v-if="form.fishSpeciesImg">
+                        <!-- 已有图片时显示图片 -->
+                        <div class="image">
+                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + form.fishSpeciesImg}`" />
+                        </div>
+                    </div>
+                    <!-- 没有图片时显示上传组件 -->
+                    <imageUpload v-else v-model="form.fishSpeciesImg" />
                 </el-form-item>
                 <el-form-item label="宣传语" prop="fishSpeciesDes">
                     <el-input v-model="form.fishSpeciesDes" type="textarea" placeholder="请输入内容" />

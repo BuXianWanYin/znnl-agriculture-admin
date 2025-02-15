@@ -16,7 +16,7 @@
   <script>
 // 引入分区养殖批次任务页面
 import Task from "@/views/fishingGround/Task/task";
-import SearchMenu from "@/views/agriculture/components/SearchMenu";
+import SearchMenu from "@/views/fishingGround/fishpond/PartitionTasks/SearchMenu.vue";
   import { listLand } from "@/api/agriculture/land";
   import { listBatch} from "@/api/fishingGround/batch";
   export default {

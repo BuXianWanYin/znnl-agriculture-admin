@@ -85,23 +85,20 @@
           <el-form-item label="药品数量" prop="machineCount">
             <el-input v-model="form.machineCount" placeholder="请输入药品数量" />
           </el-form-item>
-          <el-form-item label="计量" prop="workingHours">
-            <el-input v-model="form.workingHours" placeholder="请输入计量单位" />
-          </el-form-item>
-          <el-form-item label="开始用药日期" prop="workingStart">
+          <el-form-item label="开始日期" prop="workingStart">
             <el-date-picker clearable class="w100"
               v-model="form.workingStart"
               type="date"
               value-format="yyyy-MM-dd"
-              placeholder="选择开始用药日期">
+              placeholder="选择开始日期">
             </el-date-picker>
           </el-form-item>
-          <el-form-item label="结束用药日期" prop="workingFinish">
+          <el-form-item label="结束日期" prop="workingFinish">
             <el-date-picker clearable s class="w100"
               v-model="form.workingFinish"
               type="date"
               value-format="yyyy-MM-dd"
-              placeholder="选择结束用药日期">
+              placeholder="选择结束日期">
             </el-date-picker>
           </el-form-item>
         </el-form>
@@ -164,9 +161,6 @@
           ],
           machineCount: [
             { required: true, message: "药品数量不能为空", trigger: "blur" }
-          ],
-          workingHours: [
-            { required: true, message: "计量单位不能为空", trigger: "blur" }
           ],
           workingStart: [
             { required: true, message: "开始用药日期不能为空", trigger: "blur" }
