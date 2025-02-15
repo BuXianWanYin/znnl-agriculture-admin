@@ -1,5 +1,5 @@
 <template>
-    <!-- 
+    <!--
      用于登记和管理农资消耗的数据
       -->
     <div class="padding-bottom-10">
@@ -15,7 +15,7 @@
         :data="costMaterialList"
         class="margin-top-10"
       >
-        <el-table-column label="饵料名称" align="center" prop="materialName" /> 
+        <el-table-column label="饵料名称" align="center" prop="materialName" />
         <el-table-column label="投喂数量" align="center" prop="materialCount" />
         <el-table-column label="计量单位" align="center" prop="measureUnit" />
         <el-table-column
@@ -38,7 +38,7 @@
             <span>{{ parseTime(scope.row.workingFinish, "{y}-{m}-{d}") }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="备注" align="center" prop="materialCount" /> 
+        <el-table-column label="备注" align="center" prop="materialCount" />
         <el-table-column
           label="操作"
           align="center"
@@ -71,7 +71,7 @@
           </template>
         </el-table-column>
       </el-table>
-  
+
       <pagination
         v-show="total > 0"
         :total="total"
@@ -136,7 +136,7 @@
       </el-dialog>
     </div>
   </template>
-  
+
   <script>
   import {
     listCostMaterial,
@@ -147,7 +147,7 @@
   } from "@/api/agriculture/costMaterial";
   import { listMaterialInfo } from "@/api/agriculture/materialInfo";
   import { addLog } from "@/api/agriculture/log";
-  
+
   export default {
     name: "CostMaterial",
     props: {
@@ -334,4 +334,3 @@
     },
   };
   </script>
-  
