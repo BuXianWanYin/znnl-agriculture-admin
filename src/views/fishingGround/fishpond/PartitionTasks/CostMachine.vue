@@ -1,5 +1,5 @@
 <template>
-    <!-- 
+    <!--
      负责管理和登记用药记录的数据
       -->
     <div class="padding-bottom-10">
@@ -61,7 +61,7 @@
           </template>
         </el-table-column>
       </el-table>
-  
+
       <pagination
         v-show="total>0"
         :total="total"
@@ -80,7 +80,7 @@
                     :value="item.machineId">
                 </el-option>
             </el-select>
-  
+
           </el-form-item>
           <el-form-item label="药品数量" prop="machineCount">
             <el-input v-model="form.machineCount" placeholder="请输入药品数量" />
@@ -109,12 +109,12 @@
       </el-dialog>
     </div>
   </template>
-  
+
   <script>
   import { listCostMachine, getCostMachine, delCostMachine, addCostMachine, updateCostMachine } from "@/api/agriculture/costMachine";
   import { listMachineInfo } from "@/api/agriculture/machineInfo";
   import { addLog } from "@/api/agriculture/log";
-  
+
   export default {
     name: "CostMachine",
     props:{
@@ -167,7 +167,7 @@
           ],
           workingFinish: [
             { required: true, message: "结束用药日期不能为空", trigger: "blur" }
-          ],  
+          ],
           delFlag: [
             { required: true, message: "删除标志不能为空", trigger: "blur" }
           ]
@@ -293,4 +293,3 @@
     }
   };
   </script>
-  
