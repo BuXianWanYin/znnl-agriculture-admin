@@ -45,15 +45,15 @@ export class AuroraDia {
     this.handleWSMessage = this.handleWSMessage.bind(this)
     this.handleWSState = this.handleWSState.bind(this)
 
-    // 确保 DOM 加载完成后再初始化
+    // 预初始化WebSocket
+    this.initWebSocket()
+
+    // DOM加载完成后又调用init()，其中可能再次初始化
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => this.init())
     } else {
       this.init()
     }
-
-    // 预初始化WebSocket连接器
-    this.initWebSocket()
 
     this.recordingEndCallback = null;
     this.offlineText = '';
