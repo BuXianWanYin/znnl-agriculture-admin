@@ -4,8 +4,8 @@
         <el-card class="card-margin-bottom">
             <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px"
                 class="form-minus-bottom">
-                <el-form-item label="类别名称" prop="materialTypeName">
-                    <el-input v-model="queryParams.materialTypeName" placeholder="请输入药品类别名称" clearable size="small"
+                <el-form-item label="类别名称" prop="medicineTypeName">
+                    <el-input v-model="queryParams.medicineTypeName" placeholder="请输入药品类别名称" clearable size="small"
                         @keyup.enter.native="handleQuery" />
                 </el-form-item>
                 <el-form-item>
@@ -14,23 +14,23 @@
                 </el-form-item>
                 <el-form-item class="fr">
                     <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                        v-hasPermi="['agriculture:materialType:add']">新增</el-button>
+                        v-hasPermi="['agriculture:medicineType:add']">新增</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="materialTypeList">
-                <el-table-column label="药品类别名称" align="center" prop="materialTypeName" />
+            <el-table v-loading="loading" :data="medicineTypeList">
+                <el-table-column label="药品类别名称" align="center" prop="medicineTypeName" />
                 <el-table-column label="备注" align="center" prop="remark" />
                 <el-table-column label="排序" align="center" prop="orderNum" />
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                     <template slot-scope="scope">
                         <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
                             @click="handleUpdate(scope.row)"
-                            v-hasPermi="['agriculture:materialType:edit']">修改</el-button>
+                            v-hasPermi="['agriculture:medicineType:edit']">修改</el-button>
                         <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
                             @click="handleDelete(scope.row)"
-                            v-hasPermi="['agriculture:materialType:remove']">删除</el-button>
+                            v-hasPermi="['agriculture:medicineType:remove']">删除</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -41,8 +41,8 @@
         <!-- 添加或修改药品类别对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                <el-form-item label="类别名称" prop="materialTypeName">
-                    <el-input v-model="form.materialTypeName" placeholder="请输入药品类别名称" />
+                <el-form-item label="类别名称" prop="medicineTypeName">
+                    <el-input v-model="form.medicineTypeName" placeholder="请输入药品类别名称" />
                 </el-form-item>
                 <el-form-item label="备注" prop="remark">
                     <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -61,15 +61,15 @@
 
 <script>
     import {
-        listMaterialType,
-        getMaterialType,
-        delMaterialType,
-        addMaterialType,
-        updateMaterialType
-    } from "@/api/agriculture/materialType";
+        listMedicineType,
+        getMedicineType,
+        delMedicineType,
+        addMedicineType,
+        updateMedicineType
+    } from "@/api/fishingGround/MedicineType";
 
     export default {
-        name: "MaterialType",
+        name: "MedicineType",
         data() {
             return {
                 // 遮罩层
@@ -85,7 +85,7 @@
                 // 总条数
                 total: 0,
                 // 农资类别表格数据
-                materialTypeList: [],
+                medicineTypeList: [],
                 // 弹出层标题
                 title: "",
                 // 是否显示弹出层
@@ -94,13 +94,13 @@
                 queryParams: {
                     pageNum: 1,
                     pageSize: 10,
-                    materialTypeName: null,
+                    medicineTypeName: null,
                 },
                 // 表单参数
                 form: {},
                 // 表单校验
                 rules: {
-                    materialTypeName: [{
+                    medicineTypeName: [{
                         required: true,
                         message: "药品类别名称不能为空",
                         trigger: "blur"
@@ -115,8 +115,8 @@
             /** 查询药品类别列表 */
             getList() {
                 this.loading = true;
-                listMaterialType(this.queryParams).then(response => {
-                    this.materialTypeList = response.rows;
+                listMedicineType(this.queryParams).then(response => {
+                    this.medicineTypeList = response.rows;
                     this.total = response.total;
                     this.loading = false;
                 });
@@ -129,8 +129,8 @@
             // 表单重置
             reset() {
                 this.form = {
-                    materialTypeId: null,
-                    materialTypeName: null,
+                    medicineTypeId: null,
+                    medicineTypeName: null,
                     remark: null,
                     status: "0",
                     orderNum: null,
@@ -161,8 +161,8 @@
             /** 修改按钮操作 */
             handleUpdate(row) {
                 this.reset();
-                const materialTypeId = row.materialTypeId || this.ids
-                getMaterialType(materialTypeId).then(response => {
+                const medicineTypeId = row.medicineTypeId || this.ids
+                getMedicineType(medicineTypeId).then(response => {
                     this.form = response.data;
                     this.open = true;
                     this.title = "修改药品类别";
@@ -172,14 +172,14 @@
             submitForm() {
                 this.$refs["form"].validate(valid => {
                     if (valid) {
-                        if (this.form.materialTypeId != null) {
-                            updateMaterialType(this.form).then(response => {
+                        if (this.form.medicineTypeId != null) {
+                            updateMedicineType(this.form).then(response => {
                                 this.$modal.msgSuccess("修改成功");
                                 this.open = false;
                                 this.getList();
                             });
                         } else {
-                            addMaterialType(this.form).then(response => {
+                            addMedicineType(this.form).then(response => {
                                 this.$modal.msgSuccess("新增成功");
                                 this.open = false;
                                 this.getList();
@@ -190,9 +190,9 @@
             },
             /** 删除按钮操作 */
             handleDelete(row) {
-                const materialTypeIds = row.materialTypeId || this.ids;
-                this.$modal.confirm('是否确认删除药品类别编号为"' + materialTypeIds + '"的数据项？').then(function() {
-                    return delMaterialType(materialTypeIds);
+                const medicineTypeIds = row.medicineTypeId || this.ids;
+                this.$modal.confirm('是否确认删除药品类别编号为"' + medicineTypeIds + '"的数据项？').then(function() {
+                    return delMedicineType(medicineTypeIds);
                 }).then(() => {
                     this.getList();
                     this.$modal.msgSuccess("删除成功");
@@ -200,9 +200,9 @@
             },
             /** 导出按钮操作 */
             handleExport() {
-                this.download('agriculture/materialType/export', {
+                this.download('agriculture/medicineType/export', {
                     ...this.queryParams
-                }, `materialType_${new Date().getTime()}.xlsx`)
+                }, `medicineType_${new Date().getTime()}.xlsx`)
             }
         }
     };
