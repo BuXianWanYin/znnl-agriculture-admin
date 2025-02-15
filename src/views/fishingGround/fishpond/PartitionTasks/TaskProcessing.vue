@@ -79,7 +79,7 @@
                 <el-tab-pane name="costEmployee">
                     <template #label> <i class="el-icon-user"></i> 人工工时 </template>
                     <cost-employee :task-id="taskId" @log="getLoglist"></cost-employee>
-                </el-tab-pane>            
+                </el-tab-pane>
                 <el-tab-pane name="costMaterial"><template #label>
                         <i class="el-icon-suitcase-1"></i> 饵料投喂
                     </template>
@@ -104,10 +104,10 @@
         getBatchTask,
         addBatchTask,
         updateBatchTask,
-    } from "@/api/agriculture/batchTask";
+    } from "@/api/fishingGround/batchTask";
     import {
         listBatch
-    } from "@/api/agriculture/batch";
+    } from "@/api/fishingGround/batch";
     import {
         listUser
     } from "@/api/system/user";
@@ -129,7 +129,7 @@
         addTaskEmployee,
         delTaskEmployeeByTaskIdAndEmployeeId
     } from "@/api/agriculture/taskEmployee";
-    
+
     import RadioSelect from "@/views/fishingGround/fishpond/PartitionTasks/RadioSelect";
     import CalendarSelect from "@/views/fishingGround/fishpond/PartitionTasks/CalendarSelect";
     import MultipleSelect from "@/views/fishingGround/fishpond/PartitionTasks/MultipleSelect";

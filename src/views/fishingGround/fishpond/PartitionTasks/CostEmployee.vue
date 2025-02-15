@@ -1,6 +1,6 @@
 <template>
-    <!-- 
-    用于登记和管理人工工时的数据 
+    <!--
+    用于登记和管理人工工时的数据
     -->
     <div class="padding-bottom-10">
       <el-alert
@@ -52,7 +52,7 @@
           align="center"
           class-name="small-padding fixed-width"
         >
-  
+
         <template #header>
            <el-tag
               @click="handleAdd"
@@ -81,7 +81,7 @@
           </template>
         </el-table-column>
       </el-table>
-  
+
       <pagination
         v-show="total > 0"
         :total="total"
@@ -100,7 +100,7 @@
                     :value="item.employeeId">
                 </el-option>
             </el-select>
-  
+
           </el-form-item>
           <el-form-item label="工时" prop="workingHours">
             <el-input v-model="form.workingHours" placeholder="请输入工时"  >
@@ -139,7 +139,7 @@
       </el-dialog>
     </div>
   </template>
-  
+
   <script>
   import {
     listCostEmployee,
@@ -173,7 +173,7 @@
         total: 0,
         // 人工工时表格数据
         costEmployeeList: [],
-  
+
         taskEmployeeList: [],
         // 弹出层标题
         title: "",
@@ -323,4 +323,3 @@
     },
   };
   </script>
-  
