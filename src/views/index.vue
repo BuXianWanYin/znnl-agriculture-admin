@@ -61,12 +61,92 @@
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="margin-top-10">
-                <!-- <el-col :span="8">
-
-
-        </el-col> -->
+                <el-col :span="8">
+                    <data-panel title="养殖概况">
+                        <div class="main flex fdc">
+                            <el-row :gutter="10" class="flex1">
+                                <el-col :span="8" class="h100 flex aic">
+                                    <data-box 
+                                        icon="el-icon-s-data"
+                                        backgroundColor="#5470c6" 
+                                        text="养殖池数量(个)" 
+                                        :value="fishInfo.pondCount"
+                                        class="flex1">
+                                    </data-box>
+                                </el-col>
+                                <el-col :span="8" class="h100 flex aic">
+                                    <data-box 
+                                        icon="el-icon-s-finance"
+                                        backgroundColor="#91cc75" 
+                                        text="鱼类品种(种)" 
+                                        :value="fishInfo.speciesCount"
+                                        class="flex1">
+                                    </data-box>
+                                </el-col>
+                                <el-col :span="8" class="h100 flex aic">
+                                    <data-box 
+                                        icon="el-icon-s-grid"
+                                        backgroundColor="#fac858" 
+                                        text="存栏数量(尾)" 
+                                        :value="fishInfo.fishCount"
+                                        class="flex1">
+                                    </data-box>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </data-panel>
+                </el-col>
+                <el-col :span="8">
+                    <data-panel title="养殖统计" more="更多详情" link="FishStats">
+                        <div class="main">
+                            <el-row class="h100" :gutter="10">
+                                <el-col :md="10" class="h100">
+                                    <div ref="fishStatsChart" class="h100"></div>
+                                </el-col>
+                                <el-col :md="7" class="h100 flex fdc jcsa">
+                                    <data-box 
+                                        v-for="item in fishStatsInfo.slice(0,2)" 
+                                        :key="item.name"
+                                        icon="el-icon-s-promotion" 
+                                        backgroundColor="red" 
+                                        :text="item.name+'(尾)'"
+                                        :value="item.value" 
+                                        :isBorder="false" 
+                                        :isIcon="false">
+                                    </data-box>
+                                </el-col>
+                                <el-col :md="7" class="h100 flex fdc jcsa">
+                                    <data-box 
+                                        v-for="item in fishStatsInfo.slice(2,4)" 
+                                        :key="item.name"
+                                        icon="el-icon-s-promotion" 
+                                        backgroundColor="red" 
+                                        :text="item.name+'(尾)'"
+                                        :value="item.value" 
+                                        :isBorder="false" 
+                                        :isIcon="false">
+                                    </data-box>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </data-panel>
+                </el-col>
+            </el-row>
+            <el-row :gutter="10" class="margin-top-10">
                 <el-col>
                     <data-panel title="最新环境数据">
+                        <div class="env-cards-wrapper">
+                            <el-row :gutter="20">
+                                <el-col :span="4" v-for="(item, index) in latestEnvItems" :key="index">
+                                    <div class="env-card">
+                                        <div class="env-title">{{item.label}}</div>
+                                        <div class="env-value">{{item.value}}</div>
+                                        <div class="env-unit">{{item.unit}}</div>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                            <div class="env-time">更新时间：{{latestUpdateTime}}</div>
+                        </div>
                         <el-table :data="statusData">
                             <el-table-column prop="id" label="ID"> </el-table-column>
                             <el-table-column prop="airquality" label="空气质量"> </el-table-column>
@@ -76,9 +156,13 @@
                             <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
                         </el-table>
                         <div class="page-block">
-                            <el-pagination @size-change="sSizeChange" @current-change="sCurrentChange"
-                                :current-page="scurrentPage" :page-size="spSize"
-                                layout="total, prev, pager, next, jumper" :total="stotal">
+                            <el-pagination 
+                                @size-change="sSizeChange" 
+                                @current-change="sCurrentChange"
+                                :current-page="scurrentPage" 
+                                :page-size="spSize"
+                                layout="jumper, prev, pager, next, total" 
+                                :total="stotal">
                             </el-pagination>
                         </div>
                     </data-panel>
@@ -141,8 +225,32 @@
                     num: []
                 },
                 taskInfo: [],
-                statusData: []
+                statusData: [],
+                fishInfo: {
+                    pondCount: 12,
+                    speciesCount: 8,
+                    fishCount: 25000
+                },
+                fishStatsInfo: [
+                    { name: '在养', value: 145 },
+                    { name: '已出塘', value: 45 },
+                    { name: '生病', value: 3 },
+                    { name: '死亡', value: 0 }
+                ],
+                latestEnvItems: [
+                    { label: '空气质量', value: '2976.19', unit: 'ppm' },
+                    { label: '温度', value: '27', unit: '℃' },
+                    { label: '湿度', value: '35', unit: '%' },
+                    { label: '气压', value: '100.24', unit: 'kPa' }
+                ]
             };
+        },
+        computed: {
+            latestUpdateTime() {
+                return this.statusData && this.statusData.length > 0 
+                    ? this.statusData[0].dateTime 
+                    : '--'
+            }
         },
         async mounted() {
             // await this.getBaseInfo();
@@ -159,6 +267,13 @@
             await this.getLandList();
             // this.addFeatures();
             this.houseCheck()
+            pieChart(
+                this.$refs.fishStatsChart, 
+                '养殖状态', 
+                '养殖进度(%)', 
+                this.fishStatsInfo, 
+                84.6
+            );
         },
         methods: {
             // 查看列表分页
@@ -179,6 +294,17 @@
                     console.log(res)
                     this.statusData = res.data.data.records;
                     this.stotal = res.data.data.total
+                    
+                    // 更新卡片数据
+                    if (this.statusData && this.statusData.length > 0) {
+                        const latest = this.statusData[0];
+                        this.latestEnvItems = [
+                            { label: '空气质量', value: latest.airquality, unit: 'ppm' },
+                            { label: '温度', value: latest.temperature, unit: '℃' },
+                            { label: '湿度', value: latest.humidity, unit: '%' },
+                            { label: '气压', value: latest.pressure, unit: 'kPa' }
+                        ];
+                    }
                 })
             },
             /** 初始化map */
@@ -322,6 +448,11 @@
         box-sizing: border-box;
         height: calc((100vh - 84px - #{$margin} * 4 - 51px * 3) / 3);
         padding: 10px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
     }
 
     .mapMain {
@@ -329,5 +460,72 @@
         height: calc(((100vh - 84px - #{$margin} * 4 - 51px * 3) / 3) * 2 + #{$margin} + 51px);
         padding: 5px;
         min-height: calc(180px * 2 + #{$margin} + 51px);
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    .data-panel {
+        transition: all 0.3s ease;
+        
+        &:hover {
+            transform: translateY(-5px);
+        }
+    }
+
+    .el-table {
+        background: transparent !important;
+    }
+
+    .env-cards-wrapper {
+        margin-bottom: 20px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+    }
+
+    .env-card {
+        background: rgba(255, 255, 255, 0.7);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        transition: all 0.3s ease;
+        
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .env-title {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .env-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #409EFF;
+        }
+        
+        .env-unit {
+            color: #999;
+            font-size: 12px;
+        }
+    }
+
+    .env-time {
+        text-align: right;
+        color: #999;
+        font-size: 12px;
+        margin-top: 10px;
+    }
+
+    .page-block {
+        margin-top: 10px;
+        text-align: left;
+        padding-left: 10px;
     }
 </style>

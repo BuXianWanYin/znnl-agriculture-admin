@@ -210,7 +210,8 @@ export class AuroraDia {
         is_speaking: true,
         chunk_interval: 10,
         mode: "2pass",
-        itn: true
+        itn: true,
+        userId: this.wsConnector.userId
       }
       this.wsConnector.wsSend(JSON.stringify(initRequest))
 
@@ -266,12 +267,13 @@ export class AuroraDia {
 
         // 构建语音识别请求参数
         const request = {
-          chunk_size: [5, 10, 5],    // 音频分块大小
-          wav_name: "h5",            // 音频文件名
-          is_speaking: false,        // 是否正在说话
-          chunk_interval: 10,        // 分块间隔
-          mode: "2pass",             // 识别模式：双重识别
-          itn: true                  // 是否进行数字转换
+          chunk_size: [5, 10, 5],
+          wav_name: "h5",
+          is_speaking: false,
+          chunk_interval: 10,
+          mode: "2pass",
+          itn: true,
+          userId: this.wsConnector.userId
         }
 
         // 发送剩余的音频数据
@@ -416,6 +418,11 @@ export class AuroraDia {
   handleWSMessage(e) {
     try {
       const data = JSON.parse(e.data)
+      // 检查消息是否属于当前用户
+      if (data.userId && data.userId !== this.wsConnector.userId) {
+        return // 如果消息不属于当前用户，直接返回
+      }
+
       if (data.text) {
         const newText = data.text
         const asrModel = data.mode
@@ -424,21 +431,18 @@ export class AuroraDia {
         console.log('收到识别结果:', {
           text: newText,
           mode: asrModel,
-          isFinal: isFinal
+          isFinal: isFinal,
+          userId: data.userId
         })
 
         // 根据模式处理文本
         if (asrModel === "2pass-offline" || asrModel === "offline") {
-          // 离线模式，更新离线文本
           this.offlineText = newText
           this.recText = this.offlineText
         } else {
-          // 在线模式，累加文本
           if (isFinal) {
-            // 如果是最终结果，直接设置文本
             this.recText = newText
           } else {
-            // 如果是中间结果，累加文本
             this.recText = newText
           }
         }
