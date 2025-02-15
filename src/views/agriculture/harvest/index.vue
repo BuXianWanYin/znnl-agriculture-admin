@@ -463,7 +463,7 @@
                 try {
                     const {
                         data
-                    } = await http.post('/iaPartitionFood/page', {
+                    } = await http.post('/iaPartitionFood/page', { //获取采摘列表
                         ...this.processPager,
                         ...this.processSearchForm
                     })
@@ -684,7 +684,7 @@
                 if (!this.processManagementForm.id) {
                     this.$refs.form.validate((valid) => {
                         if (valid) {
-                            http.post('/iaPartitionFood/create', {
+                            http.post('/iaPartitionFood/create', { //新增采摘
                                 ...this.processManagementForm
                             }).then(res => {
                                 updateBatch({
@@ -727,7 +727,7 @@
                 try {
                     const {
                         data
-                    } = await http.post('/iaPartitionFood/detail', {}, {
+                    } = await http.post('/iaPartitionFood/detail', {}, { //获取采摘详情
                         params: {
                             id
                         }
@@ -744,7 +744,7 @@
                     cancelButtonText: '取消',
                     type: 'warning'
                 }).then(() => {
-                    http.post('/iaPartitionFood/delete', {}, {
+                    http.post('/iaPartitionFood/delete', {}, { //删除采摘
                         params: {
                             id
                         }

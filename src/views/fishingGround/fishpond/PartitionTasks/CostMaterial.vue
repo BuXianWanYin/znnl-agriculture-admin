@@ -1,6 +1,6 @@
 <template>
     <!--
-     用于登记和管理农资消耗的数据
+     用于登记和管理饵料投喂的数据
       -->
     <div class="padding-bottom-10">
       <el-alert
@@ -19,7 +19,7 @@
         <el-table-column label="投喂数量" align="center" prop="materialCount" />
         <el-table-column label="计量单位" align="center" prop="measureUnit" />
         <el-table-column
-          label="开始投喂时间"
+          label="开始日期"
           align="center"
           prop="workingStart"
           width="140"
@@ -29,7 +29,7 @@
           </template>
         </el-table-column>
         <el-table-column
-          label="结束结束日期"
+          label="结束日期"
           align="center"
           prop="workingFinish"
           width="140"
@@ -79,7 +79,7 @@
         :limit.sync="queryParams.pageSize"
         @pagination="getList"
       />
-      <!-- 添加或修改农资用量对话框 -->
+      <!-- 添加或修改饵料用量对话框 -->
       <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
         <el-form ref="form" :model="form" :rules="rules" label-width="80px">
           <el-form-item label="饵料名称" prop="materialId">
@@ -100,9 +100,9 @@
           <el-form-item label="使用数量" prop="materialCount">
             <el-input v-model="form.materialCount" placeholder="请输入使用数量" />
           </el-form-item>
-          <el-form-item label="计量单位" prop="measureUnit">
+          <!-- <el-form-item label="计量单位" prop="measureUnit">
             <el-input v-model="form.measureUnit" placeholder="请输入计量单位" />
-          </el-form-item>
+          </el-form-item> -->
           <el-form-item label="开始日期" prop="workingStart">
             <el-date-picker
               clearable
@@ -169,7 +169,7 @@
         showSearch: true,
         // 总条数
         total: 0,
-        // 农资用量表格数据
+        // 饵料用量表格数据
         costMaterialList: [],
         materialInfoList: [],
         // 弹出层标题
@@ -190,14 +190,14 @@
             { required: true, message: "任务ID不能为空", trigger: "blur" },
           ],
           materialId: [
-            { required: true, message: "农资ID不能为空", trigger: "blur" },
+            { required: true, message: "饵料ID不能为空", trigger: "blur" },
           ],
           materialCount: [
             { required: true, message: "使用数量不能为空", trigger: "blur" },
           ],
-          measureUnit: [
-            { required: true, message: "计量单位不能为空", trigger: "blur" },
-          ],
+          // measureUnit: [
+          //   { required: true, message: "计量单位不能为空", trigger: "blur" },
+          // ],
           workingStart: [
             { required: true, message: "开始日期不能为空", trigger: "blur" },
           ],
@@ -212,7 +212,7 @@
       this.getMaterialInfoList();
     },
     methods: {
-      /** 查询农资用量列表 */
+      /** 查询饵料用量列表 */
       getList() {
         this.loading = true;
         listCostMaterial(this.queryParams).then((response) => {
@@ -221,7 +221,7 @@
           this.loading = false;
         });
       },
-      /** 查询农资列表 */
+      /** 查询饵料列表 */
       getMaterialInfoList() {
         listMaterialInfo().then((response) => {
           this.materialInfoList = response.rows;
