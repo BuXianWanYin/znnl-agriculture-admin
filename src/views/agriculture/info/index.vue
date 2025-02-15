@@ -19,48 +19,76 @@
                 </el-form-item>
             </el-form>
         </el-card>
-        <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="infoList">
-                <el-table-column label="预警大棚" align="center" prop="greenhouse" />
-                <el-table-column label="预警农作物批次" align="center" prop="cropBatch" />
-                <el-table-column label="预警分区信息" align="center" prop="partitionInfo" />
-                <el-table-column label="预警阈值" align="center" prop="thresholdValue" />
-                <el-table-column label="预警状态" align="center" prop="warningStatus" />
-                <el-table-column label="预警负责人" align="center" prop="responsiblePerson" />
-                <el-table-column label="区块地址" align="center" prop="handler" />
-                <el-table-column label="预警开始时间" align="center" prop="startTime" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.startTime) }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="预警结束时间" align="center" prop="endTime" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.endTime) }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="创建时间" align="center" prop="createdAt" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.createdAt) }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="更新时间" align="center" prop="updatedAt" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.updatedAt) }}</span>
-                    </template>
-                </el-table-column>
-                <!-- <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-                    <template slot-scope="scope">
-                        <el-button size="mini" type="primary" class="padding-5" icon="el-icon-edit"
-                            @click="handleUpdate(scope.row)" v-hasPermi="['agriculture:info:edit']">修改</el-button>
-                        <el-button size="mini" type="danger" class="padding-5" icon="el-icon-delete"
-                            @click="handleDelete(scope.row)" v-hasPermi="['agriculture:info:remove']">删除</el-button>
-                    </template>
-                </el-table-column> -->
-            </el-table>
+        
+        <div class="warning-cards-container" v-loading="loading">
+            <el-row :gutter="20">
+                <el-col :span="8" v-for="(item, index) in infoList" :key="index">
+                    <el-card class="warning-card" :class="getStatusClass(item.warningStatus)">
+                        <div class="card-header">
+                            <span class="greenhouse-name">{{ item.greenhouse }}</span>
+                            <el-tag :type="getStatusType(item.warningStatus)" size="small">
+                                {{ item.warningStatus }}
+                            </el-tag>
+                        </div>
+                        
+                        <div class="card-content">
+                            <div class="info-item">
+                                <i class="el-icon-plant"></i>
+                                <span class="label">农作物批次:</span>
+                                <span class="value">{{ item.cropBatch }}</span>
+                            </div>
+                            
+                            <div class="info-item">
+                                <i class="el-icon-map-location"></i>
+                                <span class="label">预警分区:</span>
+                                <span class="value">{{ item.partitionInfo }}</span>
+                            </div>
+                            
+                            <div class="info-item">
+                                <i class="el-icon-warning-outline"></i>
+                                <span class="label">预警阈值:</span>
+                                <span class="value">{{ item.thresholdValue }}</span>
+                            </div>
+                            
+                            <div class="info-item">
+                                <i class="el-icon-user"></i>
+                                <span class="label">负责人:</span>
+                                <span class="value">{{ item.responsiblePerson }}</span>
+                            </div>
+                            
+                            <div class="time-info">
+                                <div class="time-range">
+                                    <i class="el-icon-time"></i>
+                                    <span>{{ parseTime(item.startTime) }} 至 {{ parseTime(item.endTime) }}</span>
+                                </div>
+                                <div class="update-time">
+                                    更新于: {{ parseTime(item.updatedAt) }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer">
 
-            <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum"
-                :limit.sync="queryParams.pageSize" @pagination="getList" />
-        </el-card>
+                            <!-- <el-button type="text" @click="handleUpdate(item)" v-hasPermi="['agriculture:info:edit']">
+                                <i class="el-icon-edit"></i> 修改按钮
+                            </el-button> -->
+                            <!-- <el-button type="text" class="danger-text" @click="handleDelete(item)" v-hasPermi="['agriculture:info:remove']">
+                                <i class="el-icon-delete"></i> 删除 按钮
+                            </el-button> -->
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+            
+            <pagination 
+                v-show="total>0" 
+                :total="total" 
+                :page.sync="queryParams.pageNum"
+                :limit.sync="queryParams.pageSize" 
+                @pagination="getList" 
+            />
+        </div>
+        
         <!-- 添加或修改预警信息对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
@@ -108,7 +136,7 @@
                 // 查询参数
                 queryParams: {
                     pageNum: 1,
-                    pageSize: 10,
+                    pageSize: 12,
                     greenhouse: null,
                     cropBatch: null,
                     partitionInfo: null,
@@ -218,7 +246,118 @@
                 this.download('agriculture/info/export', {
                     ...this.queryParams
                 }, `info_${new Date().getTime()}.xlsx`)
+            },
+            getStatusClass(status) {
+                return {
+                    'warning-active': status === '警告中',
+                    'warning-resolved': status === '已解决',
+                    'warning-pending': status === '待处理'
+                }
+            },
+            getStatusType(status) {
+                const statusMap = {
+                    '警告中': 'danger',
+                    '已解决': 'success',
+                    '待处理': 'warning'
+                }
+                return statusMap[status] || 'info'
             }
         }
     };
 </script>
+
+<style lang="scss" scoped>
+.warning-cards-container {
+    .el-row {
+        margin-bottom: 20px;
+    }
+    
+    .warning-card {
+        margin-bottom: 20px;
+        transition: all 0.3s;
+        
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+        }
+        
+        &.warning-active {
+            border-left: 4px solid #F56C6C;
+        }
+        
+        &.warning-resolved {
+            border-left: 4px solid #67C23A;
+        }
+        
+        &.warning-pending {
+            border-left: 4px solid #E6A23C;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            
+            .greenhouse-name {
+                font-size: 16px;
+                font-weight: bold;
+            }
+        }
+        
+        .card-content {
+            .info-item {
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                
+                i {
+                    margin-right: 8px;
+                    color: #909399;
+                }
+                
+                .label {
+                    color: #606266;
+                    margin-right: 8px;
+                }
+                
+                .value {
+                    color: #303133;
+                    font-weight: 500;
+                }
+            }
+            
+            .time-info {
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid #EBEEF5;
+                
+                .time-range {
+                    color: #606266;
+                    margin-bottom: 5px;
+                    
+                    i {
+                        margin-right: 5px;
+                    }
+                }
+                
+                .update-time {
+                    font-size: 12px;
+                    color: #909399;
+                }
+            }
+        }
+        
+        .card-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #EBEEF5;
+            text-align: right;
+            
+            .danger-text {
+                color: #F56C6C;
+            }
+        }
+    }
+}
+</style>
