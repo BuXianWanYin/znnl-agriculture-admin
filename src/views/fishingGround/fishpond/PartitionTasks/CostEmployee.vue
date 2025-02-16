@@ -1,38 +1,37 @@
 <template>
     <!--
-     用于登记和管理饵料投喂的数据
-      -->
+    用于登记和管理人工工时的数据
+    -->
     <div class="padding-bottom-10">
         <el-alert
-            title="登记饵料投喂"
+            title="登记人工工时"
             type="info"
             show-icon
-            description="此处可以登记饵料投喂"
+            description="此处可以按照每个用工登记工时"
         >
         </el-alert>
         <el-table
             v-loading="loading"
-            :data="costBaitList"
+            :data="costEmployeeList"
             class="margin-top-10"
         >
-            <el-table-column label="饵料名称" align="center" prop="baitId">
+            <el-table-column label="雇员" align="center" prop="employeeId">
                 <template v-slot:default="scope">
                     <data-tag
-                        :options="BaitInfoList"
-                        :value="scope.row.baitId"
-                        labelName="baitName"
-                        valueName="baitId"
+                        :options="taskEmployeeList"
+                        :value="scope.row.employeeId"
+                        labelName="employeeName"
+                        valueName="employeeId"
                         type="notag"
                     />
                 </template>
             </el-table-column>
-            <el-table-column label="投喂数量" align="center" prop="baitCount"/>
-            <el-table-column label="计量单位" align="center" prop="measureUnit"/>
+            <el-table-column label="工时" align="center" prop="workingHours" />
             <el-table-column
                 label="开始日期"
                 align="center"
                 prop="workingStart"
-                width="140"
+                width="180"
             >
                 <template slot-scope="scope">
                     <span>{{ parseTime(scope.row.workingStart, "{y}-{m}-{d}") }}</span>
@@ -42,25 +41,25 @@
                 label="结束日期"
                 align="center"
                 prop="workingFinish"
-                width="140"
+                width="180"
             >
                 <template slot-scope="scope">
                     <span>{{ parseTime(scope.row.workingFinish, "{y}-{m}-{d}") }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="备注" align="center" prop="remark"/>
             <el-table-column
                 label="操作"
                 align="center"
                 class-name="small-padding fixed-width"
             >
+
                 <template #header>
                     <el-tag
                         @click="handleAdd"
-                        v-hasPermi="['fishingGround:costBait:add']"
+                        v-hasPermi="['agriculture:costEmployee:add']"
                         class="cursor-pointer"
-                    >新增
-                    </el-tag>
+                    >新增</el-tag
+                    >
                 </template>
                 <template slot-scope="scope">
                     <el-button
@@ -68,18 +67,16 @@
                         type="text"
                         icon="el-icon-edit"
                         @click="handleUpdate(scope.row)"
-                        v-hasPermi="['fishingGround:costBait:edit']"
-                    >修改
-                    </el-button
+                        v-hasPermi="['agriculture:costEmployee:edit']"
+                    >修改</el-button
                     >
                     <el-button
                         size="mini"
                         type="text"
                         icon="el-icon-delete"
                         @click="handleDelete(scope.row)"
-                        v-hasPermi="['fishingGround:costBait:remove']"
-                    >删除
-                    </el-button
+                        v-hasPermi="['agriculture:costEmployee:remove']"
+                    >删除</el-button
                     >
                 </template>
             </el-table-column>
@@ -92,34 +89,30 @@
             :limit.sync="queryParams.pageSize"
             @pagination="getList"
         />
-        <!-- 添加或修改饵料用量对话框 -->
+        <!-- 添加或修改人工工时对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                <el-form-item label="饵料名称" prop="baitId">
-                    <el-select
-                        v-model="form.baitId"
-                        placeholder="请选择饵料名称"
-                        class="display-block"
-                    >
-                        <el-option
-                            v-for="item in BaitInfoList"
-                            :key="item.baitId"
-                            :label="item.baitName"
-                            :value="item.baitId"
-                        >
+                <el-form-item label="雇员" prop="employeeId">
+                    <el-select class="display-block" v-model="form.employeeId"  placeholder="请选择雇员" clearable filterable >
+                        <el-option v-for="item in taskEmployeeList"
+                                   :key="item.employeeId"
+                                   :label="item.employeeName"
+                                   :value="item.employeeId">
                         </el-option>
                     </el-select>
+
                 </el-form-item>
-                <el-form-item label="使用数量" prop="baitCount">
-                    <el-input v-model="form.baitCount" placeholder="请输入使用数量"/>
+                <el-form-item label="工时" prop="workingHours">
+                    <el-input v-model="form.workingHours" placeholder="请输入工时"  >
+                        <template v-slot:append>
+                            天
+                        </template>
+                    </el-input>
                 </el-form-item>
-                <!-- <el-form-item label="计量单位" prop="measureUnit">
-                  <el-input v-model="form.measureUnit" placeholder="请输入计量单位" />
-                </el-form-item> -->
                 <el-form-item label="开始日期" prop="workingStart">
                     <el-date-picker
-                        clearable
                         class="w100"
+                        clearable
                         v-model="form.workingStart"
                         type="date"
                         value-format="yyyy-MM-dd"
@@ -129,17 +122,14 @@
                 </el-form-item>
                 <el-form-item label="结束日期" prop="workingFinish">
                     <el-date-picker
-                        clearable
                         class="w100"
+                        clearable
                         v-model="form.workingFinish"
                         type="date"
                         value-format="yyyy-MM-dd"
                         placeholder="选择结束日期"
                     >
                     </el-date-picker>
-                </el-form-item>
-                <el-form-item label="备注" prop="baitCount">
-                    <el-input v-model="form.remark" placeholder="请输入备注"/>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -152,21 +142,20 @@
 
 <script>
 import {
-    listCostBait,
-    getCostBait,
-    delCostBait,
-    addCostBait,
-    updateCostBait,
-} from "@/api/fishingGround/costBait";
-import {listBaitInfo} from "@/api/fishingGround/BaitInfo";
-import {addLog} from "@/api/agriculture/log";
-
+    listCostEmployee,
+    getCostEmployee,
+    delCostEmployee,
+    addCostEmployee,
+    updateCostEmployee,
+} from "@/api/agriculture/costEmployee";
+import { addLog } from "@/api/agriculture/log";
+import { listTaskEmployee } from "@/api/agriculture/taskEmployee";
 export default {
-    name: "CostBait",
-    props: {
-        taskId: {
-            type: [Number, String],
-        },
+    name: "CostEmployee",
+    props:{
+        taskId:{
+            type:[Number,String]
+        }
     },
     data() {
         return {
@@ -182,9 +171,10 @@ export default {
             showSearch: true,
             // 总条数
             total: 0,
-            // 饵料用量表格数据
-            costBaitList: [],
-            BaitInfoList: [],
+            // 人工工时表格数据
+            costEmployeeList: [],
+
+            taskEmployeeList: [],
             // 弹出层标题
             title: "",
             // 是否显示弹出层
@@ -193,51 +183,48 @@ export default {
             queryParams: {
                 pageNum: 1,
                 pageSize: 10,
-                taskId: this.taskId,
+                taskId:this.taskId
             },
             // 表单参数
             form: {},
             // 表单校验
             rules: {
-                taskId: [
-                    {required: true, message: "任务ID不能为空", trigger: "blur"},
+                employeeId: [
+                    { required: true, message: "雇员ID不能为空", trigger: "blur" },
                 ],
-                baitId: [
-                    {required: true, message: "饵料ID不能为空", trigger: "blur"},
+                workingHours: [
+                    { required: true, message: "工时不能为空", trigger: "blur" },
                 ],
-                baitCount: [
-                    {required: true, message: "使用数量不能为空", trigger: "blur"},
-                ],
-                // measureUnit: [
-                //   { required: true, message: "计量单位不能为空", trigger: "blur" },
-                // ],
                 workingStart: [
-                    {required: true, message: "开始日期不能为空", trigger: "blur"},
+                    { required: true, message: "开始日期不能为空", trigger: "blur" },
                 ],
                 workingFinish: [
-                    {required: true, message: "结束日期不能为空", trigger: "blur"},
+                    { required: true, message: "结束日期不能为空", trigger: "blur" },
+                ],
+                delFlag: [
+                    { required: true, message: "删除标志不能为空", trigger: "blur" },
                 ],
             },
         };
     },
     created() {
         this.getList();
-        this.getBaitInfoList();
+        this.getTaskEmployeeList();
     },
     methods: {
-        /** 查询饵料用量列表 */
+        /** 查询人工工时列表 */
         getList() {
             this.loading = true;
-            listCostBait(this.queryParams).then((response) => {
-                this.costBaitList = response.rows;
+            listCostEmployee(this.queryParams).then((response) => {
+                this.costEmployeeList = response.rows;
                 this.total = response.total;
                 this.loading = false;
             });
         },
-        /** 查询饵料列表 */
-        getBaitInfoList() {
-            listBaitInfo().then((response) => {
-                this.BaitInfoList = response.rows;
+        /** 查询雇员 */
+        getTaskEmployeeList() {
+            listTaskEmployee({taskId:this.taskId}).then((response) => {
+                this.taskEmployeeList = response.rows;
             });
         },
         // 取消按钮
@@ -250,9 +237,8 @@ export default {
             this.form = {
                 costId: null,
                 taskId: this.taskId,
-                baitId: null,
-                baitCount: null,
-                measureUnit: null,
+                employeeId: null,
+                workingHours: null,
                 workingStart: null,
                 workingFinish: null,
                 remark: null,
@@ -266,35 +252,25 @@ export default {
             };
             this.resetForm("form");
         },
-        /** 搜索按钮操作 */
-        handleQuery() {
-            this.queryParams.pageNum = 1;
-            this.getList();
-        },
-        /** 重置按钮操作 */
-        resetQuery() {
-            this.resetForm("queryForm");
-            this.handleQuery();
-        },
         /** 插入任务日志 */
-        addTaskLog(des) {
-            addLog({taskId: this.taskId, operDes: des})
+        async addTaskLog(des){
+            await addLog({ taskId: this.taskId,operDes:des });
             this.$emit('log')
         },
         /** 新增按钮操作 */
         handleAdd() {
             this.reset();
             this.open = true;
-            this.title = "添加投喂用量";
+            this.title = "添加人工工时";
         },
         /** 修改按钮操作 */
         handleUpdate(row) {
             this.reset();
             const costId = row.costId || this.ids;
-            getCostBait(costId).then((response) => {
+            getCostEmployee(costId).then((response) => {
                 this.form = response.data;
                 this.open = true;
-                this.title = "修改投喂用量";
+                this.title = "修改人工工时";
             });
         },
         /** 提交按钮 */
@@ -302,16 +278,16 @@ export default {
             this.$refs["form"].validate((valid) => {
                 if (valid) {
                     if (this.form.costId != null) {
-                        updateCostBait(this.form).then((response) => {
+                        updateCostEmployee(this.form).then((response) => {
+                            this.addTaskLog("修改人工工时")
                             this.$modal.msgSuccess("修改成功");
-                            this.addTaskLog("修改投喂用量")
                             this.open = false;
                             this.getList();
                         });
                     } else {
-                        addCostBait(this.form).then((response) => {
+                        addCostEmployee(this.form).then((response) => {
+                            this.addTaskLog("新增人工工时")
                             this.$modal.msgSuccess("新增成功");
-                            this.addTaskLog("新增投喂用量")
                             this.open = false;
                             this.getList();
                         });
@@ -323,28 +299,28 @@ export default {
         handleDelete(row) {
             const costIds = row.costId || this.ids;
             this.$modal
-                .confirm('是否确认删除投喂用量编号为"' + costIds + '"的数据项？')
+                .confirm('是否确认删除人工工时编号为"' + costIds + '"的数据项？')
                 .then(function () {
-                    return delCostBait(costIds);
+                    return delCostEmployee(costIds);
                 })
                 .then(() => {
                     this.getList();
+                    this.addTaskLog("删除人工工时")
                     this.$modal.msgSuccess("删除成功");
-                    this.addTaskLog("删除投喂用量")
                 })
-                .catch(() => {
-                });
+                .catch(() => {});
         },
         /** 导出按钮操作 */
         handleExport() {
             this.download(
-                "fishPasture/costBait/export",
+                "agriculture/costEmployee/export",
                 {
                     ...this.queryParams,
                 },
-                `costBait_${new Date().getTime()}.xlsx`
+                `costEmployee_${new Date().getTime()}.xlsx`
             );
         },
     },
 };
 </script>
+
