@@ -78,13 +78,20 @@
                 </el-form-item>
                 <el-form-item label="鱼类图片" prop="fishSpeciesImg">
                     <div v-if="form.fishSpeciesImg">
-                        <!-- 已有图片时显示图片 -->
-                        <div class="image">
+                        <!-- 已有图片时显示图片和删除按钮 -->
+                        <div class="image-preview">
                             <img style="width:50px;height:50px;" :src="`${image.baseUrl + form.fishSpeciesImg}`" />
+                            <!-- 点击时将图片值设为 null，从而清除图片 -->
+                            <i class="el-icon-close delete-icon" @click="form.fishSpeciesImg = null"></i>
                         </div>
                     </div>
                     <!-- 没有图片时显示上传组件 -->
-                    <imageUpload v-else v-model="form.fishSpeciesImg" />
+                    <imageUpload 
+                        v-else 
+                        v-model="form.fishSpeciesImg"
+                        :limit="1"
+                        @change="validateField('fishSpeciesImg')"
+                    />
                 </el-form-item>
                 <el-form-item label="宣传语" prop="fishSpeciesDes">
                     <el-input v-model="form.fishSpeciesDes" type="textarea" placeholder="请输入内容" />
@@ -185,7 +192,7 @@
                     fishSpeciesImg: [{
                         required: true,
                         message: "鱼类图片不能为空",
-                        trigger: "blur"
+                        trigger: ["blur", "change"]
                     }],
                 }
             };
@@ -303,7 +310,44 @@
                 this.download('fishPasture/species/export', {
                     ...this.queryParams
                 }, `germplasm_${new Date().getTime()}.xlsx`)
+            },
+            validateField(field) {
+                // 手动触发特定字段的验证
+                this.$refs.form.validateField(field);
             }
         }
     };
 </script>
+<!-- scoped 属性会为该样式添加一个特定的选择器，使得这些样式只应用于当前组件的元素 -->
+<style scoped>
+.image-preview {
+    position: relative;
+    display: inline-block;
+}
+
+.delete-icon {
+    position: absolute;
+    /* 将 X 图标定位到图片的右上角外侧 */
+    top: -8px;
+    right: -8px;
+    /* 红色背景颜色 */
+    background-color: #da212a;
+    color: white;
+    /*  使其呈现为圆形 */
+    border-radius: 50%;
+    padding: 2px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 1;
+}
+/* 效果在鼠标悬停时改变背景色 */
+.delete-icon:hover {
+    background-color: #f78989;
+}
+
+.image-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+</style>

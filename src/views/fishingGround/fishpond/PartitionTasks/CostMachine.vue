@@ -29,7 +29,7 @@
             <el-table-column label="投喂数量" align="center" prop="medicineCount"/>
             <el-table-column label="计量单位" align="center" prop="measureUnit"/>
             <el-table-column
-                label="开始投喂时间"
+                label="开始日期"
                 align="center"
                 prop="workingStart"
                 width="140"
@@ -39,7 +39,7 @@
                 </template>
             </el-table-column>
             <el-table-column
-                label="结束结束日期"
+                label="结束日期"
                 align="center"
                 prop="workingFinish"
                 width="140"
@@ -138,7 +138,7 @@
                     >
                     </el-date-picker>
                 </el-form-item>
-                <el-form-item label="备注" prop="medicineCount">
+                <el-form-item label="备注">
                     <el-input v-model="form.remark" placeholder="请输入备注"/>
                 </el-form-item>
             </el-form>

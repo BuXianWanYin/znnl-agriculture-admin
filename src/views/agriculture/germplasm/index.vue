@@ -74,15 +74,21 @@
                     <el-input v-model="form.germplasmEnName" placeholder="请输入种质英文名称" />
                 </el-form-item>
                 <el-form-item label="种质图片" prop="germplasmImg">
-                    <!-- <imageUpload v-model="form.germplasmImg" /> -->
                     <div v-if="form.germplasmImg">
-                        <!-- 已有图片时显示图片 -->
-                        <div class="image">
+                        <!-- 已有图片时显示图片和删除按钮 -->
+                        <div class="image-preview">
                             <img style="width:50px;height:50px;" :src="`${image.baseUrl + form.germplasmImg}`" />
+                            <!-- 点击时将图片值设为 null，从而清除图片 -->
+                            <i class="el-icon-close delete-icon" @click="form.germplasmImg = null"></i>
                         </div>
                     </div>
                     <!-- 没有图片时显示上传组件 -->
-                    <imageUpload v-else v-model="form.germplasmImg" />
+                    <imageUpload 
+                        v-else 
+                        v-model="form.germplasmImg"
+                        :limit="1"
+                        @change="validateField('germplasmImg')"
+                    />
                 </el-form-item>
                 <el-form-item label="宣传语" prop="germplasmDes">
                     <el-input v-model="form.germplasmDes" type="textarea" placeholder="请输入内容" />
@@ -183,7 +189,7 @@
                     germplasmImg: [{
                         required: true,
                         message: "种质图片不能为空",
-                        trigger: "blur"
+                        trigger: ["blur","change"]
                     }],
                 }
             };
@@ -301,7 +307,44 @@
                 this.download('agriculture/germplasm/export', {
                     ...this.queryParams
                 }, `germplasm_${new Date().getTime()}.xlsx`)
+            },
+            validateField(field) {
+                // 手动触发特定字段的验证
+                this.$refs.form.validateField(field);
             }
         }
     };
 </script>
+<!-- scoped 属性会为该样式添加一个特定的选择器，使得这些样式只应用于当前组件的元素 -->
+<style scoped>
+.image-preview {
+    position: relative;
+    display: inline-block;
+}
+
+.delete-icon {
+    position: absolute;
+    /* 将 X 图标定位到图片的右上角外侧 */
+    top: -8px;
+    right: -8px;
+    /* 红色背景颜色 */
+    background-color: #da212a;
+    color: white;
+    /*  使其呈现为圆形 */
+    border-radius: 50%;
+    padding: 2px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 1;
+}
+/* 效果在鼠标悬停时改变背景色 */
+.delete-icon:hover {
+    background-color: #f78989;
+}
+
+.image-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+</style>
