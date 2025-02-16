@@ -2,7 +2,7 @@
   <div class="app-container-gray">
     <el-row class="box">
       <el-col :span="4" class="left">
-        <search-menu title="种植批次" :fun="listBatch" search-parma="batchName" search-placeholder="请输入批次名称" key-name="batchId" label-name="batchName" @select="handleSelect" />
+        <search-menu title="种植分区" :fun="listBatch" search-parma="batchName" search-placeholder="请输入批次名称" key-name="batchId" label-name="batchName" @select="handleSelect" />
       </el-col>
       <el-col :span="20" class="right">
         <task :batch-id="batchId"></task>
@@ -11,6 +11,8 @@
   </div>
 </template>
 <script>
+//Take用来展示任务列表
+//SearchMenu用来展示搜索菜单
 import Task from "../components/Task";
 import SearchMenu from "../components/SearchMenu";
 import { listLand } from "@/api/agriculture/land";

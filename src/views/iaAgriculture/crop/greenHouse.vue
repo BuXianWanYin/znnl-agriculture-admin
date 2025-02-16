@@ -32,10 +32,10 @@
                         <div class="house-header">
                             <span class="house-title">{{ item.name }}</span>
                             <div class="house-actions">
-                                <el-button size="mini" type="text" icon="el-icon-edit"
+                                <el-button size="mini" type="primary" icon="el-icon-edit"
                                     @click="addHouse(item.id)"
                                     v-hasPermi="['agriculture:batch:edit']">修改</el-button>
-                                <el-button size="mini" type="text" icon="el-icon-delete"
+                                <el-button size="mini" type="danger" icon="el-icon-delete"
                                     @click="deleteData(item.id)"
                                     v-hasPermi="['agriculture:batch:remove']">删除</el-button>
                             </div>

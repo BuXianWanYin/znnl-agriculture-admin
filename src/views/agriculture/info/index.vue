@@ -311,6 +311,7 @@
                 const statusMap = {
                     '警告中': 'danger',
                     '已解决': 'success',
+                    '已处理': 'success',
                     '待处理': 'warning'
                 }
                 return statusMap[status] || 'info'
@@ -354,7 +355,7 @@
                 
                 i {
                     margin-right: 8px;
-                    color: #909399;
+                    color: #409EFF;  // 统一使用蓝色
                 }
                 
                 .label {
@@ -379,6 +380,7 @@
                     
                     i {
                         margin-right: 5px;
+                        color: #409EFF;  // 统一使用蓝色
                     }
                 }
                 

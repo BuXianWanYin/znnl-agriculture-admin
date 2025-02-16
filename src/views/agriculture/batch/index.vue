@@ -435,7 +435,7 @@
 
     .batch-card-grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: 1fr;
         gap: 20px; 
         padding: 20px;
     }
@@ -443,7 +443,7 @@
     .batch-card {
         background: #fff;
         border-radius: 8px;
-        max-width: 530px;
+        width: 100%;
         
         .batch-card-header {
             display: flex;
@@ -470,10 +470,12 @@
         .batch-card-content {
             padding: 20px;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 20px;
+            align-items: center;
 
             .batch-image {
+                flex-shrink: 0;
                 text-align: center;
                 margin: 0 auto;
                 width: 150px;
@@ -495,8 +497,9 @@
             }
 
             .batch-info {
+                flex: 1;
                 display: grid;
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
                 gap: 12px;
                 padding: 0 10px;
 
