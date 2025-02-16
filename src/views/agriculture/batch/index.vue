@@ -479,20 +479,18 @@
                 width: 150px;
                 height: 150px;
                 overflow: hidden;
-                border-radius: 8px;
+                border-radius: 50%;
                 cursor: pointer;
-                box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1),
+                            0 2px 6px rgba(0, 0, 0, 0.08);
+                background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+                padding: 4px;
 
                 img {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
-                    border-radius: 8px;
-                    transition: transform 0.3s;
-
-                    &:hover {
-                        transform: scale(1.05);
-                    }
+                    border-radius: 50%;
                 }
             }
 

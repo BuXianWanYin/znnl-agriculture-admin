@@ -36,59 +36,64 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="batchList">
-                <el-table-column type="index" label="序号"> </el-table-column>
-                <el-table-column label="批次名称" align="center" prop="batchName" />
-                <el-table-column label="种质" align="center" prop="germplasmId">
-                    <template slot-scope="scope">
-                        <data-tag :options="germplasmList" :value="scope.row.germplasmId" labelName="germplasmName"
-                            valueName="germplasmId" type="" />
-                    </template>
-                </el-table-column>
-                <el-table-column label="负责人" align="center" prop="batchHead">
-                    <template slot-scope="scope">
-                        <data-tag :options="userList" :value="scope.row.batchHead" labelName="userName"
-                            valueName="userId" type="notag" />
-                    </template>
-                </el-table-column>
-                <el-table-column label="种质图片" align="center" prop="introImg" width="180">
-                    <template v-slot:default="{ row }">
-                        <div class="image" @click="previewImage(`${image.baseUrl + row.germplasmImg}`, row)">
-                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + row.germplasmImg}`" />
+            <div class="batch-cards">
+                <el-card v-for="item in batchList" :key="item.batchId" class="batch-card" shadow="hover">
+                    <div class="card-content">
+                        <div class="card-left">
+                            <div class="image-wrapper" @click="previewImage(`${image.baseUrl + item.germplasmImg}`, item)">
+                                <img :src="`${image.baseUrl + item.germplasmImg}`" class="circular-image" />
+                            </div>
                         </div>
-                    </template>
-                </el-table-column>
-                <el-table-column label="所属大棚" align="center" prop="landId">
-                    <template slot-scope="scope">
-                        {{ getLabel(scope.row.landId) }}
-                        <!-- <data-tag :options="landList" :value="scope.row.landId" labelName="landName" valueName="landId"
-              type="warning" /> -->
-                    </template>
-                </el-table-column>
-                <el-table-column label="状态" align="center" prop="status">
-                    <template slot-scope="scope">
-                        {{ scope.row.status ==1 ? '已成熟' : '已采摘' }}
-                    </template>
-                </el-table-column>
-                <!-- :options="scope.row.status==0?'未完成':'已完成'" -->
-                <el-table-column label="种植面积(亩)" align="center" prop="cropArea" />
-                <el-table-column label="合约地址" align="center" prop="contractAddress" />
-                <el-table-column label="开始时间" align="center" prop="startTime" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="300">
-                    <template slot-scope="scope">
-                        <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
-                            @click="handleProcess(scope.row.batchId, '采摘')">{{scope.row.status==1?"采摘":"采摘详情"}}</el-button>
-                        <el-button size="small" class="padding-5" plain type="warning" icon="el-icon-s-claim"
-                            @click="handleBatchTask(scope.row)"
-                            v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-
+                        <div class="card-right">
+                            <div class="info-grid">
+                                <div class="info-row">
+                                    <span class="label">批次名称:</span>
+                                    <span class="value">{{ item.batchName }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">种质:</span>
+                                    <span class="value">
+                                        <data-tag :options="germplasmList" :value="item.germplasmId" 
+                                            labelName="germplasmName" valueName="germplasmId" type="" />
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">负责人:</span>
+                                    <span class="value">
+                                        <data-tag :options="userList" :value="item.batchHead" 
+                                            labelName="userName" valueName="userId" type="notag" />
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">所属大棚:</span>
+                                    <span class="value">{{ getLabel(item.landId) }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">状态:</span>
+                                    <span class="value">{{ item.status == 1 ? '已成熟' : '已采摘' }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">种植面积:</span>
+                                    <span class="value">{{ item.cropArea }}亩</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">开始时间:</span>
+                                    <span class="value">{{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <el-button size="small" type="primary" icon="el-icon-edit"
+                                    @click="handleProcess(item.batchId, '采摘')">
+                                    {{item.status==1?"采摘":"采摘详情"}}
+                                </el-button>
+                                <el-button size="small" plain type="warning" icon="el-icon-s-claim"
+                                    @click="handleBatchTask(item)"
+                                    v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
+                            </div>
+                        </div>
+                    </div>
+                </el-card>
+            </div>
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
         </el-card>
@@ -1016,5 +1021,95 @@
 
     ::v-deep .el-date-editor.el-input {
         width: 100%;
+    }
+
+    .batch-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 10px;
+    }
+
+    .batch-card {
+        width: 100%;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        
+        &:hover {
+            transform: translateY(-2px);
+        }
+    }
+
+    .card-content {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        min-height: 160px;
+    }
+
+    .card-left {
+        flex: 0 0 120px;
+    }
+
+    .card-right {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 12px 24px;
+    }
+
+    .image-wrapper {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(45deg, #f3f4f6 0%, #ffffff 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: scale(1.02);
+        }
+    }
+
+    .circular-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .info-row {
+        display: flex;
+        align-items: center;
+        
+        .label {
+            font-weight: 600;
+            color: #606266;
+            width: 100px;
+            flex-shrink: 0;
+        }
+        
+        .value {
+            color: #303133;
+            flex: 1;
+        }
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: auto;
     }
 </style>
