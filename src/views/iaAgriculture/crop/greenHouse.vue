@@ -1,3 +1,4 @@
+<!-- 大棚页面 -->
 <template>
     <div class="list-content">
         <el-card class="card-margin-bottom">
@@ -25,58 +26,64 @@
             </div>
         </el-card>
         <div class="plant-table">
-            <el-card class="card-padding-bottom">
-                <el-table :data="houseData">
-                    <el-table-column type="index" label="序号"> </el-table-column>
-                    <el-table-column prop="name" label="大棚名称">
-                        <template slot-scope="scope">
-                            <div class="dp-name"> {{ scope.row.name }}</div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="contractAddr" label="合约地址"> </el-table-column>
-                    <el-table-column prop="area" label="大棚面积"> </el-table-column>
-                    <el-table-column prop="temperature" label="温度">
-                        <template slot-scope="scope">
-                            <div class="dp-name"> {{ scope.row.temperature ? scope.row.temperature : '/' }}</div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="humidity" label="湿度">
-                        <template slot-scope="scope">
-                            <div class="dp-name"> {{ scope.row.humidity ? scope.row.humidity : '/' }}</div>
-                        </template>
-
-                    </el-table-column>
-                    <el-table-column prop="bigBreedingQuantity" label="最大区分数量/头"> </el-table-column>
-                    <el-table-column prop="address" label="大棚位置"> </el-table-column>
-                    <el-table-column prop="remark" label="备注">
-                        <template slot-scope="scope">
-                            <div class="dp-name"> {{ scope.row.remark ? scope.row.remark : '/' }}</div>
-                        </template>
-
-                    </el-table-column>
-                    <el-table-column label="操作" width="300">
-                        <template slot-scope="scope">
-                            <div class="do-text">
-                                <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
-                                    @click="addHouse(scope.row.id)"
+            <el-row :gutter="20">
+                <el-col :span="12" v-for="(item, index) in houseData" :key="index">
+                    <el-card class="house-card" shadow="hover">
+                        <div class="house-header">
+                            <span class="house-title">{{ item.name }}</span>
+                            <div class="house-actions">
+                                <el-button size="mini" type="text" icon="el-icon-edit"
+                                    @click="addHouse(item.id)"
                                     v-hasPermi="['agriculture:batch:edit']">修改</el-button>
-                                <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
-                                    @click="deleteData(scope.row.id)"
+                                <el-button size="mini" type="text" icon="el-icon-delete"
+                                    @click="deleteData(item.id)"
                                     v-hasPermi="['agriculture:batch:remove']">删除</el-button>
-                                <el-button size="small" class="padding-5" plain type="warning" icon="el-icon-s-claim"
-                                    @click="houseCheck(scope.row.id)"
-                                    v-hasPermi="['agriculture:batch:edit']">环境详情</el-button>
                             </div>
-                        </template>
-                    </el-table-column>
-                </el-table>
-                <div class="page-block">
-                    <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-                        :current-page="currentPage" :page-size="pSize" layout="total, prev, pager, next, jumper"
-                        :total="totalPage">
-                    </el-pagination>
-                </div>
-            </el-card>
+                        </div>
+                        <div class="house-content">
+                            <div class="info-item">
+                                <span class="label">合约地址：</span>
+                                <span class="value">{{ item.contractAddr }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">面积：</span>
+                                <span class="value">{{ item.area }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">最大区分数量/头：</span>
+                                <span class="value">{{ item.bigBreedingQuantity }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">温度：</span>
+                                <span class="value">{{ item.temperature || '/' }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">湿度：</span>
+                                <span class="value">{{ item.humidity || '/' }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">位置：</span>
+                                <span class="value">{{ item.address }}</span>
+                            </div>
+                        </div>
+                        <div class="house-footer">
+                            <el-button size="small" plain type="warning" icon="el-icon-s-claim"
+                                @click="houseCheck(item.id)"
+                                v-hasPermi="['agriculture:batch:edit']">环境详情</el-button>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+            <div class="page-block">
+                <el-pagination 
+                    @size-change="handleSizeChange" 
+                    @current-change="handleCurrentChange"
+                    :current-page="currentPage" 
+                    :page-size="pSize" 
+                    layout="total, prev, pager, next, jumper"
+                    :total="totalPage">
+                </el-pagination>
+            </div>
         </div>
         <!-- 新增/修改弹框 -->
         <el-dialog :title="btnTxt == 1 ? '编辑' : btnTxt == 2 ? '详情' : '新增'" :visible.sync="houseEditDialog" width="40%">
@@ -455,5 +462,47 @@
         display: flex;
         justify-content: flex-end;
         margin-top: 10px;
+    }
+
+    .house-card {
+        margin-bottom: 20px;
+        
+        .house-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            
+            .house-title {
+                font-size: 16px;
+                font-weight: bold;
+                color: #303133;
+            }
+        }
+        
+        .house-content {
+            .info-item {
+                margin-bottom: 8px;
+                display: flex;
+                
+                .label {
+                    color: #909399;
+                    width: 150px;
+                    flex-shrink: 0;
+                    white-space: nowrap;
+                }
+                
+                .value {
+                    color: #606266;
+                    flex: 1;
+                    word-break: break-all;
+                }
+            }
+        }
+        
+        .house-footer {
+            margin-top: 15px;
+            text-align: right;
+        }
     }
 </style>
