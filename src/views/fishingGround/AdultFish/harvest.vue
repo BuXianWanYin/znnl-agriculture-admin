@@ -56,8 +56,8 @@
                 <el-table-column label="所属鱼池" align="center" prop="landId">
                     <template slot-scope="scope">
                         {{ getLabel(scope.row.landId) }}
-                        <!-- <data-tag :options="landList" :value="scope.row.landId" labelName="landName" valueName="landId"
-              type="warning" /> -->
+<!--                        <data-tag :options="landList" :value="scope.row.landId" labelName="landName" valueName="landId"-->
+<!--                                  type="warning"/>-->
                     </template>
                 </el-table-column>
                 <el-table-column label="状态" align="center" prop="status">
@@ -76,10 +76,13 @@
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="300">
                     <template slot-scope="scope">
                         <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
-                                   @click="handleProcess(scope.row.batchId, '采摘')">{{scope.row.status==1?"采摘":"采摘详情"}}</el-button>
+                                   @click="handleProcess(scope.row.batchId, '采摘')">
+                            {{ scope.row.status == 1 ? "采摘" : "采摘详情" }}
+                        </el-button>
                         <el-button size="small" class="padding-5" plain type="warning" icon="el-icon-s-claim"
                                    @click="handleBatchTask(scope.row)"
-                                   v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
+                                   v-hasPermi="['agriculture:batchTask:list']">批次任务
+                        </el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -336,7 +339,7 @@ export default {
         this.getLandList();
         this.getSpeciesList();
         this.getUserList();
-        this.$http.get("/dev-api/iaPasture/list").then(res => {
+        this.$http.get("/dev-api/fishPasture/list").then(res => {
             this.houeList = res.data.data;
             console.log(this.houe)
         })
