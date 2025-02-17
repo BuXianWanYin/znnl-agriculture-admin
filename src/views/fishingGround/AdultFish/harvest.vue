@@ -89,44 +89,6 @@
                     </div>
                 </el-card>
             </div>
-                    </template>
-                </el-table-column>
-                <el-table-column label="所属鱼池" align="center" prop="landId">
-                    <template slot-scope="scope">
-                        {{ getLabel(scope.row.landId) }}
-<!--                        <data-tag :options="landList" :value="scope.row.landId" labelName="landName" valueName="landId"-->
-<!--                                  type="warning"/>-->
-                    </template>
-                </el-table-column>
-                <el-table-column label="状态" align="center" prop="status">
-                    <template slot-scope="scope">
-                        {{ scope.row.status == 0 ? '未捕捞' : '已捕捞' }}
-                    </template>
-                </el-table-column>
-                <!-- :options="scope.row.status==0?'未完成':'已完成'" -->
-                <el-table-column label="养殖面积(亩)" align="center" prop="cropArea"/>
-                <el-table-column label="合约地址" align="center" prop="contractAddress"/>
-                <el-table-column label="开始时间" align="center" prop="startTime" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="300">
-                    <template slot-scope="scope">
-                        <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
-                                   @click="handleProcess(scope.row.batchId, '捕捞')">
-                            {{ scope.row.status == 1 ? "捕捞" : "捕捞详情" }}
-                        </el-button>
-                        <el-button size="small" class="padding-5" plain type="warning" icon="el-icon-s-claim"
-                                   @click="handleBatchTask(scope.row)"
-                                   v-hasPermi="['agriculture:batchTask:list']">批次任务
-                        </el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-
-            <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
-                :limit.sync="queryParams.pageSize" @pagination="getList"/>
         </el-card>
         <!-- 添加或修改作物批次对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
