@@ -1,6 +1,6 @@
 <template>
     <!--
-    成鱼捕捞管理页面
+    成鱼收获管理页面
     -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
@@ -62,7 +62,7 @@
                 </el-table-column>
                 <el-table-column label="状态" align="center" prop="status">
                     <template slot-scope="scope">
-                        {{ scope.row.status == 0 ? '未完成' : '已完成' }}
+                        {{ scope.row.status == 0 ? '未捕捞' : '已捕捞' }}
                     </template>
                 </el-table-column>
                 <!-- :options="scope.row.status==0?'未完成':'已完成'" -->
@@ -76,8 +76,8 @@
                 <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="300">
                     <template slot-scope="scope">
                         <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
-                                   @click="handleProcess(scope.row.batchId, '采摘')">
-                            {{ scope.row.status == 1 ? "采摘" : "采摘详情" }}
+                                   @click="handleProcess(scope.row.batchId, '捕捞')">
+                            {{ scope.row.status == 1 ? "捕捞" : "捕捞详情" }}
                         </el-button>
                         <el-button size="small" class="padding-5" plain type="warning" icon="el-icon-s-claim"
                                    @click="handleBatchTask(scope.row)"
@@ -143,6 +143,83 @@
                 <task :batchId="this.batchTask.batchId" :tableBorder="true"></task>
             </div>
         </el-dialog>
+
+        <el-dialog :title='processData.length?"捕捞详情":"捕捞"' :visible.sync="processDialogVisible" width="70%">
+
+            <div style="display: flex; justify-content: flex-end; padding-bottom: 10px">
+                <el-button v-if="!processData.length" type="success" size="mini" plain @click="addProcess('新增')">&nbsp;
+                    新增
+                    &nbsp;</el-button>
+            </div>
+
+            <el-table :data="processData" :stripe="true" tooltip-effect="dark" border size="mini"
+                :header-cell-style="{ background: 'rgba(239, 249, 243, 1)', color: '#000' }" class="table-content"
+                @selection-change="handleProcessSelectionChange">
+                <el-table-column type="selection" width="55">
+                </el-table-column>
+                <el-table-column prop="id" label="ID溯源码"></el-table-column>
+                <el-table-column prop="name" label="成鱼名称" align="center"></el-table-column>
+                <el-table-column label="成鱼图片" align="center">
+                    <template slot-scope="scope">
+                        <img :src="scope.row.barcode" style="width: 100%">
+                    </template>
+                </el-table-column>
+                <el-table-column prop="date" label="加工日期"></el-table-column>
+                <el-table-column prop="weight" label="重量" width="60" align="center"></el-table-column>
+                <el-table-column prop="status" label="食品质量" width="100" align="center">
+                    <template slot-scope="scope">
+                        {{ statusDict[scope.row.status] }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="iaPartitionId" label="分区ID"></el-table-column>
+                <el-table-column prop="description" label="备注"></el-table-column>
+            </el-table>
+            <div class="page-block" v-if="processData.length">
+                <el-pagination @current-change="handleProcessCurrentChange" :current-page="processPager.page"
+                    :page-size="processPager.size" :page-count="processPager.pages"
+                    layout="total, prev, pager, next, jumper">
+                </el-pagination>
+            </div>
+
+            <div slot="footer" class="dialog-footer">
+                <el-button size="small" @click="processDialogVisible = false">关闭</el-button>
+            </div>
+            </el-dialog>
+        
+        <!-- 新增/修改弹框 -->
+        <el-dialog :title="processManagementDialogTitle" :visible.sync="processManagementDialogVisible" width="30%">
+            <el-form :model="processManagementForm" :rules="rules" ref="form" label-width="120px"
+                :disabled="processManagementDialogTitle === '详情'">
+                <el-form-item label="食品名称" prop="name">
+                    <el-input v-model="processManagementForm.name" required></el-input>
+                </el-form-item>
+                <el-form-item label="重量" prop="weight">
+                    <el-input v-model="processManagementForm.weight" required>
+                        <template slot="append">kg
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="日期" prop="date">
+                    <el-date-picker v-model="processManagementForm.date" value-format="yyyy-MM-dd hh:mm:ss"
+                        type="datetime" placeholder="选择日期时间"></el-date-picker>
+                </el-form-item>
+                <el-form-item label="食品质量" prop="status">
+                    <el-select v-model="processManagementForm.status" placeholder="请选择">
+                        <el-option label="不及格" :value="0"></el-option>
+                        <el-option label="及格" :value="1"></el-option>
+                        <el-option label="优秀" :value="2"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="备注信息" prop="description">
+                    <el-input type="textarea" v-model="processManagementForm.description" :rows="3"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button size="small" @click="processManagementDialogVisible = false">关闭</el-button>
+                <el-button type="success" size="small" @click="processSaveBtn">保存</el-button>
+            </div>
+        </el-dialog>
+
     </div>
 </template>
 
@@ -736,7 +813,7 @@ export default {
             getBatch(batchId).then(response => {
                 this.form = response.data;
                 this.open = true;
-                this.title = "修改作物批次";
+                this.title = "修改成鱼收获";
             });
         },
         /** 提交按钮 */
@@ -762,7 +839,7 @@ export default {
         /** 删除按钮操作 */
         handleDelete(row) {
             const batchIds = row.batchId || this.ids;
-            this.$modal.confirm('是否确认删除作物批次编号为"' + batchIds + '"的数据项？').then(function () {
+            this.$modal.confirm('是否确认删除成鱼收获编号为"' + batchIds + '"的数据项？').then(function () {
                 return delBatch(batchIds);
             }).then(() => {
                 this.getList();

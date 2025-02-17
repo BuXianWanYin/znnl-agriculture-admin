@@ -753,10 +753,10 @@
 
                 this.combinedChart = this.$echarts.init(chartDom);
                 
-                // 新的配色方案
+                // 更新颜色方案
                 const colors = {
-                    vegetables: ['#5B8FF9', '#61DDAA', '#65789B', '#F6BD16'], // 蓝绿色系
-                    fish: ['#6F7CD4', '#78D3F8', '#9661BC', '#F6903D']  // 紫蓝色系
+                    vegetables: ['#91CC75', '#73C0DE', '#5470C6', '#FAC858'], // 外圈：绿色系为主
+                    fish: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE']  // 内圈：蓝色系为主
                 };
                 
                 const option = {
