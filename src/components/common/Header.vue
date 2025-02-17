@@ -3,7 +3,7 @@
     <header class="nav-top">
         <div class="left-info">
             <img src="../../assets/logo.png" alt="">
-            <span>智农物链溯源平台</span>
+            <span>鱼菜共生溯源平台</span>
             
         </div>
         <div class="userinfo">
@@ -80,6 +80,30 @@ export default {
         }
         .el-dropdown-link{
             color: #fff;
+        }
+        :deep(.el-dropdown-menu) {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+            
+            .el-dropdown-menu__item {
+                padding: 10px 20px;
+                font-size: 14px;
+                color: #606266;
+                
+                &:hover {
+                    background-color: #f5f7fa;
+                    color: #409EFF;
+                }
+                
+                &:first-child {
+                    border-radius: 8px 8px 0 0;
+                }
+                
+                &:last-child {
+                    border-radius: 0 0 8px 8px;
+                }
+            }
         }
     }
 }

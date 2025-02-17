@@ -169,7 +169,7 @@ export default {
       }));
     },
     isLoginPage() {
-      return this.$route.path === '/login' || this.$route.path === '/'
+      return this.$route.path === '/login' || this.$route.path === '/' || this.$route.path === '/originIndex'
     }
   },
 
