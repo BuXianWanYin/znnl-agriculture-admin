@@ -1,6 +1,6 @@
 <template>
     <!-- 
-    成鱼过程详细页面 
+    成鱼过程详细页面 （作业流程）
     -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
