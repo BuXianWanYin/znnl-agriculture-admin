@@ -755,8 +755,8 @@
                 
                 // 更新颜色方案
                 const colors = {
-                    vegetables: ['#91CC75', '#73C0DE', '#5470C6', '#FAC858'], // 外圈：绿色系为主
-                    fish: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE']  // 内圈：蓝色系为主
+                    vegetables: ['#D4B499', '#73C0DE', '#67C23A', '#FAC858'], // 将第三个颜色改为绿色 #67C23A
+                    fish: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE']  // 内圈颜色保持不变
                 };
                 
                 const option = {
