@@ -48,14 +48,14 @@
                                 <div class="info-row">
                                     <span class="label">种质:</span>
                                     <span class="value">
-                                        <data-tag :options="SpeciesList" :value="item.speciesId" 
+                                        <data-tag :options="SpeciesList" :value="item.speciesId"
                                             labelName="fishName" valueName="speciesId" type="" />
                                     </span>
                                 </div>
                                 <div class="info-row">
                                     <span class="label">负责人:</span>
                                     <span class="value">
-                                        <data-tag :options="userList" :value="item.batchHead" 
+                                        <data-tag :options="userList" :value="item.batchHead"
                                             labelName="userName" valueName="userId" type="notag" />
                                     </span>
                                 </div>
@@ -89,9 +89,6 @@
                     </div>
                 </el-card>
             </div>
-
-            <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
-                :limit.sync="queryParams.pageSize" @pagination="getList"/>
         </el-card>
 
 
@@ -1018,7 +1015,7 @@ export default {
     width: 100%;
     transition: all 0.3s ease;
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    
+
     &:hover {
         transform: translateY(-2px);
     }
@@ -1077,14 +1074,14 @@ export default {
 .info-row {
     display: flex;
     align-items: center;
-    
+
     .label {
         font-weight: 600;
         color: #606266;
         width: 100px;
         flex-shrink: 0;
     }
-    
+
     .value {
         color: #303133;
         flex: 1;

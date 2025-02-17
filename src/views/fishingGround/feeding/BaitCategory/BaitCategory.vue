@@ -19,45 +19,24 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <div class="bait-type-grid">
-                <el-card v-for="item in BaitTypeList" 
-                         :key="item.baitTypeId" 
-                         class="bait-type-card"
-                         shadow="hover">
-                    <div class="bait-type-content">
-                        <div class="bait-type-tag">饵料类别</div>
-                        <div class="bait-type-header">
-                            <span class="bait-type-name">{{ item.baitTypeName }}</span>
-                            <span class="bait-type-order">排序: {{ item.orderNum }}</span>
-                        </div>
-                        <div class="bait-type-remark">备注：{{ item.remark || '' }}</div>
-                        <div class="bait-type-actions">
-                            <el-button
-                                size="small"
-                                type="primary"
-                                icon="el-icon-edit"
-                                @click="handleUpdate(item)"
-                                v-hasPermi="['fishPasture:BaitType:edit']"
-                            >修改</el-button>
-                            <el-button
-                                size="small"
-                                type="danger"
-                                icon="el-icon-delete"
-                                @click="handleDelete(item)"
-                                v-hasPermi="['fishPasture:BaitType:remove']"
-                            >删除</el-button>
-                        </div>
-                    </div>
-                </el-card>
-            </div>
+            <el-table v-loading="loading" :data="BaitTypeList">
+                <el-table-column label="饵料类别名称" align="center" prop="baitTypeName" />
+                <el-table-column label="备注" align="center" prop="remark" />
+                <el-table-column label="排序" align="center" prop="orderNum" />
+                <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+                    <template slot-scope="scope">
+                        <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
+                            @click="handleUpdate(scope.row)"
+                            v-hasPermi="['fishPasture:BaitType:edit']">修改</el-button>
+                        <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
+                            @click="handleDelete(scope.row)"
+                            v-hasPermi="['fishPasture:BaitType:remove']">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
 
-            <pagination
-                v-show="total>0"
-                :total="total"
-                :page.sync="queryParams.pageNum"
-                :limit.sync="queryParams.pageSize"
-                @pagination="getList"
-            />
+            <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum"
+                :limit.sync="queryParams.pageSize" @pagination="getList" />
         </el-card>
         <!-- 添加或修改饵料类别对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
@@ -228,68 +207,3 @@
         }
     };
 </script>
-
-<style lang="scss" scoped>
-.bait-type-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 10px;
-}
-
-.bait-type-card {
-    transition: all 0.3s;
-    
-    &:hover {
-        transform: translateY(-5px);
-    }
-}
-
-.bait-type-content {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 10px;
-}
-
-.bait-type-tag {
-    display: inline-block;
-    padding: 2px 8px;
-    background-color: #f5f5f5;
-    color: #909399;
-    border-radius: 4px;
-    font-size: 12px;
-    margin-bottom: 8px;
-    margin-left: -10px;
-}
-
-.bait-type-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.bait-type-name {
-    font-size: 16px;
-    font-weight: bold;
-    color: #303133;
-}
-
-.bait-type-order {
-    color: #909399;
-    font-size: 14px;
-}
-
-.bait-type-remark {
-    color: #606266;
-    min-height: 40px;
-    font-size: 14px;
-}
-
-.bait-type-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 10px;
-}
-</style>

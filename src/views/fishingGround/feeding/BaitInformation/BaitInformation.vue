@@ -28,58 +28,23 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <div v-loading="loading">
-                <el-row :gutter="16">
-                    <el-col :span="24" v-for="item in BaitInfoList" :key="item.baitId" class="mb-16">
-                        <el-card shadow="hover">
-                            <div class="bait-card">
-                                <div class="bait-info">
-                                    <el-row :gutter="20">
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">饵料编码：</span>
-                                                <span class="value">{{ item.baitCode }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">饵料名称：</span>
-                                                <span class="value">{{ item.baitName }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">饵料类别：</span>
-                                                <span class="value">{{ item.baitTypeId }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">计量单位：</span>
-                                                <span class="value">{{ item.measureUnit }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="16">
-                                            <div class="info-item">
-                                                <span class="label">备注：</span>
-                                                <span class="value">{{ item.remark }}</span>
-                                            </div>
-                                        </el-col>
-                                    </el-row>
-                                </div>
-                                <div class="bait-actions">
-                                    <el-button size="small" type="primary" icon="el-icon-edit"
-                                        @click="handleUpdate(item)"
-                                        v-hasPermi="['fishingGround:BaitInfo:edit']">修改</el-button>
-                                    <el-button size="small" type="danger" icon="el-icon-delete"
-                                        @click="handleDelete(item)"
-                                        v-hasPermi="['fishingGround:BaitInfo:remove']">删除</el-button>
-                                </div>
-                            </div>
-                        </el-card>
-                    </el-col>
-                </el-row>
-            </div>
+            <el-table v-loading="loading" :data="BaitInfoList">
+                <el-table-column label="饵料编码" align="center" prop="baitCode" />
+                <el-table-column label="饵料名称" align="center" prop="baitName" />
+                <el-table-column label="饵料类别" align="center" prop="baitTypeId" />
+                <el-table-column label="饵料单位" align="center" prop="measureUnit" />
+                <el-table-column label="备注" align="center" prop="remark" />
+                <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+                    <template slot-scope="scope">
+                        <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
+                            @click="handleUpdate(scope.row)"
+                            v-hasPermi="['fishingGround:BaitInfo:edit']">修改</el-button>
+                        <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
+                            @click="handleDelete(scope.row)"
+                            v-hasPermi="['fishingGround:BaitInfo:remove']">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
 
             <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
