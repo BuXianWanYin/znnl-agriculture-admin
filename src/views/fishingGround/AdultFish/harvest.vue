@@ -93,6 +93,8 @@
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList"/>
         </el-card>
+
+
         <!-- 添加或修改作物批次对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-alert class="margin-bottom-10" title="新建批次会根据选择种质的种植流程生成批次任务，新增完成可以到批次任务管理界面调整批次任务！" type="warning"
@@ -136,6 +138,9 @@
                 <el-button @click="cancel">取 消</el-button>
             </div>
         </el-dialog>
+
+
+
         <!-- 图片预览对话框 -->
         <el-dialog :title="image.title" :visible.sync="image.open" width="240px">
             <img style="width:200px;height:200px;" :src="image.imgUrl"/>
@@ -146,6 +151,103 @@
                 <task :batchId="this.batchTask.batchId" :tableBorder="true"></task>
             </div>
         </el-dialog>
+
+        <!-- 捕捞详情 -->
+        <el-dialog :title='processData.length?"捕捞详情":"捕捞"' :visible.sync="processDialogVisible" width="70%">
+            <div style="display: flex; justify-content: flex-end; padding-bottom: 10px">
+                <el-button v-if="!processData.length" type="success" size="mini" plain @click="addProcess('新增')">&nbsp;
+                    新增
+                    &nbsp;</el-button>
+            </div>
+
+            <el-table :data="processData" :stripe="true" tooltip-effect="dark" border size="mini"
+                :header-cell-style="{ background: 'rgba(239, 249, 243, 1)', color: '#000' }" class="table-content"
+                @selection-change="handleProcessSelectionChange">
+                <el-table-column type="selection" width="55">
+                </el-table-column>
+                <el-table-column prop="id" label="ID溯源码"></el-table-column>
+                <el-table-column prop="name" label="食品名称" align="center"></el-table-column>
+                <el-table-column label="二维码" align="center">
+                    <template slot-scope="scope">
+                        <img :src="scope.row.barcode" style="width: 100%">
+                    </template>
+                </el-table-column>
+                <el-table-column prop="date" label="加工日期"></el-table-column>
+                <el-table-column prop="weight" label="重量" width="60" align="center"></el-table-column>
+                <el-table-column prop="status" label="食品质量" width="100" align="center">
+                    <template slot-scope="scope">
+                        {{ statusDict[scope.row.status] }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="fishPartitionId" label="分区ID"></el-table-column>
+                <el-table-column prop="description" label="备注"></el-table-column>
+                <!-- <el-table-column label="操作" v-if="processDialogTitle !== '加工详情'">
+                    <template slot-scope="scope">
+                        <div class="do-text">
+                            <el-link class="txt-btn" type="success"
+                                @click="handleProcess(scope.row.id, '加工管理')">修改</el-link>
+                            <el-link class="txt-btn" type="success"
+                                @click="handleProcessDetail(scope.row.id, '加工详情')">详情</el-link>
+                            <el-link class="txt-btn" type="danger" @click="deleteProcess(scope.row.id)">删除</el-link>
+                        </div>
+                    </template>
+                </el-table-column> -->
+            </el-table>
+            <div class="page-block" v-if="processData.length">
+                <el-pagination @current-change="handleProcessCurrentChange" :current-page="processPager.page"
+                    :page-size="processPager.size" :page-count="processPager.pages"
+                    layout="total, prev, pager, next, jumper">
+                </el-pagination>
+            </div>
+
+            <div slot="footer" class="dialog-footer">
+                <el-button size="small" @click="processDialogVisible = false">关闭</el-button>
+            </div>
+            </el-dialog>
+
+            <!-- 新增/修改弹框 -->
+            <el-dialog :title="processManagementDialogTitle" :visible.sync="processManagementDialogVisible" width="30%">
+            <el-form :model="processManagementForm" :rules="rules" ref="form" label-width="120px"
+                :disabled="processManagementDialogTitle === '详情'">
+                <el-form-item label="食品名称" prop="name">
+                    <el-input v-model="processManagementForm.name" required></el-input>
+                </el-form-item>
+                <el-form-item label="重量" prop="weight">
+                    <el-input v-model="processManagementForm.weight" required>
+                        <template slot="append">kg
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="日期" prop="date">
+                    <el-date-picker v-model="processManagementForm.date" value-format="yyyy-MM-dd hh:mm:ss"
+                        type="datetime" placeholder="选择日期时间"></el-date-picker>
+                </el-form-item>
+                <el-form-item label="食品质量" prop="status">
+                    <el-select v-model="processManagementForm.status" placeholder="请选择">
+                        <el-option label="不及格" :value="0"></el-option>
+                        <el-option label="及格" :value="1"></el-option>
+                        <el-option label="优秀" :value="2"></el-option>
+                    </el-select>
+                </el-form-item>
+                <!--  <el-form-item label="分区" prop="iaPartitionId">
+            <el-select v-model="processManagementForm.iaPartitionId" placeholder="请选择">
+            <el-option
+            v-for="(item,index) in plantData"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+            </el-option>
+            </el-select>
+            </el-form-item>-->
+                <el-form-item label="备注信息" prop="description">
+                    <el-input type="textarea" v-model="processManagementForm.description" :rows="3"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button size="small" @click="processManagementDialogVisible = false">关闭</el-button>
+                <el-button type="success" size="small" @click="processSaveBtn">保存</el-button>
+            </div>
+            </el-dialog>
     </div>
 </template>
 
@@ -261,7 +363,7 @@ export default {
             processManagementForm: {
                 "date": "",
                 "description": "",
-                "iaPartitionId": "",
+                "fishPartitionId": "",
                 "name": "",
                 "status": "",
                 "weight": ""
@@ -272,7 +374,7 @@ export default {
                     message: '食品名称不能为空',
                     trigger: 'blur'
                 }],
-                iaPartitionId: [{
+                fishPartitionId: [{
                     required: true,
                     message: '分区不能为空',
                     trigger: 'blur'
@@ -344,15 +446,13 @@ export default {
         this.getUserList();
         this.$http.get("/dev-api/fishPasture/list").then(res => {
             this.houeList = res.data.data;
-            console.log(this.houe)
+            console.log(this.houeList)
         })
     },
     methods: {
         async getProcessList() {
             try {
-                const {
-                    data
-                } = await http.post('/iaPartitionFood/page', {
+                const { data } = await http.post('/fishPasture/fishPartitionFood/page', {
                     ...this.processPager,
                     ...this.processSearchForm
                 })
@@ -393,7 +493,7 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                http.put('/partition/finishProcess', {}, {
+                http.put('/fishPasture/partition/finishProcess', {}, {
                     params: {
                         id
                     }
@@ -431,7 +531,7 @@ export default {
         async fqDoBtn() {
             const ids = this.fqMultipleSelection.map(item => item.id)
             try {
-                const data = await http.post('/partition/harvestPartition', ids)
+                const data = await http.post('/fishPasture/partition/harvestPartition', ids)
                 await this.getFQListData()
                 this.fqDialogVisible = false
             } catch (e) {
@@ -442,7 +542,7 @@ export default {
             try {
                 const {
                     data
-                } = await http.get("/partition/list", {
+                } = await http.get("/fishPasture/partition/list", {
                     params: {
                         ...this.fqPager,
                     }
@@ -472,7 +572,7 @@ export default {
         async dpDoBtn() {
             const ids = this.dpMultipleSelection.map(item => item.id)
             try {
-                const data = await http.post('/partition/outPastures', ids)
+                const data = await http.post('/fishPasture/partition/outPastures', ids)
                 await this.getDPListData()
                 this.dpDialogVisible = false
             } catch (e) {
@@ -483,7 +583,7 @@ export default {
             try {
                 const {
                     data
-                } = await http.post("/iaPasture/page", {
+                } = await http.post("/fishPasture/page", {
                     ...this.dpPager
                 })
                 this.dpData = data.records
@@ -504,7 +604,7 @@ export default {
             try {
                 const {
                     data
-                } = await http.get("/partition/harvestList", {
+                } = await http.get("/fishPasture/partition/harvestList", {
                     params: {
                         ...this.plantPager,
                         ...this.plantSearcher
@@ -545,7 +645,7 @@ export default {
                 this.processManagementForm = {
                     "date": "",
                     "description": "",
-                    "iaPartitionId": this.processSearchForm.partitionId,
+                    "fishPartitionId": this.processSearchForm.partitionId,
                     "name": "",
                     "status": "",
                     "weight": ""
@@ -555,7 +655,7 @@ export default {
                 try {
                     const {
                         data
-                    } = await http.post('/iaPartitionFood/detail', {}, {
+                    } = await http.post('/fishPasture/fishPartitionFoo/detail', {}, {
                         params: {
                             id
                         }
@@ -572,7 +672,7 @@ export default {
             if (!this.processManagementForm.id) {
                 this.$refs.form.validate((valid) => {
                     if (valid) {
-                        http.post('/iaPartitionFood/create', {
+                        http.post('/fishPasture/fishPartitionFood/create', {
                             ...this.processManagementForm
                         }).then(res => {
                             updateBatch({
@@ -595,7 +695,7 @@ export default {
             } else {
                 this.$refs.form.validate((valid) => {
                     if (valid) {
-                        http.post('/iaPartitionFood/update', {
+                        http.post('/fishPasture/fishPartitionFood/update', {
                             ...this.processManagementForm
                         }).then(res => {
                             this.getProcessList()
@@ -615,7 +715,7 @@ export default {
             try {
                 const {
                     data
-                } = await http.post('/iaPartitionFood/detail', {}, {
+                } = await http.post('/fishPasture/fishPartitionFoo/detail', {}, {
                     params: {
                         id
                     }
@@ -632,7 +732,7 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                http.post('/iaPartitionFood/delete', {}, {
+                http.post('/fishPasture/fishPartitionFood/delete', {}, {
                     params: {
                         id
                     }
@@ -667,8 +767,11 @@ export default {
         getList() {
             this.loading = true;
             listBatch(this.queryParams).then(response => {
+                
                 this.batchList = response.rows;
+                console.log('this.batchList',this.batchList)
                 this.total = response.total;
+                console.log('this.total',this.total)
                 this.loading = false;
             });
         },
