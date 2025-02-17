@@ -266,3 +266,49 @@
         }
     };
 </script>
+
+<style scoped>
+.mb-16 {
+    margin-bottom: 16px;
+}
+
+.bait-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.bait-info {
+    flex: 1;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.label {
+    font-weight: bold;
+    margin-right: 8px;
+    color: #606266;
+    white-space: nowrap;
+}
+
+.value {
+    color: #333;
+}
+
+.bait-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #EBEEF5;
+    padding-top: 16px;
+    margin-top: 8px;
+}
+</style>

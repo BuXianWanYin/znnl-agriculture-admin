@@ -248,6 +248,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 0 10px;
 }
 
 .material-type-tag {
@@ -258,7 +259,7 @@
   border-radius: 4px;
   font-size: 12px;
   margin-bottom: 8px;
-  align-self: flex-start;
+  margin-left: -10px;
 }
 
 .material-type-header {

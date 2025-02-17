@@ -1,4 +1,4 @@
- <template>
+<template>
 <!--
  鱼类管理页面
  -->
@@ -27,32 +27,43 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="speciesList">
-                <el-table-column type="index" label="序号"> </el-table-column>
-                <el-table-column label="鱼名称" align="center" prop="fishName" />
-                <el-table-column label="鱼英文名称" align="center" prop="fishEnName" />
-                <el-table-column label="鱼类名称" align="center" prop="fishSpeciesName" />
-                <el-table-column label="鱼类英文名称" align="center" prop="fishSpeciesEnName" />
-                <el-table-column label="鱼类图片" align="center" prop="fishSpeciesImg" width="180">
-                    <template v-slot:default="{ row }">
-                        <div class="image" @click="previewImage(`${image.baseUrl + row.fishSpeciesImg}`, row)">
-                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + row.fishSpeciesImg}`" />
+            <el-row :gutter="20" v-loading="loading">
+                <el-col :span="8" v-for="(item, index) in speciesList" :key="index" class="mb-20">
+                    <el-card shadow="hover" class="species-card">
+                        <div class="card-header">
+                            <div class="image-container" @click="previewImage(`${image.baseUrl + item.fishSpeciesImg}`, item)">
+                                <img :src="`${image.baseUrl + item.fishSpeciesImg}`" class="species-image" />
+                            </div>
                         </div>
-                    </template>
-                </el-table-column>
-                <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-                    <template slot-scope="scope">
-                        <el-button size="mini" type="primary" class="padding-5" icon="el-icon-edit"
-                            @click="handleUpdate(scope.row)" v-hasPermi="['fishPasture:species:edit']">修改</el-button>
-                        <el-button size="mini" type="danger" class="padding-5" icon="el-icon-delete"
-                            @click="handleDelete(scope.row)"
-                            v-hasPermi="['fishPasture:species:remove']">删除</el-button>
-                        <el-button size="mini" type="success" class="padding-5" icon="el-icon-document"
-                            @click="showStandardJob(scope.row)"
-                            v-hasPermi="['fishPasture:species:jobProcess']">作业流程</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
+                        <div class="card-content">
+                            <div class="content-row">
+                                <span class="label">鱼名称：</span>
+                                <span class="value">{{ item.fishName }}</span>
+                            </div>
+                            <div class="content-row">
+                                <span class="label">英文名称：</span>
+                                <span class="value">{{ item.fishEnName }}</span>
+                            </div>
+                            <div class="content-row">
+                                <span class="label">鱼类名称：</span>
+                                <span class="value">{{ item.fishSpeciesName }}</span>
+                            </div>
+                            <div class="content-row">
+                                <span class="label">鱼类英文：</span>
+                                <span class="value">{{ item.fishSpeciesEnName }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <el-button size="mini" type="primary" icon="el-icon-edit"
+                                @click="handleUpdate(item)" v-hasPermi="['fishPasture:species:edit']">修改</el-button>
+                            <el-button size="mini" type="danger" icon="el-icon-delete"
+                                @click="handleDelete(item)" v-hasPermi="['fishPasture:species:remove']">删除</el-button>
+                            <el-button size="mini" type="success" icon="el-icon-document"
+                                @click="showStandardJob(item)" v-hasPermi="['fishPasture:species:jobProcess']">作业流程</el-button>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
 
             <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body
                 @close="closeStandardJob">
@@ -320,6 +331,83 @@
 </script>
 <!-- scoped 属性会为该样式添加一个特定的选择器，使得这些样式只应用于当前组件的元素 -->
 <style scoped>
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.species-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s;
+}
+
+.species-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    text-align: center;
+    padding: 15px;
+}
+
+.image-container {
+    cursor: pointer;
+    overflow: hidden;
+    margin: 0 auto;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    position: relative;
+    background: linear-gradient(145deg, #f3f3f3, #ffffff);
+    box-shadow: 
+        -8px -8px 15px rgba(255, 255, 255, 0.7),
+        8px 8px 15px rgba(0, 0, 0, 0.05),
+        inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.species-image {
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 50%;
+    padding: 5px;
+}
+
+.card-content {
+    padding: 10px;
+    flex-grow: 1;
+}
+   
+.content-row {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.label {
+    color: #606266;
+    width: 80px;
+    font-size: 14px;
+}
+
+.value {
+    color: #303133;
+    flex: 1;
+    font-size: 14px;
+}
+
+.card-footer {
+    padding: 10px;
+    text-align: center;
+    border-top: 1px solid #EBEEF5;
+}
+
+.card-footer .el-button {
+    margin: 0 5px;
+}
+
 .image-preview {
     position: relative;
     display: inline-block;
@@ -327,27 +415,18 @@
 
 .delete-icon {
     position: absolute;
-    /* 将 X 图标定位到图片的右上角外侧 */
     top: -8px;
     right: -8px;
-    /* 红色背景颜色 */
     background-color: #da212a;
     color: white;
-    /*  使其呈现为圆形 */
     border-radius: 50%;
     padding: 2px;
     font-size: 12px;
     cursor: pointer;
     z-index: 1;
 }
-/* 效果在鼠标悬停时改变背景色 */
+
 .delete-icon:hover {
     background-color: #f78989;
-}
-
-.image-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 </style>

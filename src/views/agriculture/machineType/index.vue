@@ -250,6 +250,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 0 10px;
 }
 
 .machine-type-tag {
@@ -260,7 +261,7 @@ export default {
   border-radius: 4px;
   font-size: 12px;
   margin-bottom: 8px;
-  align-self: flex-start;
+  margin-left: -10px;
 }
 
 .machine-type-header {

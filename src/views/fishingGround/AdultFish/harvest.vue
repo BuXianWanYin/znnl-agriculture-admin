@@ -1,6 +1,6 @@
 <template>
     <!--
-    成鱼收获管理页面
+    成鱼捕捞管理页面
     -->
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
@@ -31,26 +31,64 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="batchList">
-                <el-table-column type="index" label="序号"></el-table-column>
-                <el-table-column label="批次名称" align="center" prop="batchName"/>
-                <el-table-column label="种质" align="center" prop="speciesId">
-                    <template slot-scope="scope">
-                        <data-tag :options="SpeciesList" :value="scope.row.speciesId" labelName="fishName"
-                                  valueName="speciesId" type=""/>
-                    </template>
-                </el-table-column>
-                <el-table-column label="负责人" align="center" prop="batchHead">
-                    <template slot-scope="scope">
-                        <data-tag :options="userList" :value="scope.row.batchHead" labelName="userName"
-                                  valueName="userId" type="notag"/>
-                    </template>
-                </el-table-column>
-                <el-table-column label="种质图片" align="center" prop="introImg" width="180">
-                    <template v-slot:default="{ row }">
-                        <div class="image" @click="previewImage(`${image.baseUrl + row.fishSpeciesImg}`, row)">
-                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + row.fishSpeciesImg}`"/>
+            <div class="batch-cards">
+                <el-card v-for="item in batchList" :key="item.batchId" class="batch-card" shadow="hover">
+                    <div class="card-content">
+                        <div class="card-left">
+                            <div class="image-wrapper" @click="previewImage(`${image.baseUrl + item.fishSpeciesImg}`, item)">
+                                <img :src="`${image.baseUrl + item.fishSpeciesImg}`" class="circular-image" />
+                            </div>
                         </div>
+                        <div class="card-right">
+                            <div class="info-grid">
+                                <div class="info-row">
+                                    <span class="label">批次名称:</span>
+                                    <span class="value">{{ item.batchName }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">种质:</span>
+                                    <span class="value">
+                                        <data-tag :options="SpeciesList" :value="item.speciesId"
+                                            labelName="fishName" valueName="speciesId" type="" />
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">负责人:</span>
+                                    <span class="value">
+                                        <data-tag :options="userList" :value="item.batchHead"
+                                            labelName="userName" valueName="userId" type="notag" />
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">所属鱼池:</span>
+                                    <span class="value">{{ getLabel(item.landId) }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">状态:</span>
+                                    <span class="value">{{ item.status == 0 ? '未完成' : '已完成' }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">养殖面积:</span>
+                                    <span class="value">{{ item.cropArea }}亩</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="label">开始时间:</span>
+                                    <span class="value">{{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <el-button size="small" type="primary" icon="el-icon-edit"
+                                    @click="handleProcess(item.batchId, '捕捞')">
+                                    {{ item.status == 1 ? "捕捞" : "捕捞详情" }}
+                                </el-button>
+                                <el-button size="small" plain type="warning" icon="el-icon-s-claim"
+                                    @click="handleBatchTask(item)"
+                                    v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
+                            </div>
+                        </div>
+                    </div>
+                </el-card>
+            </div>
                     </template>
                 </el-table-column>
                 <el-table-column label="所属鱼池" align="center" prop="landId">
@@ -88,7 +126,7 @@
             </el-table>
 
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
-                        :limit.sync="queryParams.pageSize" @pagination="getList"/>
+                :limit.sync="queryParams.pageSize" @pagination="getList"/>
         </el-card>
         <!-- 添加或修改作物批次对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
@@ -185,7 +223,7 @@
                 <el-button size="small" @click="processDialogVisible = false">关闭</el-button>
             </div>
             </el-dialog>
-        
+
         <!-- 新增/修改弹框 -->
         <el-dialog :title="processManagementDialogTitle" :visible.sync="processManagementDialogVisible" width="30%">
             <el-form :model="processManagementForm" :rules="rules" ref="form" label-width="120px"
@@ -813,7 +851,7 @@ export default {
             getBatch(batchId).then(response => {
                 this.form = response.data;
                 this.open = true;
-                this.title = "修改成鱼收获";
+                this.title = "修改作物批次";
             });
         },
         /** 提交按钮 */
@@ -839,7 +877,7 @@ export default {
         /** 删除按钮操作 */
         handleDelete(row) {
             const batchIds = row.batchId || this.ids;
-            this.$modal.confirm('是否确认删除成鱼收获编号为"' + batchIds + '"的数据项？').then(function () {
+            this.$modal.confirm('是否确认删除作物批次编号为"' + batchIds + '"的数据项？').then(function () {
                 return delBatch(batchIds);
             }).then(() => {
                 this.getList();
@@ -976,5 +1014,95 @@ export default {
 
 ::v-deep .el-date-editor.el-input {
     width: 100%;
+}
+
+.batch-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+}
+
+.batch-card {
+    width: 100%;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.card-content {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-height: 160px;
+}
+
+.card-left {
+    flex: 0 0 120px;
+}
+
+.card-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px 24px;
+}
+
+.image-wrapper {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(45deg, #f3f4f6 0%, #ffffff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        transform: scale(1.02);
+    }
+}
+
+.circular-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+
+    .label {
+        font-weight: 600;
+        color: #606266;
+        width: 100px;
+        flex-shrink: 0;
+    }
+
+    .value {
+        color: #303133;
+        flex: 1;
+    }
+}
+
+.card-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
 }
 </style>
