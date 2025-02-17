@@ -97,6 +97,7 @@
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
         </el-card>
+
         <!-- 添加或修改作物批次对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-alert class="margin-bottom-10" title="新建批次会根据选择种质的种植流程生成批次任务，新增完成可以到批次任务管理界面调整批次任务！" type="warning"
@@ -150,6 +151,8 @@
                 <el-button @click="cancel">取 消</el-button>
             </div>
         </el-dialog>
+
+        
         <!-- 图片预览对话框 -->
         <el-dialog :title="image.title" :visible.sync="image.open" width="240px">
             <img style="width:200px;height:200px;" :src="image.imgUrl" />
