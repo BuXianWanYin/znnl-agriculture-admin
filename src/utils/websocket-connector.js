@@ -1,9 +1,18 @@
 export default class WebSocketConnectMethod {
+  static instance = null;
+
   constructor(config) {
+    // 实现单例模式
+    if (WebSocketConnectMethod.instance) {
+      return WebSocketConnectMethod.instance;
+    }
+    WebSocketConnectMethod.instance = this;
+
     this.msgHandle = config.msgHandle || function(){}
     this.stateHandle = config.stateHandle || function(){}
     this.speechSocket = null
     this.userId = this.getOrCreateUserId()
+    this.isConnecting = false // 添加连接状态标志
   }
 
   getOrCreateUserId() {
@@ -19,6 +28,12 @@ export default class WebSocketConnectMethod {
   }
 
   wsStart() {
+    // 如果正在连接或已经连接，则不重复连接
+    if (this.isConnecting || this.speechSocket?.readyState === 1) {
+      console.log('WebSocket已连接或正在连接中')
+      return 1
+    }
+
     const Uri = `ws://10.0.28.47:8081/ws/asr/${this.userId}`
     console.log('WebSocket连接地址:', Uri)
 
@@ -27,16 +42,13 @@ export default class WebSocketConnectMethod {
       return 0
     }
     
-    if (this.speechSocket?.readyState === 1) {
-      console.log('WebSocket已连接')
-      return 1
-    }
-    
     if ('WebSocket' in window) {
       try {
+        this.isConnecting = true
         this.speechSocket = new WebSocket(Uri)
         
         this.speechSocket.onopen = () => {
+          this.isConnecting = false
           const request = {
             chunk_size: [5, 10, 5],
             wav_name: "h5",
@@ -62,17 +74,16 @@ export default class WebSocketConnectMethod {
         }
 
         this.speechSocket.onclose = () => {
+          this.isConnecting = false
           this.stateHandle(1)
-          setTimeout(() => {
-            console.log('尝试重新连接WebSocket...')
-            this.wsStart()
-          }, 3000)
+          // 移除自动重连逻辑，由上层控制重连
         }
 
         this.speechSocket.onerror = () => this.stateHandle(2)
 
         return 1
       } catch(e) {
+        this.isConnecting = false
         console.error("WebSocket连接失败:", e)
         return 0
       }
