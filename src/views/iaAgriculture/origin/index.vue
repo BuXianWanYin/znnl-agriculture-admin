@@ -18,59 +18,7 @@
                 </div>
                 <div class="horizontal-timeline-wrapper">
                     <div v-if="taskList.length" class="horizontal-timeline">
-                        <div v-for="(task, index) in taskList" 
-                             :key="task.taskId" 
-                             class="timeline-item"
-                             :class="{
-                                 'line-start': index % 6 === 0,
-                                 'line-end': (index + 1) % 6 === 0 || index === taskList.length - 1,
-                                 'line-middle': index % 6 !== 0 && (index + 1) % 6 !== 0
-                             }">
-                            <div class="timeline-node" 
-                                 :class="{'is-complete': task.actualFinish}">
-                                <div class="node-content"></div>
-                                <div class="node-line" v-if="index !== taskList.length - 1"></div>
-                                <div class="node-corner" v-if="(index + 1) % 6 === 0 && index !== taskList.length - 1"></div>
-                            </div>
-                            <el-card class="task-card" :body-style="{ padding: '10px' }">
-                                <div class="task-title">{{ task.taskName }}</div>
-                                <div class="task-dates">
-                                    <!-- 计划时间 -->
-                                    <!-- <div class="date-group">
-                                        <div class="date-label">计划时间</div>
-                                        <div class="date-item">
-                                            <i class="el-icon-date"></i>
-                                            <span>开始：{{ task.planStart }}</span>
-                                        </div>
-                                        <div class="date-item">
-                                            <i class="el-icon-date"></i>
-                                            <span>结束：{{ task.planFinish }}</span>
-                                        </div>
-                                    </div> -->
-                                    <div class="date-group" v-if="task.actualStart || task.actualFinish">
-                                        <div class="date-label">实际时间</div>
-                                        <div class="date-item" v-if="task.actualStart">
-                                            <i class="el-icon-date"></i>
-                                            <span>开始：{{ task.actualStart }}</span>
-                                        </div>
-                                        <div class="date-item" v-if="task.actualFinish">
-                                            <i class="el-icon-date"></i>
-                                            <span>结束：{{ task.actualFinish }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="task-info">
-                                    <span class="info-item">
-                                        <i class="el-icon-user"></i>
-                                        {{ task.taskHeadName || '未指定' }}
-                                    </span>
-                                    <span class="info-item">
-                                        <i class="el-icon-tickets"></i>
-                                        {{ task.batchName }}
-                                    </span>
-                                </div>
-                            </el-card>
-                        </div>
+                        <TimelineItem v-for="(item,index) in taskList" :tasks="taskList" :index="index" :task="item" key="index"/>
                     </div>
                     <el-empty v-else description="暂无任务数据"></el-empty>
                 </div>
@@ -102,7 +50,7 @@
                             </div>
                         </el-card>
                     </el-col>
-                    
+
                     <el-col :span="8">
                         <el-card class="info-card" shadow="hover">
                             <div class="card-header">
@@ -196,6 +144,7 @@
 
 <script>
     import HeaderTop from "@/components/common/Header.vue";
+    import TimelineItem from "@/views/iaAgriculture/origin/components/timelineItem.vue";
     import sf from "@/components/origin/sf";
     import environment from "@/components/origin/environment";
     import {
@@ -232,6 +181,7 @@
         components: {
             HeaderTop,
             environment,
+            TimelineItem
         },
         methods: {
             originSearch() {
@@ -461,7 +411,7 @@
     margin: 20px 0;
     background: transparent;
     border: none;
-    
+
     .el-card__body {
         padding: 0;
     }
@@ -469,24 +419,24 @@
 
 .info-card {
     height: 350px; // 增加卡片高度
-    
+
     transition: all 0.3s;
     position: relative;
     background: linear-gradient(to bottom, #ffffff, #f8f9fa);
-    
+
     .card-header {
         padding: 15px 20px;
         border-bottom: 1px solid #ebeef5;
         background: linear-gradient(to right, #f5f7fa, #ffffff);
         display: flex;
         align-items: center;
-        
+
         i {
             font-size: 18px;
             margin-right: 8px;
             color: #409EFF;
         }
-        
+
         span {
             font-size: 16px;
             font-weight: 500;
@@ -503,7 +453,7 @@
 
         .info-item {
             margin-bottom: 20px; // 增加项目间距
-            
+
             &:last-child {
                 margin-bottom: 0;
             }
@@ -519,14 +469,14 @@
                 font-size: 14px;
                 font-weight: 500;
                 line-height: 1.4; // 增加行高
-                
+
                 &.address {
                     font-family: monospace;
                     font-size: 13px;
                     word-break: break-all;
                     color: #409EFF;
                     cursor: pointer;
-                    
+
                     &:hover {
                         color: #66b1ff; // 只改变颜色，去掉下划线
                     }
@@ -600,7 +550,7 @@
     min-width: 220px;
     position: relative;
     margin-bottom: 40px;
-    
+
     &.line-start {
         .timeline-node::before {
             display: none;
@@ -658,7 +608,7 @@
 .task-card {
     width: 100%;
     margin-bottom: 10px;
-    
+
     .task-title {
         font-size: 14px;
         font-weight: bold;
@@ -674,7 +624,7 @@
 
         .date-group {
             margin-bottom: 8px;
-            
+
             &:last-child {
                 margin-bottom: 0;
             }
@@ -721,12 +671,12 @@
             display: flex;
             align-items: center;
             max-width: 45%;
-            
+
             i {
                 margin-right: 4px;
                 font-size: 12px;
             }
-            
+
             span {
                 overflow: hidden;
                 text-overflow: ellipsis;
