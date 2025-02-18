@@ -138,7 +138,7 @@
                     >
                     </el-date-picker>
                 </el-form-item>
-                <el-form-item label="备注" prop="baitCount">
+                <el-form-item label="备注">
                     <el-input v-model="form.remark" placeholder="请输入备注"/>
                 </el-form-item>
             </el-form>
@@ -208,9 +208,9 @@ export default {
                 baitCount: [
                     {required: true, message: "使用数量不能为空", trigger: "blur"},
                 ],
-                // measureUnit: [
-                //   { required: true, message: "计量单位不能为空", trigger: "blur" },
-                // ],
+                measureUnit: [
+                  { required: true, message: "计量单位不能为空", trigger: "blur" },
+                ],
                 workingStart: [
                     {required: true, message: "开始日期不能为空", trigger: "blur"},
                 ],

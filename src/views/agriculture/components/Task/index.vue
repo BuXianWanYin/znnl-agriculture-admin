@@ -34,60 +34,70 @@
             </el-form>
         </div>
         <div class="table">
-            <el-table v-if="!gantt" v-loading="loading" :data="taskList" :border="tableBorder">
-                <el-table-column label="任务名称" align="center" prop="taskName" />
-                <el-table-column label="计划开始日期" align="center" prop="planStart" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.planStart, "{y}-{m}-{d}") }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="计划结束日期" align="center" prop="planFinish" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.planFinish, "{y}-{m}-{d}") }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="实际开始日期" align="center" prop="actualStart" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.actualStart, "{y}-{m}-{d}") }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="实际结束日期" align="center" prop="actualFinish" width="180">
-                    <template slot-scope="scope">
-                        <span>{{ parseTime(scope.row.actualFinish, "{y}-{m}-{d}") }}</span>
-                    </template>
-                </el-table-column>
-                <!-- <el-table-column label="任务详情" align="center" prop="taskDetail" />
-      <el-table-column label="图片资料" align="center" prop="taskImages" />
-      <el-table-column label="视频资料" align="center" prop="taskVideos" /> -->
-                <!-- <el-table-column label="备注" align="center" prop="remark" /> -->
-                <el-table-column label="状态" align="center" prop="status">
-                    <template slot-scope="scope">
-                        <dict-tag :options="dict.type.agriculture_batch_task_status" :value="scope.row.status" />
-                    </template>
-                </el-table-column>
-                <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
-                    <template #header>
-                        <el-button class="width-90" v-if="tableBorder" type="primary"
-                            :disabled="!checkPermi(['agriculture:batchTask:add'])" size="mini" plain icon="el-icon-plus"
-                            @click="handleAdd">新增任务</el-button>
-                        <span v-else>操作</span>
-                    </template>
-                    <template slot-scope="scope">
-                        <el-button size="small" type="primary" class="padding-5" plain icon="el-icon-edit"
-                            @click="handleTask(scope.row.taskId)" v-if="!tableBorder"
-                            v-hasPermi="['agriculture:batchTask:query']">任务处理</el-button>
-                        <el-button size="small" type="primary" class="padding-5" icon="el-icon-edit"
-                            @click="handleUpdate(scope.row)" v-if="tableBorder"
-                            v-hasPermi="['agriculture:batchTask:edit']">修改</el-button>
-                        <el-button size="small" type="danger" class="padding-5" icon="el-icon-delete"
-                            @click="handleDelete(scope.row)" v-hasPermi="['agriculture:batchTask:remove']"
-                            v-if="tableBorder">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
+            <div v-if="!gantt" class="task-cards">
+                <el-card v-loading="loading" 
+                    v-for="task in taskList" 
+                    :key="task.taskId" 
+                    class="task-card"
+                    :body-style="{ padding: '15px' }">
+                    <el-row :gutter="20">
+                        <el-col :span="16">
+                            <div class="task-info">
+                                <h3 class="task-name">{{ task.taskName }}</h3>
+                                <div class="task-dates">
+                                    <el-row :gutter="20">
+                                        <el-col :span="12">
+                                            <div class="date-group">
+                                                <div class="date-item">
+                                                    <span class="label">计划开始：</span>
+                                                    <span>{{ parseTime(task.planStart, "{y}-{m}-{d}") }}</span>
+                                                </div>
+                                                <div class="date-item">
+                                                    <span class="label">计划结束：</span>
+                                                    <span>{{ parseTime(task.planFinish, "{y}-{m}-{d}") }}</span>
+                                                </div>
+                                            </div>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <div class="date-group">
+                                                <div class="date-item">
+                                                    <span class="label">实际开始：</span>
+                                                    <span>{{ parseTime(task.actualStart, "{y}-{m}-{d}") }}</span>
+                                                </div>
+                                                <div class="date-item">
+                                                    <span class="label">实际结束：</span>
+                                                    <span>{{ parseTime(task.actualFinish, "{y}-{m}-{d}") }}</span>
+                                                </div>
+                                            </div>
+                                        </el-col>
+                                    </el-row>
+                                </div>
+                            </div>
+                        </el-col>
+                        <el-col :span="8">
+                            <div class="task-actions">
+                                <div class="status-tag">
+                                    <dict-tag :options="dict.type.agriculture_batch_task_status" :value="task.status" />
+                                </div>
+                                <div class="action-buttons">
+                                    <el-button size="small" type="primary" plain icon="el-icon-edit"
+                                        @click="handleTask(task.taskId)" v-if="!tableBorder"
+                                        v-hasPermi="['agriculture:batchTask:query']">任务处理</el-button>
+                                    <el-button size="small" type="primary" icon="el-icon-edit"
+                                        @click="handleUpdate(task)" v-if="tableBorder"
+                                        v-hasPermi="['agriculture:batchTask:edit']">修改</el-button>
+                                    <el-button size="small" type="danger" icon="el-icon-delete"
+                                        @click="handleDelete(task)" v-if="tableBorder"
+                                        v-hasPermi="['agriculture:batchTask:remove']">删除</el-button>
+                                </div>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </el-card>
+                <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
+                    :limit.sync="queryParams.pageSize" @pagination="getList" />
+            </div>
             <gantt v-else class="gantt" :tasks="tasks"></gantt>
-            <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
-                :limit.sync="queryParams.pageSize" @pagination="getList" />
         </div>
         <!-- 添加或修改批次任务对话框 -->
         <el-dialog :title="title2" :visible.sync="open2" width="500px" append-to-body>
@@ -423,8 +433,60 @@
 
         .table {
             background: #fff;
-            padding: 0 10px;
+            padding: 15px;
             height: calc(100% - 70px - 70px);
+            overflow-y: auto;
+
+            .task-cards {
+                .task-card {
+                    margin-bottom: 15px;
+                    transition: all 0.3s;
+                    
+                    &:hover {
+                        box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+                    }
+
+                    .task-info {
+                        .task-name {
+                            margin: 0 0 15px 0;
+                            font-size: 16px;
+                            font-weight: 500;
+                        }
+
+                        .task-dates {
+                            .date-group {
+                                .date-item {
+                                    margin-bottom: 8px;
+                                    
+                                    .label {
+                                        color: #606266;
+                                        margin-right: 8px;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .task-actions {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: flex-end;
+                        height: 100%;
+                        
+                        .status-tag {
+                            margin-bottom: 15px;
+                        }
+
+                        .action-buttons {
+                            margin-top: auto;
+                            
+                            .el-button {
+                                margin-left: 8px;
+                            }
+                        }
+                    }
+                }
+            }
 
             .gantt {
                 overflow: hidden;

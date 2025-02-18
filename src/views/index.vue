@@ -4,49 +4,150 @@
             <el-row :gutter="10">
                 <el-col :span="8">
                     <data-panel title="基地概况">
-                        <div class="main flex fdc ">
-                            <el-row :gutter="10" class="flex1">
-                                <el-col :span="8" class="h100 flex aic"><data-box icon="el-icon-s-data"
-                                        backgroundColor="#5470c6" text="基地面积(亩)" :value="baseInfo.areaCount"
-                                        class="flex1"></data-box></el-col>
-                                <el-col :span="8" class="h100 flex aic"><data-box icon="el-icon-s-finance"
-                                        backgroundColor="#91cc75" text="种养种类(种)" :value="baseInfo.germplasmCount"
-                                        class="flex1"></data-box></el-col>
-                                <el-col :span="8" class="h100 flex aic"><data-box icon="el-icon-s-grid"
-                                        backgroundColor="#fac858" text="地块数量(块)" :value="baseInfo.diCount"
-                                        class="flex1"></data-box></el-col>
-                            </el-row>
-                            <el-row :gutter="10" class="margin-top-10 flex1">
-                                <el-col :span="8" class="h100 flex aic"><data-box icon="el-icon-s-custom"
-                                        backgroundColor="#ee6666" text="人员总数(位)" :value="baseInfo.employeeCount"
-                                        class="flex1"></data-box></el-col>
-                                <el-col :span="8" class="h100 flex aic"><data-box icon="el-icon-s-claim"
-                                        backgroundColor="#73c0de" text="种植批次(批)" :value="baseInfo.batchCount"
-                                        class="flex1"></data-box></el-col>
-                                <el-col :span="8" class="h100 flex aic"><data-box icon="el-icon-s-shop"
-                                        backgroundColor="#3ba272" text="大棚数量(个)" :value="baseInfo.pengCount"
-                                        class="flex1"></data-box></el-col>
-                            </el-row>
+                        <div class="main main-large">
+                            <!-- 蔬菜部分 -->
+                            <div class="section-container">
+                                <div class="section-title">蔬菜基地</div>
+                                <el-row :gutter="10" class="section-content">
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-data"
+                                            backgroundColor="#5470c6" 
+                                            text="基地面积(亩)" 
+                                            :value="baseInfo.areaCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-claim"
+                                            backgroundColor="#73c0de" 
+                                            text="种植批次(批)" 
+                                            :value="baseInfo.batchCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-finance"
+                                            backgroundColor="#91cc75" 
+                                            text="种植种类(种)" 
+                                            :value="baseInfo.germplasmCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-shop"
+                                            backgroundColor="#3ba272" 
+                                            text="大棚数量(个)" 
+                                            :value="baseInfo.pengCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
+                                </el-row>
+                            </div>
+
+                            <!-- 养殖部分 -->
+                            <div class="section-container">
+                                <div class="section-title">养殖基地</div>
+                                <el-row :gutter="10" class="section-content">
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-grid"
+                                            backgroundColor="#fac858" 
+                                            text="养殖池(个)" 
+                                            :value="fishInfo.pondCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-finance"
+                                            backgroundColor="#ee6666" 
+                                            text="鱼类品种(种)" 
+                                            :value="fishInfo.speciesCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-custom"
+                                            backgroundColor="#73c0de" 
+                                            text="存栏数量(尾)" 
+                                            :value="fishInfo.fishCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
+                                </el-row>
+                            </div>
+
+                            <!-- 公共信息部分 -->
+                            <div class="section-container">
+                                <div class="section-title">公共信息</div>
+                                <el-row :gutter="10" class="section-content">
+                                    <el-col :span="12" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-custom"
+                                            backgroundColor="#ee6666" 
+                                            text="人员总数(位)" 
+                                            :value="baseInfo.employeeCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
+                                </el-row>
+                            </div>
                         </div>
                     </data-panel>
                 </el-col>
                 <el-col :span="8">
                     <data-panel title="种植统计" more="更多详情" link="Task">
-                        <div class="main">
-                            <!-- <div ref="indexServiceMonitorChart" class="h100"></div> -->
+                        <div class="main main-large">
                             <el-row class="h100" :gutter="10">
-                                <el-col :md="10" class="h100">
-                                    <div ref="indexServiceMonitorChart" class="h100"></div>
+                                <!-- 图表部分 -->
+                                <el-col :md="12" class="h100">
+                                    <div class="chart-container">
+                                        <!-- 图表区域 -->
+                                        <div ref="combinedStatsChart" class="chart-area"></div>
+                                        
+                                    </div>
                                 </el-col>
-                                <el-col :md="7" class="h100 flex fdc jcsa">
-                                    <data-box v-for="item in taskInfo.slice(0,2)" :key="item.name"
-                                        icon="el-icon-s-promotion" backgroundColor="red" :text="item.name+'(条)'"
-                                        :value="item.value" :isBorder="false" :isIcon="false"></data-box>
-                                </el-col>
-                                <el-col :md="7" class="h100 flex fdc jcsa">
-                                    <data-box v-for="item in taskInfo.slice(2,4)" :key="item.name"
-                                        icon="el-icon-s-promotion" backgroundColor="red" :text="item.name+'(条)'"
-                                        :value="item.value" :isBorder="false" :isIcon="false"></data-box>
+                                <!-- 右侧数据展示部分保持不变 -->
+                                <el-col :md="12" class="h100">
+                                    <el-row class="h100 flex fdc">
+                                        <!-- 种植统计数据 -->
+                                        <div class="stats-section">
+                                            <div class="stats-title">种植任务</div>
+                                            <el-row :gutter="10">
+                                                <el-col :span="12" v-for="item in taskInfo" :key="item.name">
+                                                    <data-box 
+                                                        icon="el-icon-s-promotion"
+                                                        :backgroundColor="item.color || '#409EFF'"
+                                                        :text="item.name+'(条)'"
+                                                        :value="item.value"
+                                                        :isBorder="false"
+                                                        :isIcon="false">
+                                                    </data-box>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
+                                        <!-- 养殖统计数据 -->
+                                        <div class="stats-section">
+                                            <div class="stats-title">养殖状态</div>
+                                            <el-row :gutter="10">
+                                                <el-col :span="12" v-for="item in fishStatsInfo" :key="item.name">
+                                                    <data-box 
+                                                        icon="el-icon-s-promotion"
+                                                        :backgroundColor="item.color || '#67C23A'"
+                                                        :text="item.name+'(尾)'"
+                                                        :value="item.value"
+                                                        :isBorder="false"
+                                                        :isIcon="false">
+                                                    </data-box>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
+                                    </el-row>
                                 </el-col>
                             </el-row>
                         </div>
@@ -54,166 +155,82 @@
                 </el-col>
                 <el-col :span="8">
                     <data-panel title="溯源统计" more="更多溯源" link="RecordCount">
-                        <div class="main">
+                        <div class="main main-large">
                             <div ref="indexDeviceMonitorChart" class="h100"></div>
                         </div>
                     </data-panel>
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="margin-top-10">
-                <el-col :span="8">
-                    <data-panel title="养殖概况">
-                        <div class="main flex fdc">
-                            <el-row :gutter="10" class="flex1">
-                                <el-col :span="8" class="h100 flex aic">
-                                    <data-box 
-                                        icon="el-icon-s-data"
-                                        backgroundColor="#5470c6" 
-                                        text="养殖池数量(个)" 
-                                        :value="fishInfo.pondCount"
-                                        class="flex1">
-                                    </data-box>
-                                </el-col>
-                                <el-col :span="8" class="h100 flex aic">
-                                    <data-box 
-                                        icon="el-icon-s-finance"
-                                        backgroundColor="#91cc75" 
-                                        text="鱼类品种(种)" 
-                                        :value="fishInfo.speciesCount"
-                                        class="flex1">
-                                    </data-box>
-                                </el-col>
-                                <el-col :span="8" class="h100 flex aic">
-                                    <data-box 
-                                        icon="el-icon-s-grid"
-                                        backgroundColor="#fac858" 
-                                        text="存栏数量(尾)" 
-                                        :value="fishInfo.fishCount"
-                                        class="flex1">
-                                    </data-box>
+                <el-col :span="12">
+                    <data-panel title="蔬菜大棚环境监测">
+                        <div class="env-cards-wrapper vegetable-cards">
+                            <el-row :gutter="20">
+                                <el-col :span="6" v-for="(item, index) in latestEnvItems" :key="index">
+                                    <div class="env-card" :class="getStatusColor(item)">
+                                        <div class="env-title">{{item.label}}</div>
+                                        <div class="env-value">{{item.value}}</div>
+                                        <div class="env-unit">{{item.unit}}</div>
+                                    </div>
                                 </el-col>
                             </el-row>
+                            <div class="env-time">更新时间：{{latestUpdateTime}}</div>
+                        </div>
+                        <el-table :data="statusData" height="400" style="margin-top: 20px;">
+                            <el-table-column prop="id" label="ID"> </el-table-column>
+                            <el-table-column prop="airquality" label="空气质量"> </el-table-column>
+                            <el-table-column prop="temperature" label="温度"> </el-table-column>
+                            <el-table-column prop="humidity" label="湿度"> </el-table-column>
+                            <el-table-column prop="pressure" label="气压"> </el-table-column>
+                            <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
+                        </el-table>
+                        <div class="page-block">
+                            <el-pagination 
+                                @size-change="sSizeChange" 
+                                @current-change="sCurrentChange"
+                                :current-page="scurrentPage" 
+                                :page-size="20"
+                                :page-sizes="[20, 40, 60, 80]"
+                                layout="total, sizes, prev, pager, next, jumper" 
+                                :total="stotal">
+                            </el-pagination>
                         </div>
                     </data-panel>
                 </el-col>
-                <el-col :span="8">
-                    <data-panel title="养殖统计" more="更多详情" link="FishStats">
-                        <div class="main">
-                            <el-row class="h100" :gutter="10">
-                                <el-col :md="10" class="h100">
-                                    <div ref="fishStatsChart" class="h100"></div>
-                                </el-col>
-                                <el-col :md="7" class="h100 flex fdc jcsa">
-                                    <data-box 
-                                        v-for="item in fishStatsInfo.slice(0,2)" 
-                                        :key="item.name"
-                                        icon="el-icon-s-promotion" 
-                                        backgroundColor="red" 
-                                        :text="item.name+'(尾)'"
-                                        :value="item.value" 
-                                        :isBorder="false" 
-                                        :isIcon="false">
-                                    </data-box>
-                                </el-col>
-                                <el-col :md="7" class="h100 flex fdc jcsa">
-                                    <data-box 
-                                        v-for="item in fishStatsInfo.slice(2,4)" 
-                                        :key="item.name"
-                                        icon="el-icon-s-promotion" 
-                                        backgroundColor="red" 
-                                        :text="item.name+'(尾)'"
-                                        :value="item.value" 
-                                        :isBorder="false" 
-                                        :isIcon="false">
-                                    </data-box>
+
+                <el-col :span="12">
+                    <data-panel title="养殖池环境监测">
+                        <div class="env-cards-wrapper fish-cards">
+                            <el-row :gutter="20">
+                                <el-col :span="4.8" v-for="(item, index) in fishEnvItems" :key="index">
+                                    <div class="env-card" :class="getStatusColor(item)">
+                                        <div class="env-title">{{item.label}}</div>
+                                        <div class="env-value">{{item.value}}</div>
+                                        <div class="env-unit">{{item.unit}}</div>
+                                    </div>
                                 </el-col>
                             </el-row>
+                            <div class="env-time">更新时间：{{fishLatestUpdateTime}}</div>
                         </div>
-                    </data-panel>
-                </el-col>
-
-                <el-col :span="8">
-                    <data-panel title="养殖溯源统计" more="更多溯源" link="FishTraceability">
-                        <div class="main">
-                            <div ref="fishTraceChart" class="h100"></div>
+                        <el-table :data="fishStatusData" height="400">
+                            <el-table-column prop="id" label="ID"> </el-table-column>
+                            <el-table-column prop="waterQuality" label="水质"></el-table-column>
+                            <el-table-column prop="temperature" label="水温"></el-table-column>
+                            <el-table-column prop="oxygen" label="含氧量"></el-table-column>
+                            <el-table-column prop="ph" label="pH值"></el-table-column>        
+                            <el-table-column prop="nitrite" label="亚硝酸盐含量"></el-table-column>
+                            <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
+                        </el-table>
+                        <div class="page-block">
+                            <el-pagination 
+                                @size-change="fishSizeChange" 
+                                @current-change="fishCurrentChange"
+                                :current-page="fishCurrentPage" 
+                                :page-size="fishPageSize"
+                                layout="jumper, prev, pager, next, total" 
+                                :total="fishTotal">
+                            </el-pagination>
                         </div>
-                    </data-panel>
-                </el-col>
-
-            </el-row>
-            <el-row :gutter="10" class="margin-top-10">
-                <el-col :span="24">
-                    <data-panel title="环境监测数据">
-                        <el-tabs v-model="activeTab">
-                     <!-- 蔬菜大棚环境数据 -->
-                            <el-tab-pane label="蔬菜大棚" name="vegetables">
-                                <div class="env-cards-wrapper">
-                                    <el-row :gutter="20">
-                                        <el-col :span="6" v-for="(item, index) in latestEnvItems" :key="index">
-                                            <div class="env-card" :class="getStatusColor(item)">
-                                                <div class="env-title">{{item.label}}</div>
-                                                <div class="env-value">{{item.value}}</div>
-                                                <div class="env-unit">{{item.unit}}</div>
-                                            </div>
-                                        </el-col>
-                                    </el-row>
-                                    <div class="env-time">更新时间：{{latestUpdateTime}}</div>
-                                </div>
-                                <el-table :data="statusData" height="400">
-                                    <el-table-column prop="id" label="ID"> </el-table-column>
-                                    <el-table-column prop="airquality" label="空气质量"> </el-table-column>
-                                    <el-table-column prop="temperature" label="温度"> </el-table-column>
-                                    <el-table-column prop="humidity" label="湿度"> </el-table-column>
-                                    <el-table-column prop="pressure" label="气压"> </el-table-column>
-                                    <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
-                                </el-table>
-                                <div class="page-block">
-                                    <el-pagination 
-                                        @size-change="sSizeChange" 
-                                        @current-change="sCurrentChange"
-                                        :current-page="scurrentPage" 
-                                        :page-size="spSize"
-                                        layout="jumper, prev, pager, next, total" 
-                                        :total="stotal">
-                                    </el-pagination>
-                                </div>
-                            </el-tab-pane>
-
-                            <!-- 养殖池环境数据 -->
-                            <el-tab-pane label="养殖池" name="fishPond">
-                                <div class="env-cards-wrapper">
-                                    <el-row :gutter="20" class="equal-width-cards">
-                                        <el-col v-for="(item, index) in fishEnvItems" :key="index">
-                                            <div class="env-card" :class="getStatusColor(item)">
-                                                <div class="env-title">{{item.label}}</div>
-                                                <div class="env-value">{{item.value}}</div>
-                                                <div class="env-unit">{{item.unit}}</div>
-                                            </div>
-                                        </el-col>
-                                    </el-row>
-                                    <div class="env-time">更新时间：{{fishLatestUpdateTime}}</div>
-                                </div>
-                                <el-table :data="fishStatusData" height="400">
-                                    <el-table-column prop="id" label="ID"> </el-table-column>
-                                    <el-table-column prop="waterQuality" label="水质"></el-table-column>
-                                    <el-table-column prop="temperature" label="水温"></el-table-column>
-                                    <el-table-column prop="oxygen" label="含氧量"></el-table-column>
-                                    <el-table-column prop="ph" label="pH值"></el-table-column>        
-                                    <el-table-column prop="nitrite" label="亚硝酸盐含量"></el-table-column>
-                                    <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
-                                </el-table>
-                                <div class="page-block">
-                                    <el-pagination 
-                                        @size-change="fishSizeChange" 
-                                        @current-change="fishCurrentChange"
-                                        :current-page="fishCurrentPage" 
-                                        :page-size="fishPageSize"
-                                        layout="jumper, prev, pager, next, total" 
-                                        :total="fishTotal">
-                                    </el-pagination>
-                                </div>
-                            </el-tab-pane>
-                        </el-tabs>
                     </data-panel>
                 </el-col>
             </el-row>
@@ -266,14 +283,19 @@
                 deviceCountList: [],
                 deviceTotal: 0,
                 scurrentPage: 0,
-                spSize: 10,
+                spSize: 20,
                 stotal: 0,
                 deviceJobInfo: [],
                 traceInfo: {
                     date: [],
                     num: []
                 },
-                taskInfo: [],
+                taskInfo: [
+                    { name: '未分配', value: 0, color: '#909399' },
+                    { name: '已分配', value: 0, color: '#E6A23C' },
+                    { name: '进行中', value: 0, color: '#409EFF' },
+                    { name: '已完成', value: 0, color: '#67C23A' }
+                ],
                 statusData: [],
                 fishInfo: {
                     pondCount: 12,
@@ -281,10 +303,10 @@
                     fishCount: 25000
                 },
                 fishStatsInfo: [
-                    { name: '在养', value: 145 },
-                    { name: '已出塘', value: 45 },
-                    { name: '生病', value: 3 },
-                    { name: '死亡', value: 0 }
+                    { name: '在养', value: 145, color: '#409EFF' },
+                    { name: '已出塘', value: 45, color: '#67C23A' },
+                    { name: '生病', value: 3, color: '#E6A23C' },
+                    { name: '死亡', value: 0, color: '#F56C6C' }
                 ],
                 latestEnvItems: [
                     { 
@@ -401,82 +423,62 @@
         },
         async mounted() {
             // await this.getBaseInfo();
-
             await this.getDate();
-            // 初始化两个图表
-            // 初始化种植溯源图表
-            lineChart(this.$refs.indexDeviceMonitorChart, {
-                text: `溯源次数`,  // 图表标题
-                fontSize: 14,      // 标题字体大小
-                color: '#bbb'      // 标题颜色
-            }, '溯源次数',         // X轴标题
-            {
-                name: '溯源次数'   // 数据系列名称
-            }, 
-            this.traceInfo.date,   // X轴数据（日期数组）
-            this.traceInfo.num);   // Y轴数据（次数数组）
-
-            pieChart(this.$refs.indexServiceMonitorChart, '农事任务', '任务进度(%)', this.taskInfo, 84.6);
-            await this.getLandList();
-            // this.addFeatures();
-            this.houseCheck();
-            pieChart(
-                this.$refs.fishStatsChart, 
-                '养殖状态', 
-                '养殖进度(%)', 
-                this.fishStatsInfo, 
-                84.6
-            );
-            this.getFishEnvironmentData();
             
-            // 添加以下调试代码
-            setTimeout(() => {
-                console.log('Latest env items:', this.latestEnvItems);
-                console.log('Fish env items:', this.fishEnvItems);
-            }, 1000);
+            // 使用新的组合图表初始化方法
+            this.$nextTick(() => {
+                this.initCombinedChart();
+            });
+            
+            // 监听数据变化
+            this.$watch(
+                () => [...this.taskInfo, ...this.fishStatsInfo],
+                () => {
+                    this.$nextTick(() => {
+                        this.initCombinedChart();
+                    });
+                },
+                { deep: true }
+            );
+            this.houseCheck();
         },
         methods: {
             // 处理每页显示数量变化
             sSizeChange(n) {
-                this.spSize = n; // 更新每页显示数量
-                this.houseCheck(); // 重新获取数据
+                this.spSize = n;
+                this.houseCheck();
             },
             
             // 处理页码变化
             sCurrentChange(n) {
-                this.scurrentPage = n; // 更新当前页码
-                this.houseCheck(); // 重新获取数据
+                this.scurrentPage = n;
+                this.houseCheck();
             },
             
             // 获取蔬菜大棚环境数据
             houseCheck() {
-                // 发送请求获取环境数据
                 this.$http.post("/dev-api/iaPasture/selectSensorValuePage", {
-                    currentPage: this.scurrentPage, // 当前页码
-                    pageSize: this.spSize, // 每页数量
-                    orderBy: 'dateTime', // 按日期排序
-                    orderType: 'desc' // 降序排列（最新的在前）
+                    currentPage: this.scurrentPage,
+                    pageSize: this.spSize,
+                    orderBy: 'dateTime',
+                    orderType: 'desc'
                 }).then(res => {
-                    console.log('蔬菜大棚数据响应:', res); // 调试日志
                     if (res.data && res.data.data) {
-                        // 更新表格数据
                         this.statusData = res.data.data.records.sort((a, b) => {
-                            return new Date(b.dateTime) - new Date(a.dateTime); // 按时间降序排序
+                            return new Date(b.dateTime) - new Date(a.dateTime);
                         });
-                        this.stotal = res.data.data.total; // 更新总记录数
+                        this.stotal = res.data.data.total;
                         
-                        // 如果有数据，更新环境监测卡片
                         if (this.statusData && this.statusData.length > 0) {
-                            const latest = this.statusData[0]; // 获取最新一条记录
-                            // 更新环境监测卡片数据
+                            const latest = this.statusData[0];
                             this.latestEnvItems = [
                                 { 
                                     label: '空气质量', 
                                     value: latest.airquality, 
                                     unit: 'ppm',
                                     thresholds: {
-                                        good: { min: 0, max: 1000 }, // 正常范围
-                                        warning: { min: 1000, max: 2000 } // 警告范围
+                                        good: { min: 0, max: 1000 },
+                                        warning: { min: 1000, max: 2000 }
                                     }
                                 },
                                 { 
@@ -484,8 +486,8 @@
                                     value: latest.temperature, 
                                     unit: '℃',
                                     thresholds: {
-                                        good: { min: 20, max: 30 }, // 适宜温度范围
-                                        warning: { min: 15, max: 35 } // 可接受温度范围
+                                        good: { min: 20, max: 30 },
+                                        warning: { min: 15, max: 35 }
                                     }
                                 },
                                 { 
@@ -493,8 +495,8 @@
                                     value: latest.humidity, 
                                     unit: '%',
                                     thresholds: {
-                                        good: { min: 40, max: 70 }, // 适宜湿度范围
-                                        warning: { min: 30, max: 80 } // 可接受湿度范围
+                                        good: { min: 40, max: 70 },
+                                        warning: { min: 30, max: 80 }
                                     }
                                 },
                                 { 
@@ -502,15 +504,15 @@
                                     value: latest.pressure, 
                                     unit: 'kPa',
                                     thresholds: {
-                                        good: { min: 98, max: 102 }, // 正常气压范围
-                                        warning: { min: 95, max: 105 } // 可接受气压范围
+                                        good: { min: 98, max: 102 },
+                                        warning: { min: 95, max: 105 }
                                     }
                                 }
                             ];
                         }
                     }
                 }).catch(error => {
-                    console.error('获取蔬菜大棚数据失败:', error); // 错误日志
+                    console.error('获取蔬菜大棚数据失败:', error);
                 });
             },
             /** 初始化map */
@@ -605,35 +607,26 @@
 
                 const res5 = await selectTaskInfo()
                 //未分配
-                let wfp = res5.rows.find(item => item.status == 0) ? res5.rows.find(item => item.status == 0).num :
-                    0;
+                let wfp = res5.rows.find(item => item.status == 0) ? res5.rows.find(item => item.status == 0).num : 0;
                 //已分配
-                let yfp = res5.rows.find(item => item.status == 1) ? res5.rows.find(item => item.status == 1).num :
-                    0;
+                let yfp = res5.rows.find(item => item.status == 1) ? res5.rows.find(item => item.status == 1).num : 0;
                 //进行中
-                let jxz = res5.rows.find(item => item.status == 2) ? res5.rows.find(item => item.status == 2).num :
-                    0;
+                let jxz = res5.rows.find(item => item.status == 2) ? res5.rows.find(item => item.status == 2).num : 0;
                 //已完成
-                let ywc = res5.rows.find(item => item.status == 3) ? res5.rows.find(item => item.status == 3).num :
-                    0;
+                let ywc = res5.rows.find(item => item.status == 3) ? res5.rows.find(item => item.status == 3).num : 0;
+                
                 //任务进度
-                this.$taskTotal = (wfp + yfp + ywc + jxz) == 0 ? 0 : (ywc * 100 / (wfp + yfp + ywc + jxz)).toFixed(
-                    2);
-                this.taskInfo = [{
-                    name: '未分配',
-                    value: wfp
-                }, {
-                    name: '已分配',
-                    value: yfp
-                }, {
-                    name: '进行中',
-                    value: jxz
-                }, {
-                    name: '已完成',
-                    value: ywc
-                }]
+                this.$taskTotal = (wfp + yfp + ywc + jxz) == 0 ? 0 : (ywc * 100 / (wfp + yfp + ywc + jxz)).toFixed(2);
+                
+                // 更新任务信息数组
+                this.taskInfo = [
+                    { name: '未分配', value: wfp, color: '#909399' },
+                    { name: '已分配', value: yfp, color: '#E6A23C' },
+                    { name: '进行中', value: jxz, color: '#409EFF' },
+                    { name: '已完成', value: ywc, color: '#67C23A' }
+                ];
 
-                // Initialize both charts with the same data
+                // 初始化溯源图表
                 lineChart(this.$refs.indexDeviceMonitorChart, {
                     text: `溯源次数`,
                     fontSize: 14,
@@ -641,18 +634,6 @@
                 }, '溯源次数', {
                     name: '溯源次数'
                 }, this.traceInfo.date, this.traceInfo.num);
-
-                // 初始化养殖溯源图表（使用相同的数据源）
-                lineChart(this.$refs.fishTraceChart, {
-                    text: `养殖溯源次数`,  // 图表标题
-                    fontSize: 14,          // 标题字体大小
-                    color: '#bbb'          // 标题颜色
-                }, '溯源次数',             // X轴标题
-                {
-                    name: '溯源次数'       // 数据系列名称
-                }, 
-                this.traceInfo.date,       // X轴数据（日期数组）
-                this.traceInfo.num);       // Y轴数据（次数数组）
             },
             // 处理养殖池数据表格每页显示数量变化
             fishSizeChange(n) {
@@ -761,6 +742,126 @@
                     return 'warning'; // 在警告范围内，显示黄色
                 }
                 return 'danger'; // 超出范围，显示红色
+            },
+            initCombinedChart() {
+                const chartDom = this.$refs.combinedStatsChart;
+                if (!chartDom) return;
+
+                if (this.combinedChart) {
+                    this.combinedChart.dispose();
+                }
+
+                this.combinedChart = this.$echarts.init(chartDom);
+                
+                // 更新颜色方案
+                const colors = {
+                    vegetables: ['#91CC75', '#73C0DE', '#5470C6', '#FAC858'], // 外圈：绿色系为主
+                    fish: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE']  // 内圈：蓝色系为主
+                };
+                
+                const option = {
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: function(params) {
+                            // 根据系列名称添加不同的前缀
+                            const title = params.seriesName === '种植任务' ? '种植任务' : '养殖状态';
+                            // 使用 <br/> 进行换行，添加一些样式
+                            return `<div style="font-weight: bold; margin-bottom: 3px;">${title}</div>` + 
+                                   `${params.name}: ${params.value} (${params.percent}%)`;
+                        },
+                        show: false,  // 默认不显示tooltip
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',  // 设置背景色为半透明白色
+                        borderColor: '#ccc',  // 设置边框颜色
+                        borderWidth: 1,  // 设置边框宽度
+                        padding: [5, 10],  // 设置内边距 [上下, 左右]
+                        textStyle: {
+                            color: '#333',  // 文字颜色
+                            fontSize: 14    // 文字大小
+                        }
+                    },
+                    legend: {
+                        show: false  // 不显示图例
+                    },
+                    series: [
+                        {
+                            name: '种植任务',
+                            type: 'pie',
+                            radius: ['65%', '80%'],
+                            center: ['50%', '50%'],
+                            label: {
+                                show: false
+                            },
+                            emphasis: {
+                                label: {
+                                    show: false
+                                },
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            },
+                            data: this.taskInfo.map((item, index) => ({
+                                name: item.name,
+                                value: item.value,
+                                itemStyle: {
+                                    color: colors.vegetables[index]
+                                }
+                            }))
+                        },
+                        {
+                            name: '养殖状态',
+                            type: 'pie',
+                            radius: ['45%', '60%'],
+                            center: ['50%', '50%'],
+                            label: {
+                                show: false
+                            },
+                            emphasis: {
+                                label: {
+                                    show: false
+                                },
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            },
+                            data: this.fishStatsInfo.map((item, index) => ({
+                                name: item.name,
+                                value: item.value,
+                                itemStyle: {
+                                    color: colors.fish[index]
+                                }
+                            }))
+                        }
+                    ]
+                };
+                
+                // 添加鼠标事件监听
+                this.combinedChart.on('mouseover', (params) => {
+                    // 当鼠标悬停在某个扇形上时，显示该系列的tooltip
+                    this.combinedChart.setOption({
+                        tooltip: {
+                            show: true
+                        }
+                    });
+                });
+
+                this.combinedChart.on('mouseout', (params) => {
+                    // 当鼠标移出时，隐藏tooltip
+                    this.combinedChart.setOption({
+                        tooltip: {
+                            show: false
+                        }
+                    });
+                });
+                
+                this.combinedChart.setOption(option);
+
+                window.addEventListener('resize', () => {
+                    this.combinedChart && this.combinedChart.resize();
+                });
             }
         },
     };
@@ -788,6 +889,11 @@
         border-radius: 15px;
         border: 1px solid rgba(255, 255, 255, 0.3);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+        // 添加新的样式类用于更高的面板
+        &.main-large {
+            height: calc(((100vh - 84px - #{$margin} * 4 - 51px * 3) / 3) * 2 + #{$margin});
+        }
     }
 
     .mapMain {
@@ -853,90 +959,134 @@
 
     .env-cards-wrapper {
         margin-bottom: 20px;
-        padding: 10px;
+        padding: 15px;
         background: rgba(255, 255, 255, 0.3);
         border-radius: 8px;
-    }
-
-    .env-card {
-        background: rgba(255, 255, 255, 0.7);
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-        transition: all 0.3s ease;
-        border-left: 4px solid transparent !important;
+        width: 100%;
         
-        &.success {
-            border-left-color: #67C23A !important;
-            .env-value { color: #67C23A !important; }
+        // 蔬菜大棚卡片样式
+        &.vegetable-cards {
+            .el-row {
+                margin-bottom: 10px;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+            
+            .el-col {
+                padding: 0 10px;
+            }
         }
         
-        &.warning {
-            border-left-color: #E6A23C !important;
-            .env-value { color: #E6A23C !important; }
+        // 养殖池卡片样式
+        &.fish-cards {
+            .el-row {
+                margin: 0 -10px 10px -10px;
+                width: calc(100% + 20px);
+                display: flex;
+                justify-content: flex-start;
+            }
+            
+            .el-col {
+                padding: 0 10px;
+                flex: 1;
+                max-width: 20%;
+            }
         }
         
-        &.danger {
-            border-left-color: #F56C6C !important;
-            .env-value { color: #F56C6C !important; }
+        .env-card {
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            margin-bottom: 0;
+            width: 100%;
+            
+            &:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            }
+            
+            &.success {
+                border-left-color: #67C23A;
+                .env-value { color: #67C23A; }
+            }
+            
+            &.warning {
+                border-left-color: #E6A23C;
+                .env-value { color: #E6A23C; }
+            }
+            
+            &.danger {
+                border-left-color: #F56C6C;
+                .env-value { color: #F56C6C; }
+            }
+            
+            .env-title {
+                color: #666;
+                font-size: 13px;
+                margin-bottom: 5px;
+                text-align: center;
+                white-space: nowrap;
+                padding: 0 5px;
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .env-value {
+                font-size: 20px;
+                font-weight: bold;
+                margin: 5px 0;
+            }
+            
+            .env-unit {
+                color: #999;
+                font-size: 12px;
+            }
         }
         
-        &:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        
-        .env-title {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .env-value {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        
-        .env-unit {
+        .env-time {
+            text-align: right;
             color: #999;
             font-size: 12px;
+            margin-top: 5px;
         }
-    }
-
-    .env-time {
-        text-align: right;
-        color: #999;
-        font-size: 12px;
-        margin-top: 10px;
     }
 
     .page-block {
-        margin: 15px 0;
-        padding: 0 10px;
+        margin: 20px 0;
+        display: flex;
+        justify-content: flex-start;  // 改为左对齐
+        padding-left: 10px;           // 添加左边距
         
         .el-pagination {
-            justify-content: flex-end;
+            padding: 0;
             
-            button {
-                background: transparent;
+            // 可选：调整分页组件内部元素的间距
+            ::v-deep {
+                .el-pagination__total {
+                    margin-right: 16px;
+                }
                 
-                &:hover {
-                    color: #409EFF;
+                .el-pagination__jump {
+                    margin-left: 16px;
                 }
             }
-            
-            .el-pager li {
-                background: transparent;
-                
-                &:hover {
-                    color: #409EFF;
-                }
-                
-                &.active {
-                    color: #409EFF;
-                    font-weight: bold;
-                }
-            }
+        }
+    }
+
+    .el-table {
+        background: transparent !important;
+        
+        ::v-deep .el-table__body-wrapper {
+            overflow-y: auto;
         }
     }
 
@@ -963,6 +1113,152 @@
         .el-col {
             width: 20%; // 每个卡片占20%宽度
             padding: 0 10px; // 保持间距
+        }
+    }
+
+    .el-table {
+        height: 350px !important; // 稍微减小表格高度以适应新布局
+    }
+
+    .stats-section {
+        flex: 1;
+        padding: 10px 0;
+        
+        .stats-title {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            border-left: 3px solid #409EFF;
+        }
+    }
+
+    .main {
+        &.main-large {
+            height: calc(((100vh - 84px - #{$margin} * 4 - 51px * 3) / 3) * 2 + #{$margin});
+        }
+    }
+
+    .section-container {
+        margin-bottom: 20px;
+        
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 3px solid #409EFF;
+            font-weight: 500;
+        }
+
+        .section-content {
+            .el-col {
+                margin-bottom: 15px;
+                
+                &:last-child {
+                    margin-bottom: 0;
+                }
+            }
+        }
+    }
+
+    .data-box {
+        transition: all 0.3s ease;
+        
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    }
+
+    .chart-container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center; // 水平居中
+        justify-content: center; // 垂直居中
+        
+        .chart-area {
+            width: 310px; // 增加宽度
+            height: 310px; // 增加高度
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stats-data {
+            width: 100%; // 确保数据区域占满宽度
+            padding: 0 20px;
+            
+            .stats-section {
+                & + .stats-section {
+                    margin-top: 15px;
+                }
+                
+                .stats-title {
+                    font-size: 14px;
+                    color: #333;
+                    margin-bottom: 10px;
+                    position: relative;
+                    padding-left: 10px;
+                    
+                    &:before {
+                        content: '';
+                        position: absolute;
+                        left: 0;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        width: 3px;
+                        height: 14px;
+                        background: #409EFF;
+                    }
+                }
+                
+                .stats-items {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                    
+                    .stats-item {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 8px 12px;
+                        background: #F5F7FA;
+                        border-radius: 4px;
+                        
+                        .item-name {
+                            color: #606266;
+                            font-size: 13px;
+                        }
+                        
+                        .item-value {
+                            color: #333;
+                            font-size: 13px;
+                            font-weight: 500;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 添加响应式布局支持
+    @media screen and (max-width: 1400px) {
+        .env-cards-wrapper {
+            .env-card {
+                .env-title {
+                    font-size: 12px;
+                }
+                .env-value {
+                    font-size: 18px;
+                }
+            }
         }
     }
 </style>

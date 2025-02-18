@@ -11,99 +11,183 @@
             </el-form>
         </el-card>
         <div class="app-container-gray">
-            <el-row class="box" :gutter="10">
-                <!-- 左侧：任务列表 -->
-                <el-col :span="5" class="left">
-                    <el-card class="box-card" shadow="hover">
-                        <div slot="header" class="clearfix">
-                            <span>任务列表</span>
-                        </div>
-                        <div class="tasks-list">
-                            <el-empty v-if="!taskList.length" description="暂无任务数据"></el-empty>
-                            <el-descriptions v-else :border="true" :column="1" class="task-descriptions">
-                                <el-descriptions-item v-for="(task, index) in taskList" :key="task.taskId"
-                                    :label="task.taskName">
-                                    <p>计划开始时间：{{ task.planStart }}</p>
-                                    <p>计划结束时间：{{ task.planFinish }}</p>
-                                    <p v-if="task.actualStart">实际开始时间：{{ task.actualStart }}</p>
-                                    <p v-if="task.actualFinish">实际结束时间：{{ task.actualFinish }}</p>
-                                    <p>负责人：{{ task.taskHeadName || '未指定' }}</p>
-                                    <p>批次：{{ task.batchName }}</p>
-                                </el-descriptions-item>
-                            </el-descriptions>
-                        </div>
-                    </el-card>
-                </el-col>
-
-                <!-- 中间：信息展示 -->
-                <el-col :span="5" class="center">
-                    <el-card class="box-card">
-                        <div slot="header" class="clearfix">
-                            <span>大棚信息</span>
-                        </div>
-                        <el-empty v-if="!ivPastureInfo" description="暂无大棚信息"></el-empty>
-                        <el-descriptions v-else column="1" border>
-                            <el-descriptions-item label="大棚名称">{{ ivPastureInfo.name }}</el-descriptions-item>
-                            <el-descriptions-item label="合约地址">{{ ivPastureInfo.area }}</el-descriptions-item>
-                            <el-descriptions-item label="大棚位置">{{ ivPastureInfo.position }}</el-descriptions-item>
-                        </el-descriptions>
-                    </el-card>
-
-                    <el-card class="box-card">
-                        <div slot="header" class="clearfix">
-                            <span>分区信息</span>
-                        </div>
-                        <el-empty v-if="!iaPartitionInfo" description="暂无分区信息"></el-empty>
-                        <el-descriptions v-else column="1" border>
-                            <el-descriptions-item label="分区名称">{{ iaPartitionInfo.name }}</el-descriptions-item>
-                            <el-descriptions-item label="种植品种">{{ iaPartitionInfo.variety }}</el-descriptions-item>
-                            <el-descriptions-item label="种植日期">{{ iaPartitionInfo.dateT }}</el-descriptions-item>
-                        </el-descriptions>
-                    </el-card>
-
-                    <el-card class="box-card">
-                        <div slot="header" class="clearfix">
-                            <span>商品信息</span>
-                        </div>
-                        <el-empty v-if="!shopInfo" description="暂无商品信息"></el-empty>
-                        <el-descriptions v-else column="1" border>
-                            <el-descriptions-item label="食品名称">{{ shopInfo.name }}</el-descriptions-item>
-                            <el-descriptions-item label="加工日期">{{ shopInfo.datet }}</el-descriptions-item>
-                            <el-descriptions-item label="食品质量">{{ shopInfo.quality }}</el-descriptions-item>
-                            <el-descriptions-item label="食品重量">{{ shopInfo.weight }}kg</el-descriptions-item>
-                        </el-descriptions>
-                    </el-card>
-                </el-col>
-                <!-- 右侧：环境信息 -->
-                <el-col :span="14" class="right">
-                    <el-card class="box-card">
-                        <div slot="header" class="clearfix">
-                            <span>环境信息</span>
-                        </div>
-                        <div class="sf-content">
-                            <el-table :data="tableData" border style="width: 100%">
-                                <el-table-column prop="day" label="日期">
-                                    <template slot-scope="scope">
-                                        <span>{{ parseTime(scope.row.day,"{y}-{m}-{d}") }}</span>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column prop="avg_temperature" label="平均温度"></el-table-column>
-                                <el-table-column prop="avg_humidity" label="平均湿度"></el-table-column>
-                                <el-table-column prop="avg_airquality" label="空气质量"></el-table-column>
-                                <el-table-column prop="avg_pressure" label="大气压强"></el-table-column>
-                                <el-table-column prop="avg_lux" label="光照"></el-table-column>
-                                <el-table-column prop="avg_soil_temperature" label="土壤温度"></el-table-column>
-                            </el-table>
-                            <div class="page-block">
-                                <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
-                                    :current-page="currentPage" :page-size="pSize"
-                                    layout="total, prev, pager, next, jumper" :total="totalPage">
-                                </el-pagination>
+            <!-- 横向任务时间轴 -->
+            <el-card class="timeline-card">
+                <div slot="header" class="clearfix">
+                    <span>任务列表</span>
+                </div>
+                <div class="horizontal-timeline-wrapper">
+                    <div v-if="taskList.length" class="horizontal-timeline">
+                        <div v-for="(task, index) in taskList" 
+                             :key="task.taskId" 
+                             class="timeline-item"
+                             :class="{
+                                 'line-start': index % 6 === 0,
+                                 'line-end': (index + 1) % 6 === 0 || index === taskList.length - 1,
+                                 'line-middle': index % 6 !== 0 && (index + 1) % 6 !== 0
+                             }">
+                            <div class="timeline-node" 
+                                 :class="{'is-complete': task.actualFinish}">
+                                <div class="node-content"></div>
+                                <div class="node-line" v-if="index !== taskList.length - 1"></div>
+                                <div class="node-corner" v-if="(index + 1) % 6 === 0 && index !== taskList.length - 1"></div>
                             </div>
+                            <el-card class="task-card" :body-style="{ padding: '10px' }">
+                                <div class="task-title">{{ task.taskName }}</div>
+                                <div class="task-dates">
+                                    <!-- 计划时间 -->
+                                    <!-- <div class="date-group">
+                                        <div class="date-label">计划时间</div>
+                                        <div class="date-item">
+                                            <i class="el-icon-date"></i>
+                                            <span>开始：{{ task.planStart }}</span>
+                                        </div>
+                                        <div class="date-item">
+                                            <i class="el-icon-date"></i>
+                                            <span>结束：{{ task.planFinish }}</span>
+                                        </div>
+                                    </div> -->
+                                    <div class="date-group" v-if="task.actualStart || task.actualFinish">
+                                        <div class="date-label">实际时间</div>
+                                        <div class="date-item" v-if="task.actualStart">
+                                            <i class="el-icon-date"></i>
+                                            <span>开始：{{ task.actualStart }}</span>
+                                        </div>
+                                        <div class="date-item" v-if="task.actualFinish">
+                                            <i class="el-icon-date"></i>
+                                            <span>结束：{{ task.actualFinish }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="task-info">
+                                    <span class="info-item">
+                                        <i class="el-icon-user"></i>
+                                        {{ task.taskHeadName || '未指定' }}
+                                    </span>
+                                    <span class="info-item">
+                                        <i class="el-icon-tickets"></i>
+                                        {{ task.batchName }}
+                                    </span>
+                                </div>
+                            </el-card>
                         </div>
-                    </el-card>
-                </el-col>
-            </el-row>
+                    </div>
+                    <el-empty v-else description="暂无任务数据"></el-empty>
+                </div>
+            </el-card>
+
+            <!-- 信息卡片组 -->
+            <el-card class="info-cards-container">
+                <el-row :gutter="20">
+                    <el-col :span="8">
+                        <el-card class="info-card" shadow="hover">
+                            <div class="card-header">
+                                <i class="el-icon-house"></i>
+                                <span>大棚信息</span>
+                            </div>
+                            <el-empty v-if="!ivPastureInfo" description="暂无大棚信息"></el-empty>
+                            <div v-else class="card-content">
+                                <div class="info-item">
+                                    <div class="label">大棚名称</div>
+                                    <div class="value">{{ ivPastureInfo.name }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="label">合约地址</div>
+                                    <div class="value address">{{ ivPastureInfo.area }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="label">大棚位置</div>
+                                    <div class="value">{{ ivPastureInfo.position }}</div>
+                                </div>
+                            </div>
+                        </el-card>
+                    </el-col>
+                    
+                    <el-col :span="8">
+                        <el-card class="info-card" shadow="hover">
+                            <div class="card-header">
+                                <i class="el-icon-menu"></i>
+                                <span>分区信息</span>
+                            </div>
+                            <el-empty v-if="!iaPartitionInfo" description="暂无分区信息"></el-empty>
+                            <div v-else class="card-content">
+                                <div class="info-item">
+                                    <div class="label">分区名称</div>
+                                    <div class="value">{{ iaPartitionInfo.name }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="label">种植品种</div>
+                                    <div class="value">{{ iaPartitionInfo.variety }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="label">种植日期</div>
+                                    <div class="value">{{ iaPartitionInfo.dateT }}</div>
+                                </div>
+                            </div>
+                        </el-card>
+                    </el-col>
+
+                    <el-col :span="8">
+                        <el-card class="info-card" shadow="hover">
+                            <div class="card-header">
+                                <i class="el-icon-goods"></i>
+                                <span>商品信息</span>
+                            </div>
+                            <el-empty v-if="!shopInfo" description="暂无商品信息"></el-empty>
+                            <div v-else class="card-content">
+                                <div class="info-item">
+                                    <div class="label">食品名称</div>
+                                    <div class="value">{{ shopInfo.name }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="label">加工日期</div>
+                                    <div class="value">{{ shopInfo.datet }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="label">食品质量</div>
+                                    <div class="value">
+                                        <el-tag :type="shopInfo.quality === '优秀' ? 'success' : shopInfo.quality === '及格' ? 'warning' : 'danger'">
+                                            {{ shopInfo.quality }}
+                                        </el-tag>
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="label">食品重量</div>
+                                    <div class="value">{{ shopInfo.weight }}kg</div>
+                                </div>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </el-card>
+
+            <!-- 环境信息表格 -->
+            <el-card class="environment-card">
+                <div slot="header">
+                    <span>环境信息</span>
+                </div>
+                <div class="sf-content">
+                    <el-table :data="tableData" border style="width: 100%">
+                        <el-table-column prop="day" label="日期">
+                            <template slot-scope="scope">
+                                <span>{{ parseTime(scope.row.day,"{y}-{m}-{d}") }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="avg_temperature" label="平均温度"></el-table-column>
+                        <el-table-column prop="avg_humidity" label="平均湿度"></el-table-column>
+                        <el-table-column prop="avg_airquality" label="空气质量"></el-table-column>
+                        <el-table-column prop="avg_pressure" label="大气压强"></el-table-column>
+                        <el-table-column prop="avg_lux" label="光照"></el-table-column>
+                        <el-table-column prop="avg_soil_temperature" label="土壤温度"></el-table-column>
+                    </el-table>
+                    <div class="page-block">
+                        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                            :current-page="currentPage" :page-size="pSize"
+                            layout="total, prev, pager, next, jumper" :total="totalPage">
+                        </el-pagination>
+                    </div>
+                </div>
+            </el-card>
         </div>
 
     </div>
@@ -167,18 +251,21 @@
                     })
                     .then((res) => {
                         if (res.data.code === 0) {
-                            // 使用 mapInfo 方法映射数据
+                            // 使用响应中的 contractAddr 作为大棚的合约地址
                             this.ivPastureInfo = this.mapInfo(res.data.data.ivPastureInfo, {
                                 _greenhouseName: "name",
                                 _greenhouseArea: "area",
                                 _greenhousePosition: "position",
                             });
+                            // 添加合约地址
+                            this.ivPastureInfo.area = res.data.data.contractAddr;
 
                             this.iaPartitionInfo = this.mapInfo(res.data.data.iaPartitionInfo, {
                                 _partitionsName: "name",
                                 _plantingVarieties: "variety",
                                 _plantingDate: "dateT",
                                 _id: "id",
+                                _ofGreenhouse: "greenhouseAddress", // 如果需要分区的大棚地址
                             });
                             this.getStepsList(this.originName)
 
@@ -274,7 +361,17 @@
                 const result = {};
                 data.forEach((item) => {
                     const key = fields[item.name];
-                    if (key) result[key] = item.stringValue ? item.stringValue.value : item.numericValue.value;
+                    if (key) {
+                        if (item.stringValue) {
+                            result[key] = item.stringValue.value;
+                        } else if (item.numericValue) {
+                            result[key] = item.numericValue.value;
+                        } else if (item.addressValue) {
+                            result[key] = item.addressValue.value;
+                        } else if (item.boolValue) {
+                            result[key] = item.boolValue.value;
+                        }
+                    }
                 });
                 return result;
             },
@@ -339,49 +436,334 @@
 </script>
 
 <style lang="scss" scoped>
-    .box {
-        height: calc(100vh - 84px);
-        /* 计算主区域高度 */
+.app-container-gray {
+    padding: 20px;
+    background-color: #f0f2f5;
+}
+
+.timeline-card {
+    margin-bottom: 20px;
+    .timeline-item-card {
+        margin-bottom: 10px;
+        h4 {
+            margin: 0 0 10px 0;
+            color: #303133;
+        }
+        p {
+            margin: 5px 0;
+            color: #606266;
+            font-size: 14px;
+        }
+    }
+}
+
+.info-cards-container {
+    margin: 20px 0;
+    background: transparent;
+    border: none;
+    
+    .el-card__body {
+        padding: 0;
+    }
+}
+
+.info-card {
+    height: 350px; // 增加卡片高度
+    
+    transition: all 0.3s;
+    position: relative;
+    background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+    
+    .card-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #ebeef5;
+        background: linear-gradient(to right, #f5f7fa, #ffffff);
         display: flex;
-        /* 使用 Flex 布局 */
-        gap: 20px;
-        /* 左右列间距 */
+        align-items: center;
+        
+        i {
+            font-size: 18px;
+            margin-right: 8px;
+            color: #409EFF;
+        }
+        
+        span {
+            font-size: 16px;
+            font-weight: 500;
+            color: #303133;
+        }
     }
 
-    .left {
-        background: #fff;
-        border-radius: 10px 0 0 10px;
-        padding: 15px;
-        overflow-y: auto;
-        /* 保证内容溢出时可滚动 */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        /* 轻微阴影，避免视觉干扰 */
+    .card-content {
+        padding: 20px;
+        height: calc(100% - 56px);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start; // 改为从顶部开始布局
+
+        .info-item {
+            margin-bottom: 20px; // 增加项目间距
+            
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            .label {
+                color: #909399;
+                font-size: 13px;
+                margin-bottom: 6px; // 增加标签和值之间的间距
+            }
+
+            .value {
+                color: #303133;
+                font-size: 14px;
+                font-weight: 500;
+                line-height: 1.4; // 增加行高
+                
+                &.address {
+                    font-family: monospace;
+                    font-size: 13px;
+                    word-break: break-all;
+                    color: #409EFF;
+                    cursor: pointer;
+                    
+                    &:hover {
+                        color: #66b1ff; // 只改变颜色，去掉下划线
+                    }
+                }
+            }
+        }
     }
 
-    .right {
-        background: #fff;
-        height: 100%;
-        /* 高度自适应父容器 */
-        border-radius: 0 10px 10px 0;
-        border-left: 1px solid #eee;
-        padding: 15px;
-        overflow-y: auto;
-        /* 内容溢出滚动 */
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+}
+
+// 自定义 el-empty 样式
+.el-empty {
+    padding: 40px 0;
+}
+
+// 自定义 el-tag 样式
+.el-tag {
+    border-radius: 4px;
+    padding: 0 8px;
+}
+
+@media screen and (max-width: 1200px) {
+    .info-card {
+        margin-bottom: 20px;
+    }
+}
+
+.environment-card {
+    .sf-content {
+        .el-table {
+            margin-bottom: 20px;
+        }
+    }
+}
+
+// Remove previous box, left, right styles
+.el-timeline-item__node--primary {
+    background-color: #409EFF;
+}
+
+.el-timeline-item__node--success {
+    background-color: #67C23A;
+}
+
+.el-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+}
+
+.horizontal-timeline-wrapper {
+    padding: 20px 0;
+    overflow: hidden;
+}
+
+.horizontal-timeline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 40px;
+    padding: 0 20px;
+}
+
+.timeline-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: calc((100% - 250px) / 6);
+    min-width: 220px;
+    position: relative;
+    margin-bottom: 40px;
+    
+    &.line-start {
+        .timeline-node::before {
+            display: none;
+        }
     }
 
-    .tasks-list {
-        max-height: 80vh;
-        /* 限制任务列表高度，防止超出页面 */
-        overflow-y: auto;
-        margin-top: 15px;
+    &.line-end {
+        .node-line {
+            display: none;
+        }
+    }
+}
+
+.timeline-node {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    width: 100%;
+
+    .node-content {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #409EFF;
+        z-index: 2;
+        position: relative;
     }
 
-    .task-card {
-        margin-bottom: 15px;
-        /* 任务卡片间距 */
-        box-shadow: none;
-        /* 去除卡片默认阴影 */
-        border: 1px solid #eee;
-        border-radius: 8px;
+    .node-line {
+        position: absolute;
+        left: 12px;
+        width: calc(100% + 28px);
+        height: 2px;
+        background-color: #E4E7ED;
     }
+
+    .node-corner {
+        position: absolute;
+        right: -40px;
+        width: 2px;
+        height: 40px;
+        background-color: #E4E7ED;
+        bottom: -40px;
+        z-index: 1;
+    }
+
+    &.is-complete {
+        .node-content {
+            background-color: #67C23A;
+        }
+    }
+}
+
+.task-card {
+    width: 100%;
+    margin-bottom: 10px;
+    
+    .task-title {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #303133;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #EBEEF5;
+    }
+
+    .task-dates {
+        font-size: 12px;
+        color: #606266;
+
+        .date-group {
+            margin-bottom: 8px;
+            
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            .date-label {
+                color: #909399;
+                margin-bottom: 4px;
+                font-weight: 500;
+            }
+
+            .date-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 4px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                i {
+                    margin-right: 4px;
+                    font-size: 12px;
+                    color: #909399;
+                }
+
+                span {
+                    flex: 1;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
+        }
+    }
+
+    .task-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #909399;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #EBEEF5;
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            max-width: 45%;
+            
+            i {
+                margin-right: 4px;
+                font-size: 12px;
+            }
+            
+            span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+    }
+}
+
+// 响应式布局
+@media screen and (max-width: 1600px) {
+    .timeline-item {
+        width: calc((100% - 200px) / 5);
+    }
+}
+
+@media screen and (max-width: 1400px) {
+    .timeline-item {
+        width: calc((100% - 150px) / 4);
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .timeline-item {
+        width: calc((100% - 100px) / 3);
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .timeline-item {
+        width: calc((100% - 50px) / 2);
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .timeline-item {
+        width: 100%;
+    }
+}
 </style>

@@ -1,6 +1,10 @@
 <template>
     <div class="app-container-sm">
         <el-card class="card-margin-bottom">
+            <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+                <el-tab-pane label="蔬菜大棚" name="greenhouse"></el-tab-pane>
+                <el-tab-pane label="养殖池" name="fishpond"></el-tab-pane>
+            </el-tabs>
             <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px"
                 class="form-minus-bottom">
                 <el-form-item label="创建时间">
@@ -22,7 +26,7 @@
         
         <div class="warning-cards-container" v-loading="loading">
             <el-row :gutter="20">
-                <el-col :span="8" v-for="(item, index) in infoList" :key="index">
+                <el-col :xs="24" :sm="12" v-for="(item, index) in infoList" :key="index">
                     <el-card class="warning-card" :class="getStatusClass(item.warningStatus)">
                         <div class="card-header">
                             <span class="greenhouse-name">{{ item.greenhouse }}</span>
@@ -136,29 +140,94 @@
                 // 查询参数
                 queryParams: {
                     pageNum: 1,
-                    pageSize: 12,
+                    pageSize: 10,
                     greenhouse: null,
                     cropBatch: null,
                     partitionInfo: null,
+                    type: 'greenhouse'
                 },
                 // 表单参数
                 form: {},
                 // 表单校验
-                rules: {}
+                rules: {},
+                activeTab: 'greenhouse',
+                fishpondData: [
+                    {
+                        id: 1,
+                        greenhouse: '养殖池A',
+                        cropBatch: '草鱼-A批次',
+                        partitionInfo: '1号池',
+                        thresholdValue: 'pH值>7.5',
+                        warningStatus: '已处理',
+                        responsiblePerson: '张三',
+                        startTime: '2024-01-01',
+                        endTime: '2024-01-02',
+                        updatedAt: '2024-01-01 12:00:00'
+                    },
+                    {
+                        id: 2,
+                        greenhouse: '养殖池A',
+                        cropBatch: '草鱼-A批次',
+                        partitionInfo: '1号池',
+                        thresholdValue: 'pH值>7.5',
+                        warningStatus: '已处理',
+                        responsiblePerson: '张三',
+                        startTime: '2024-01-01',
+                        endTime: '2024-01-02',
+                        updatedAt: '2024-01-01 12:00:00'
+                    },
+                    {
+                        id: 3,
+                        greenhouse: '养殖池A',
+                        cropBatch: '草鱼-A批次',
+                        partitionInfo: '1号池',
+                        thresholdValue: 'pH值>7.5',
+                        warningStatus: '已处理',
+                        responsiblePerson: '张三',
+                        startTime: '2024-01-05',
+                        endTime: '2024-01-06',
+                        updatedAt: '2024-01-06 12:00:00'
+                    },
+                    {
+                        id: 4,
+                        greenhouse: '养殖池A',
+                        cropBatch: '草鱼-A批次',
+                        partitionInfo: '1号池',
+                        thresholdValue: 'pH值>7.5',
+                        warningStatus: '已处理',
+                        responsiblePerson: '张三',
+                        startTime: '2024-01-05',
+                        endTime: '2024-01-06',
+                        updatedAt: '2024-01-06 12:00:00'
+                    }
+                ]
             };
         },
         created() {
             this.getList();
         },
         methods: {
+            handleTabClick() {
+                this.queryParams.pageNum = 1;
+                this.queryParams.type = this.activeTab;
+                this.getList();
+            },
             /** 查询预警信息列表 */
             getList() {
                 this.loading = true;
-                listInfo(this.queryParams).then(response => {
-                    this.infoList = response.rows;
-                    this.total = response.total;
-                    this.loading = false;
-                });
+                if (this.activeTab === 'fishpond') {
+                    setTimeout(() => {
+                        this.infoList = this.fishpondData;
+                        this.total = this.fishpondData.length;
+                        this.loading = false;
+                    }, 500);
+                } else {
+                    listInfo(this.queryParams).then(response => {
+                        this.infoList = response.rows;
+                        this.total = response.total;
+                        this.loading = false;
+                    });
+                }
             },
             // 取消按钮
             cancel() {
@@ -194,22 +263,6 @@
             resetQuery() {
                 this.resetForm("queryForm");
                 this.handleQuery();
-            },
-            /** 新增按钮操作 */
-            handleAdd() {
-                this.reset();
-                this.open = true;
-                this.title = "添加预警信息";
-            },
-            /** 修改按钮操作 */
-            handleUpdate(row) {
-                this.reset();
-                const id = row.id || this.ids
-                getInfo(id).then(response => {
-                    this.form = response.data;
-                    this.open = true;
-                    this.title = "修改预警信息";
-                });
             },
             /** 提交按钮 */
             submitForm() {
@@ -258,6 +311,7 @@
                 const statusMap = {
                     '警告中': 'danger',
                     '已解决': 'success',
+                    '已处理': 'success',
                     '待处理': 'warning'
                 }
                 return statusMap[status] || 'info'
@@ -269,29 +323,17 @@
 <style lang="scss" scoped>
 .warning-cards-container {
     .el-row {
-        margin-bottom: 20px;
+        margin: 0 -10px;
+        
+        .el-col {
+            padding: 0 10px;
+            margin-bottom: 20px;
+        }
     }
     
     .warning-card {
-        margin-bottom: 20px;
-        transition: all 0.3s;
-        
-        &:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
-        }
-        
-        &.warning-active {
-            border-left: 4px solid #F56C6C;
-        }
-        
-        &.warning-resolved {
-            border-left: 4px solid #67C23A;
-        }
-        
-        &.warning-pending {
-            border-left: 4px solid #E6A23C;
-        }
+        height: 100%;
+        margin-bottom: 0;
         
         .card-header {
             display: flex;
@@ -313,7 +355,7 @@
                 
                 i {
                     margin-right: 8px;
-                    color: #909399;
+                    color: #409EFF;  // 统一使用蓝色
                 }
                 
                 .label {
@@ -338,6 +380,7 @@
                     
                     i {
                         margin-right: 5px;
+                        color: #409EFF;  // 统一使用蓝色
                     }
                 }
                 

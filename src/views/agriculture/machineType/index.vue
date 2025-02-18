@@ -28,38 +28,44 @@
     </el-form>
       </el-card>
 <el-card class="card-padding-bottom">
-    <el-table v-loading="loading" :data="machineTypeList" >
-      <el-table-column label="农机类别名称" align="center" prop="machineTypeName" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="排序" align="center" prop="orderNum" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template slot-scope="scope">
-          <el-button
-            size="small"
-            class="padding-5"
-            type="primary"
-            icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
-            v-hasPermi="['agriculture:machineType:edit']"
-          >修改</el-button>
-          <el-button
-            size="small"
-            class="padding-5"
-            type="danger"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['agriculture:machineType:remove']"
-          >删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div class="machine-type-grid">
+        <el-card v-for="item in machineTypeList" 
+                 :key="item.machineTypeId" 
+                 class="machine-type-card"
+                 shadow="hover">
+            <div class="machine-type-content">
+                <div class="machine-type-tag">农机类别</div>
+                <div class="machine-type-header">
+                    <span class="machine-type-name">{{ item.machineTypeName }}</span>
+                    <span class="machine-type-order">排序: {{ item.orderNum }}</span>
+                </div>
+                <div class="machine-type-remark">备注：{{ item.remark || '' }}</div>
+                <div class="machine-type-actions">
+                    <el-button
+                        size="small"
+                        type="primary"
+                        icon="el-icon-edit"
+                        @click="handleUpdate(item)"
+                        v-hasPermi="['agriculture:machineType:edit']"
+                    >修改</el-button>
+                    <el-button
+                        size="small"
+                        type="danger"
+                        icon="el-icon-delete"
+                        @click="handleDelete(item)"
+                        v-hasPermi="['agriculture:machineType:remove']"
+                    >删除</el-button>
+                </div>
+            </div>
+        </el-card>
+    </div>
 
     <pagination
-      v-show="total>0"
-      :total="total"
-      :page.sync="queryParams.pageNum"
-      :limit.sync="queryParams.pageSize"
-      @pagination="getList"
+        v-show="total>0"
+        :total="total"
+        :page.sync="queryParams.pageNum"
+        :limit.sync="queryParams.pageSize"
+        @pagination="getList"
     />
 </el-card>
     <!-- 添加或修改农机类别对话框 -->
@@ -223,3 +229,68 @@ export default {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.machine-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 10px;
+}
+
+.machine-type-card {
+  transition: all 0.3s;
+  
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.machine-type-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 10px;
+}
+
+.machine-type-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #f5f5f5;
+  color: #909399;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 8px;
+  margin-left: -10px;
+}
+
+.machine-type-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.machine-type-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #303133;
+}
+
+.machine-type-order {
+  color: #909399;
+  font-size: 14px;
+}
+
+.machine-type-remark {
+  color: #606266;
+  min-height: 40px;
+  font-size: 14px;
+}
+
+.machine-type-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+</style>
