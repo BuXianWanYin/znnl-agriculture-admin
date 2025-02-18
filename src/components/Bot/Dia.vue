@@ -6,7 +6,7 @@
         <div class="chat-header">
           <div class="status-wrapper">
             <span class="status-indicator"></span>
-            <span>BXWY</span>
+            <span>小农机器人</span>
           </div>
           <button class="close-btn" @click="toggleChat">×</button>
         </div>
@@ -34,8 +34,8 @@
                 </svg>
               </div>
               <div class="bubble-content">
-                <div class="message-text">{{ msg.text }}</div>
-                <div v-if="msg.type === 'bot' && msg.audioUrl && !msg.ttsStatus"
+                <div class="message-text" v-html="processMessageText(msg.text)"></div>
+                <div v-if="msg.type === 'bot' && (msg.ttsStatus === 'loading' || msg.audioUrl)"
                      class="text-to-speech-btn"
                      @click="handleTextToSpeech(msg)"
                      :class="{
@@ -118,7 +118,6 @@
 
 <script>
 import { AuroraDia } from '@/utils/aurora-dia'
-
 export default {
   name: 'AUDia',
   data() {
@@ -515,18 +514,19 @@ export default {
 
     // 获取语音URL
     async getVoiceUrl(text, timestamp) {
-      // 处理文本：去除*号、-号和空格
-      const processedText = text.replace(/[*\-\s]/g, '')
+      // 处理文本：去除 HTML 标签、*号、-号和空格
+      const processedText = text
+        .replace(/<[^>]*>/g, '')  // 去除所有 HTML 标签
+        .replace(/[*\-\s]/g, ''); // 去除*号、-号和空格
       
+      console.log('处理后的文本:', processedText)
       const formattedTimestamp = this.formatTimestampForBackend(timestamp)
-      
-      console.log('请求语音URL - 原始文本:', text)
-      console.log('请求语音URL - 处理后文本:', processedText)
-      console.log('请求语音URL - 时间戳:', formattedTimestamp)
 
       try {
         const formData = new FormData()
         formData.append('timestamp', formattedTimestamp)
+
+   
         formData.append('text', processedText) // 使用处理后的文本
 
         const response = await fetch('http://10.0.28.47:8081/cosy/voicepath', {
@@ -579,22 +579,11 @@ export default {
             audioUrl: msg.audioUrl,
             ttsStatus: null
           }
-          
-          // 输出每条消息的转换信息
-          console.log('消息转换:', {
-            原始数据: msg,
-            转换后数据: convertedMsg,
-            原始时间: msg.create_time,
-            转换后时间戳: convertedMsg.timestamp,
-            格式化后时间: this.formatMessageTime(convertedMsg.createTime)
-          })
-          
+            
           return convertedMsg
         })
         
-        // 输出最终转换后的消息数组
-        console.log('最终转换后的消息数组:', this.messages)
-        
+
       } catch (error) {
         console.error('加载聊天历史失败:', error)
       } finally {
@@ -625,7 +614,7 @@ export default {
           throw new Error('Failed to save message')
         }
 
-        // 获取后端返回的数据（假设后端会返回包含 create_time 的消息数据）
+        // 获取后端返回的数据
         const savedMessage = await response.json()
         if (savedMessage.create_time) {
           message.timestamp = new Date(savedMessage.create_time).getTime()
@@ -678,7 +667,6 @@ export default {
       this.messages.push(botMessage)
 
       try {
-        console.log('请求AI响应...')
         const formData = new FormData()
         formData.append('prompt', currentInput)
 
@@ -696,7 +684,6 @@ export default {
         const decoder = new TextDecoder()
         let fullMessage = ''
 
-        console.log('开始读取流式响应...')
         while (true) {
           const { done, value } = await reader.read()
           
@@ -704,7 +691,7 @@ export default {
           if (done) {
             // 提前开始获取语音URL
             console.log('AI响应完成，开始获取语音URL...')
-
+            
             const audioUrlPromise = this.getVoiceUrl(fullMessage, botMessage.timestamp)
             
             // 更新消息文本
@@ -727,13 +714,50 @@ export default {
           for (const line of lines) {
             if (!line.trim()) continue
             const jsonStr = line.replace(/^data:/, '').trim()
-
             try {
               const jsonData = JSON.parse(jsonStr)
               if (jsonData.response) {
                 const newText = jsonData.response
-                fullMessage += newText
-                botMessage.text = fullMessage
+                // 对所有内容进行处理
+                if (newText.trim()) {
+                  // 检查是否包含完整的 think 标签内容
+                  if (newText.includes('<think>') && newText.includes('</think>')) {
+                    // 处理完整的 think 内容，修正嵌套顺序
+                    const textWithClass = newText.replace(
+                      '<think>',
+                      '<div class="thinkDiv">'
+                    ).replace(
+                      '</think>',
+                      '</div>'
+                    );
+                    fullMessage += textWithClass;
+                  }
+                  // 检查是否只有 think 开始标签
+                  else if (newText.includes('<think>')) {
+                    // 修正嵌套顺序
+                    const textWithClass = newText.replace(
+                      '<think>',
+                      '<div class="thinkDiv">'
+                    );
+                    fullMessage += textWithClass;
+                  }
+                  // 检查是否是 think 结束标签
+                  else if (newText.includes('</think>')) {
+                    // 分割结束标签后的内容
+                    const [, afterThink] = newText.split('</think>');
+                    if (afterThink?.trim()) {
+                      // 修正结束标签的顺序，并添加后续内容
+                      fullMessage += `</div><div class="aimessage">${afterThink}</div>`;
+                    } else {
+                      // 只添加结束标签
+                      fullMessage += '</div>';
+                    }
+                  } else {
+                    // 其他内容直接添加
+                    fullMessage += newText;
+                  }
+                  botMessage.text = fullMessage;
+                }
 
                 this.$nextTick(() => {
                   if (this.$refs.messagesContainer) {
@@ -757,8 +781,6 @@ export default {
 
     // 修改音频播放方法
     async handleTextToSpeech(message) {
-      console.log('准备播放音频 - 消息:', message)
-
       if (message.ttsStatus === 'playing') {
         console.log('暂停当前播放的音频')
         if (this.currentAudio) {
@@ -770,7 +792,6 @@ export default {
       }
 
       this.$set(message, 'ttsStatus', 'loading')
-      console.log('音频加载中...')
 
       try {
         if (!message.audioUrl) {
@@ -802,7 +823,6 @@ export default {
           }
 
           await audio.play()
-          console.log('音频开始播放')
           this.$set(message, 'ttsStatus', 'playing')
         } else {
           console.error('无法获取音频URL')
@@ -900,6 +920,13 @@ export default {
         if (diaBody) diaBody.style.display = ''
         if (platform) platform.style.display = ''
         if (voiceBtn) voiceBtn.style.display = ''
+      } else {
+        // 当打开聊天窗口时，等待 DOM 更新后滚动到底部
+        this.$nextTick(() => {
+          if (this.$refs.messagesContainer) {
+            this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
+          }
+        });
       }
     },
 
@@ -970,6 +997,32 @@ export default {
         console.error('Error formatting message time:', error);
         return '时间未知';
       }
+    },
+
+    processMessageText(text) {
+      // 首先去除特殊符号，但保留 think 标签
+      const cleanText = text.replace(/[-#*]/g, '');
+      
+      // 将文本按照 think 标签分割并处理
+      const thinkMatches = cleanText.match(/<think>([\s\S]*?)<\/think>/g);
+      if (thinkMatches) {
+        thinkMatches.forEach((match, index) => {
+          const content = match.replace(/<think>|<\/think>/g, '');
+        });
+      }
+      
+      const parts = cleanText.split(/(<think>[\s\S]*?<\/think>)/g);
+      
+      return parts.map(part => {     
+        if (part.includes('<think>')) {
+          // 提取并打印 think 标签中的内容
+          const thinkContent = part.replace(/<think>|<\/think>/g, '');
+          return part;
+        } else if (part.trim()) {
+          return part;
+        }
+        return '';
+      }).join('');
     }
   }
 }
@@ -1218,13 +1271,18 @@ export default {
   transform: translateY(10px);
   pointer-events: none;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    right: -10px;
-    bottom: -10px;
+  .microphone-icon {
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z'/%3E%3C/svg%3E");
+    background-size: 16px;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: all 0.3s;
+
+    &.stop-icon {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
+    }
   }
 }
 
@@ -1240,30 +1298,28 @@ export default {
 }
 
 .microphone-icon {
-  width: 14px;
-  height: 14px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.91 5.91 5.78V20c0 .55.45 1 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14-1.14z"/></svg>');
-  background-repeat: no-repeat;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z'/%3E%3C/svg%3E");
+  background-size: 16px;
   background-position: center;
-  transition: all 0.3s ease;
-}
+  background-repeat: no-repeat;
+  transition: all 0.3s;
 
-.microphone-icon.stop-icon {
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M6 6h12v12H6z"/></svg>');
+  &.stop-icon {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
+  }
 }
 
 @keyframes pulse {
   0% {
     transform: scale(1);
-    opacity: 1;
   }
   50% {
-    transform: scale(1.1);
-    opacity: 0.8;
+    transform: scale(1.05);
   }
   100% {
     transform: scale(1);
-    opacity: 1;
   }
 }
 
@@ -1289,8 +1345,8 @@ export default {
   position: fixed;
   right: 20px;
   bottom: 20px;
-  width: 350px;
-  height: 480px;
+  width: 550px;
+  height: 680px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -1354,6 +1410,24 @@ export default {
       color: #666;
     }
   }
+}
+.message-text {
+  :deep(.thinkDiv) {
+    color: #c20000;
+    display: block;
+    
+    .think {
+      color: inherit;  // 继承父元素的颜色
+      display: block;
+    }
+  }
+}
+
+// 或者分开写，提高特异性
+:deep(.message-text .thinkDiv),
+:deep(.message-text .thinkDiv .think) {
+  color: #c20000;
+  display: block;
 }
 
 .chat-messages {
@@ -1424,6 +1498,10 @@ export default {
       letter-spacing: 0.2px;
       white-space: pre-line;
       word-wrap: break-word;
+
+      :deep(.aimessage) {
+        padding: 4px 0;
+      }
     }
 
     .text-to-speech-btn {
@@ -1533,7 +1611,6 @@ export default {
     }
   }
 }
-
 .voice-input-btn {
   width: 28px;
   height: 28px;
@@ -1547,13 +1624,14 @@ export default {
   .microphone-icon {
     width: 16px;
     height: 16px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z'/%3E%3Cpath fill='%23666' d='M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z'/%3E%3C/svg%3E");
-    background-size: contain;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z'/%3E%3C/svg%3E");
+    background-size: 16px;
+    background-position: center;
     background-repeat: no-repeat;
     transition: all 0.3s;
 
     &.stop-icon {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M6 6h12v12H6z'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
     }
   }
 
@@ -1564,7 +1642,7 @@ export default {
   &.listening {
     background-color: #ff4444;
     .microphone-icon {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M6 6h12v12H6z'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
     }
   }
 }
@@ -1615,5 +1693,21 @@ export default {
   100% {
     opacity: 1;
   }
+}
+
+// think 标签样式
+:deep(.thinkDiv) {
+  margin: 8px 0;
+  color: #ccc;
+}
+
+:deep(think), :deep(.think) {
+  display: block;
+  background-color: #f5f7fa;
+  border-left: 3px solid #7aa2f7;
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 4px;
+  color: #ccc;
 }
 </style>
