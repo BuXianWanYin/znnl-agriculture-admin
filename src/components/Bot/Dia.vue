@@ -19,9 +19,10 @@
                  class="message-timestamp">
               {{ formatMessageTime(msg.timestamp) }}
             </div>
-            <!-- 消息内容 -->
+            <!-- 消息气泡 -->
             <div :key="`msg-${index}`"
-                 :class="['message-wrapper', msg.type]">
+                 class="message-bubble"
+                 :class="[msg.type]">
               <div class="avatar" v-if="msg.type === 'bot'">
                 <svg class="icon" viewBox="0 0 1024 1024" width="24" height="24">
                   <path d="M814.2848 581.2736a164.7616 104.8576 90 1 0 209.7152 0 164.7616 104.8576 90 1 0-209.7152 0Z" fill="#0C61C6" p-id="9736"></path>
@@ -32,10 +33,8 @@
                   <path d="M634.5216 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9741"></path>
                 </svg>
               </div>
-              <div class="message-content-wrapper">
-                <div class="message-content">
-                  {{ msg.text }}
-                </div>
+              <div class="bubble-content">
+                <div class="message-text">{{ msg.text }}</div>
                 <div v-if="msg.type === 'bot' && msg.audioUrl && !msg.ttsStatus"
                      class="text-to-speech-btn"
                      @click="handleTextToSpeech(msg)"
@@ -976,8 +975,6 @@ export default {
 }
 </script>
 
-
-
 <style lang="scss" scoped>
 #bot-container {
   position: fixed;
@@ -1245,7 +1242,7 @@ export default {
 .microphone-icon {
   width: 14px;
   height: 14px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.91 5.91 5.78V20c0 .55.45 1 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.91 5.91 5.78V20c0 .55.45 1 1 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14-1.14z"/></svg>');
   background-repeat: no-repeat;
   background-position: center;
   transition: all 0.3s ease;
@@ -1376,45 +1373,53 @@ export default {
   /* 隐藏滚动条 - IE/Edge */
   -ms-overflow-style: none;
 
-  .message-wrapper {
+  .message-bubble {
     display: flex;
-    margin-bottom: 24px;
     align-items: flex-start;
+    margin: 16px;
+    gap: 8px;
+
+    &.user {
+      flex-direction: row-reverse;
+      
+      .bubble-content {
+        align-items: flex-end;
+      }
+
+      .message-text {
+        background-color: #7aa2f7;
+        color: white;
+        border-radius: 12px 12px 0 12px;
+      }
+    }
+
+    &.bot .message-text {
+      background-color: #f5f5f5;
+      border-radius: 12px 12px 12px 0;
+    }
 
     .avatar {
       width: 32px;
       height: 32px;
-      margin: 0 8px;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
-      overflow: hidden;
       background: #f0f0f0;
-
-      .avatar-img {
-        width: 24px;
-        height: 24px;
-        object-fit: contain;
-        border-radius: 50%;
-      }
+      border-radius: 50%;
     }
 
-    .message-content-wrapper {
+    .bubble-content {
       display: flex;
       align-items: center;
       gap: 8px;
-      max-width: 85%;
+      max-width: 70%;
     }
 
-    .message-content {
-      position: relative;
-      max-width: 85%;
+    .message-text {
       padding: 8px 12px;
-      border-radius: 8px;
       font-size: 13px;
       line-height: 1.4;
-      background: #f5f5f5;
       color: #333;
       letter-spacing: 0.2px;
       white-space: pre-line;
@@ -1453,22 +1458,6 @@ export default {
         opacity: 0.4;
         cursor: default;
       }
-    }
-
-    &.user {
-      flex-direction: row-reverse;
-
-      .message-content-wrapper {
-        flex-direction: row-reverse;
-      }
-
-      .message-content {
-        background: #f0f0f0;
-      }
-    }
-
-    &.bot .message-content {
-      background: #f5f5f5;
     }
   }
 }
@@ -1611,9 +1600,9 @@ export default {
 
 .message-timestamp {
   text-align: center;
-  margin: 8px 0;
-  color: #999;
+  margin: 16px 0;
   font-size: 12px;
+  color: #999;
 }
 
 @keyframes pulse-fade {
