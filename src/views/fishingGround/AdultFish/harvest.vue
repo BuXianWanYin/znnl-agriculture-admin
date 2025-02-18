@@ -349,7 +349,7 @@ export default {
             try {
                 const {
                     data
-                } = await http.post('/iaPartitionFood/page', {
+                } = await http.post('/fishPasture/fishPartitionFood/page', {
                     ...this.processPager,
                     ...this.processSearchForm
                 })
