@@ -74,16 +74,22 @@ export class AuroraDia {
         throw new Error('WebSocketConnectMethod not loaded')
       }
 
-      this.wsConnector = new WebSocketConnectMethod({
-        msgHandle: this.handleWSMessage,
-        stateHandle: this.handleWSState
-      })
+      // 使用单例模式创建WebSocket连接
+      if (!this.wsConnector) {
+        this.wsConnector = new WebSocketConnectMethod({
+          msgHandle: this.handleWSMessage,
+          stateHandle: this.handleWSState
+        })
+      }
 
-      // 预连接WebSocket
-      this.wsConnector.wsStart()
-      console.log('WebSocket预连接初始化完成')
+      // 只在需要时进行连接
+      if (!this.wsConnector.speechSocket || this.wsConnector.speechSocket.readyState !== 1) {
+        await this.wsConnector.wsStart()
+      }
+      
+      console.log('WebSocket连接初始化完成')
     } catch (error) {
-      console.error('WebSocket预初始化失败:', error)
+      console.error('WebSocket初始化失败:', error)
     }
   }
 
@@ -479,13 +485,17 @@ export class AuroraDia {
         console.log('WebSocket 连接关闭')
         this.recText = ''
         this.offlineText = ''
-        // 连接关闭后自动重连
-        setTimeout(() => this.initWebSocket(), 1000)
+        // 只在需要时重连
+        if (this.isListening) {
+          setTimeout(() => this.initWebSocket(), 1000)
+        }
         break
       case 2:
         console.error('WebSocket 连接错误')
-        // 连接错误后自动重连
-        setTimeout(() => this.initWebSocket(), 1000)
+        // 只在需要时重连
+        if (this.isListening) {
+          setTimeout(() => this.initWebSocket(), 1000)
+        }
         break
     }
   }
