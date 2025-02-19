@@ -10,37 +10,37 @@
                                 <div class="section-title">蔬菜基地</div>
                                 <el-row :gutter="10" class="section-content">
                                     <el-col :span="8" class="h100 flex aic">
-                                        <data-box 
+                                        <data-box
                                             icon="el-icon-s-data"
-                                            backgroundColor="#5470c6" 
-                                            text="基地面积(亩)" 
+                                            backgroundColor="#5470c6"
+                                            text="基地面积(亩)"
                                             :value="baseInfo.areaCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
-                                        <data-box 
+                                        <data-box
                                             icon="el-icon-s-claim"
-                                            backgroundColor="#73c0de" 
-                                            text="种植批次(批)" 
+                                            backgroundColor="#73c0de"
+                                            text="种植批次(批)"
                                             :value="baseInfo.batchCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
-                                        <data-box 
+                                        <data-box
                                             icon="el-icon-s-finance"
-                                            backgroundColor="#91cc75" 
-                                            text="种植种类(种)" 
+                                            backgroundColor="#91cc75"
+                                            text="种植种类(种)"
                                             :value="baseInfo.germplasmCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
-                                        <data-box 
+                                        <data-box
                                             icon="el-icon-s-shop"
-                                            backgroundColor="#3ba272" 
-                                            text="大棚数量(个)" 
+                                            backgroundColor="#3ba272"
+                                            text="大棚数量(个)"
                                             :value="baseInfo.pengCount"
                                             class="flex1">
                                         </data-box>
@@ -53,28 +53,28 @@
                                 <div class="section-title">养殖基地</div>
                                 <el-row :gutter="10" class="section-content">
                                     <el-col :span="8" class="h100 flex aic">
-                                        <data-box 
+                                        <data-box
                                             icon="el-icon-s-grid"
-                                            backgroundColor="#fac858" 
-                                            text="养殖池(个)" 
+                                            backgroundColor="#fac858"
+                                            text="养殖池(个)"
                                             :value="fishInfo.pondCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
-                                        <data-box 
+                                        <data-box
                                             icon="el-icon-s-finance"
-                                            backgroundColor="#ee6666" 
-                                            text="鱼类品种(种)" 
+                                            backgroundColor="#ee6666"
+                                            text="鱼类品种(种)"
                                             :value="fishInfo.speciesCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
-                                        <data-box 
+                                        <data-box
                                             icon="el-icon-s-custom"
-                                            backgroundColor="#73c0de" 
-                                            text="存栏数量(尾)" 
+                                            backgroundColor="#73c0de"
+                                            text="存栏数量(尾)"
                                             :value="fishInfo.fishCount"
                                             class="flex1">
                                         </data-box>
@@ -87,10 +87,10 @@
                                 <div class="section-title">公共信息</div>
                                 <el-row :gutter="10" class="section-content">
                                     <el-col :span="12" class="h100 flex aic">
-                                        <data-box 
+                                        <data-box
                                             icon="el-icon-s-custom"
-                                            backgroundColor="#ee6666" 
-                                            text="人员总数(位)" 
+                                            backgroundColor="#ee6666"
+                                            text="人员总数(位)"
                                             :value="baseInfo.employeeCount"
                                             class="flex1">
                                         </data-box>
@@ -109,7 +109,7 @@
                                     <div class="chart-container">
                                         <!-- 图表区域 -->
                                         <div ref="combinedStatsChart" class="chart-area"></div>
-                                        
+
                                     </div>
                                 </el-col>
                                 <!-- 右侧数据展示部分保持不变 -->
@@ -120,7 +120,7 @@
                                             <div class="stats-title">种植任务</div>
                                             <el-row :gutter="10">
                                                 <el-col :span="12" v-for="item in taskInfo" :key="item.name">
-                                                    <data-box 
+                                                    <data-box
                                                         icon="el-icon-s-promotion"
                                                         :backgroundColor="item.color || '#409EFF'"
                                                         :text="item.name+'(条)'"
@@ -136,7 +136,7 @@
                                             <div class="stats-title">养殖状态</div>
                                             <el-row :gutter="10">
                                                 <el-col :span="12" v-for="item in fishStatsInfo" :key="item.name">
-                                                    <data-box 
+                                                    <data-box
                                                         icon="el-icon-s-promotion"
                                                         :backgroundColor="item.color || '#67C23A'"
                                                         :text="item.name+'(尾)'"
@@ -185,13 +185,13 @@
                             <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
                         </el-table>
                         <div class="page-block">
-                            <el-pagination 
-                                @size-change="sSizeChange" 
+                            <el-pagination
+                                @size-change="sSizeChange"
                                 @current-change="sCurrentChange"
-                                :current-page="scurrentPage" 
+                                :current-page="scurrentPage"
                                 :page-size="20"
                                 :page-sizes="[20, 40, 60, 80]"
-                                layout="total, sizes, prev, pager, next, jumper" 
+                                layout="total, sizes, prev, pager, next, jumper"
                                 :total="stotal">
                             </el-pagination>
                         </div>
@@ -217,17 +217,17 @@
                             <el-table-column prop="waterQuality" label="水质"></el-table-column>
                             <el-table-column prop="temperature" label="水温"></el-table-column>
                             <el-table-column prop="oxygen" label="含氧量"></el-table-column>
-                            <el-table-column prop="ph" label="pH值"></el-table-column>        
+                            <el-table-column prop="ph" label="pH值"></el-table-column>
                             <el-table-column prop="nitrite" label="亚硝酸盐含量"></el-table-column>
                             <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
                         </el-table>
                         <div class="page-block">
-                            <el-pagination 
-                                @size-change="fishSizeChange" 
+                            <el-pagination
+                                @size-change="fishSizeChange"
                                 @current-change="fishCurrentChange"
-                                :current-page="fishCurrentPage" 
+                                :current-page="fishCurrentPage"
                                 :page-size="fishPageSize"
-                                layout="jumper, prev, pager, next, total" 
+                                layout="jumper, prev, pager, next, total"
                                 :total="fishTotal">
                             </el-pagination>
                         </div>
@@ -309,9 +309,9 @@
                     { name: '死亡', value: 0, color: '#F56C6C' }
                 ],
                 latestEnvItems: [
-                    { 
-                        label: '空气质量', 
-                        value: '2976.19', 
+                    {
+                        label: '空气质量',
+                        value: '2976.19',
                         unit: 'ppm',
                         thresholds: {
                             good: { min: 0, max: 1000 },
@@ -319,9 +319,9 @@
                             // 超过2000为危险
                         }
                     },
-                    { 
-                        label: '温度', 
-                        value: '27', 
+                    {
+                        label: '温度',
+                        value: '27',
                         unit: '℃',
                         thresholds: {
                             good: { min: 20, max: 30 },
@@ -329,9 +329,9 @@
                             // 低于15或超过35为危险
                         }
                     },
-                    { 
-                        label: '湿度', 
-                        value: '35', 
+                    {
+                        label: '湿度',
+                        value: '35',
                         unit: '%',
                         thresholds: {
                             good: { min: 40, max: 70 },
@@ -339,9 +339,9 @@
                             // 低于30或超过80为危险
                         }
                     },
-                    { 
-                        label: '气压', 
-                        value: '100.24', 
+                    {
+                        label: '气压',
+                        value: '100.24',
                         unit: 'kPa',
                         thresholds: {
                             good: { min: 98, max: 102 },
@@ -352,9 +352,9 @@
                 ],
                 activeTab: 'vegetables',
                 fishEnvItems: [
-                    { 
-                        label: '水质', 
-                        value: '优', 
+                    {
+                        label: '水质',
+                        value: '优',
                         unit: '',
                         thresholds: {
                             good: ['优'],
@@ -362,9 +362,9 @@
                             // 其他为危险
                         }
                     },
-                    { 
-                        label: '水温', 
-                        value: '25', 
+                    {
+                        label: '水温',
+                        value: '25',
                         unit: '℃',
                         thresholds: {
                             good: { min: 22, max: 28 },
@@ -372,9 +372,9 @@
                             // 低于18或超过32为危险
                         }
                     },
-                    { 
-                        label: '含氧量', 
-                        value: '7.5', 
+                    {
+                        label: '含氧量',
+                        value: '7.5',
                         unit: 'mg/L',
                         thresholds: {
                             good: { min: 6, max: 9 },
@@ -382,9 +382,9 @@
                             // 低于4或超过11为危险
                         }
                     },
-                    { 
-                        label: 'pH值', 
-                        value: '7.2', 
+                    {
+                        label: 'pH值',
+                        value: '7.2',
                         unit: '',
                         thresholds: {
                             good: { min: 6.5, max: 8.5 },
@@ -392,9 +392,9 @@
                             // 低于6或超过9为危险
                         }
                     },
-                    { 
-                        label: '亚硝酸盐含量', 
-                        value: '0.05', 
+                    {
+                        label: '亚硝酸盐含量',
+                        value: '0.05',
                         unit: 'mg/L',
                         thresholds: {
                             good: { min: 0, max: 0.1 },
@@ -411,25 +411,25 @@
         },
         computed: {
             latestUpdateTime() {
-                return this.statusData && this.statusData.length > 0 
-                    ? this.statusData[0].dateTime 
+                return this.statusData && this.statusData.length > 0
+                    ? this.statusData[0].dateTime
                     : '--'
             },
             fishLatestUpdateTime() {
-                return this.fishStatusData && this.fishStatusData.length > 0 
-                    ? this.fishStatusData[0].dateTime 
+                return this.fishStatusData && this.fishStatusData.length > 0
+                    ? this.fishStatusData[0].dateTime
                     : '--'
             }
         },
         async mounted() {
             // await this.getBaseInfo();
             await this.getDate();
-            
+
             // 使用新的组合图表初始化方法
             this.$nextTick(() => {
                 this.initCombinedChart();
             });
-            
+
             // 监听数据变化
             this.$watch(
                 () => [...this.taskInfo, ...this.fishStatsInfo],
@@ -448,13 +448,13 @@
                 this.spSize = n;
                 this.houseCheck();
             },
-            
+
             // 处理页码变化
             sCurrentChange(n) {
                 this.scurrentPage = n;
                 this.houseCheck();
             },
-            
+
             // 获取蔬菜大棚环境数据
             houseCheck() {
                 this.$http.post("/dev-api/iaPasture/selectSensorValuePage", {
@@ -468,40 +468,40 @@
                             return new Date(b.dateTime) - new Date(a.dateTime);
                         });
                         this.stotal = res.data.data.total;
-                        
+
                         if (this.statusData && this.statusData.length > 0) {
                             const latest = this.statusData[0];
                             this.latestEnvItems = [
-                                { 
-                                    label: '空气质量', 
-                                    value: latest.airquality, 
+                                {
+                                    label: '空气质量',
+                                    value: latest.airquality,
                                     unit: 'ppm',
                                     thresholds: {
                                         good: { min: 0, max: 1000 },
                                         warning: { min: 1000, max: 2000 }
                                     }
                                 },
-                                { 
-                                    label: '温度', 
-                                    value: latest.temperature, 
+                                {
+                                    label: '温度',
+                                    value: latest.temperature,
                                     unit: '℃',
                                     thresholds: {
                                         good: { min: 20, max: 30 },
                                         warning: { min: 15, max: 35 }
                                     }
                                 },
-                                { 
-                                    label: '湿度', 
-                                    value: latest.humidity, 
+                                {
+                                    label: '湿度',
+                                    value: latest.humidity,
                                     unit: '%',
                                     thresholds: {
                                         good: { min: 40, max: 70 },
                                         warning: { min: 30, max: 80 }
                                     }
                                 },
-                                { 
-                                    label: '气压', 
-                                    value: latest.pressure, 
+                                {
+                                    label: '气压',
+                                    value: latest.pressure,
                                     unit: 'kPa',
                                     thresholds: {
                                         good: { min: 98, max: 102 },
@@ -614,10 +614,10 @@
                 let jxz = res5.rows.find(item => item.status == 2) ? res5.rows.find(item => item.status == 2).num : 0;
                 //已完成
                 let ywc = res5.rows.find(item => item.status == 3) ? res5.rows.find(item => item.status == 3).num : 0;
-                
+
                 //任务进度
                 this.$taskTotal = (wfp + yfp + ywc + jxz) == 0 ? 0 : (ywc * 100 / (wfp + yfp + ywc + jxz)).toFixed(2);
-                
+
                 // 更新任务信息数组
                 this.taskInfo = [
                     { name: '未分配', value: wfp, color: '#909399' },
@@ -640,13 +640,13 @@
                 this.fishPageSize = n;  // 更新每页显示数量
                 this.getFishEnvironmentData();  // 重新获取养殖池环境数据
             },
-            
+
             // 处理养殖池数据表格页码变化
             fishCurrentChange(n) {
                 this.fishCurrentPage = n;  // 更新当前页码
                 this.getFishEnvironmentData();  // 重新获取养殖池环境数据
             },
-            
+
             // 获取养殖池环境数据
             getFishEnvironmentData() {
                 // 发送请求获取养殖池数据   假数据 等待真数据
@@ -663,51 +663,51 @@
                             return new Date(b.dateTime) - new Date(a.dateTime); // 按时间降序排序
                         });
                         this.fishTotal = res.data.total; // 更新总记录数
-                        
+
                         // 如果有数据，更新环境监测卡片
                         if (this.fishStatusData && this.fishStatusData.length > 0) {
                             const latest = this.fishStatusData[0]; // 获取最新一条记录
                             // 更新养殖池环境监测卡片数据
                             this.fishEnvItems = [
-                                { 
-                                    label: '水质', 
-                                    value: latest.waterQuality, 
+                                {
+                                    label: '水质',
+                                    value: latest.waterQuality,
                                     unit: '',
                                     thresholds: {
                                         good: ['优'], // 最佳水质
                                         warning: ['良'] // 可接受水质
                                     }
                                 },
-                                { 
-                                    label: '水温', 
-                                    value: latest.temperature, 
+                                {
+                                    label: '水温',
+                                    value: latest.temperature,
                                     unit: '℃',
                                     thresholds: {
                                         good: { min: 22, max: 28 }, // 适宜水温范围
                                         warning: { min: 18, max: 32 } // 可接受水温范围
                                     }
                                 },
-                                { 
-                                    label: '含氧量', 
-                                    value: latest.oxygen, 
+                                {
+                                    label: '含氧量',
+                                    value: latest.oxygen,
                                     unit: 'mg/L',
                                     thresholds: {
                                         good: { min: 6, max: 9 }, // 适宜含氧量范围
                                         warning: { min: 4, max: 11 } // 可接受含氧量范围
                                     }
                                 },
-                                { 
-                                    label: 'pH值', 
-                                    value: latest.ph, 
+                                {
+                                    label: 'pH值',
+                                    value: latest.ph,
                                     unit: '',
                                     thresholds: {
                                         good: { min: 6.5, max: 8.5 }, // 适宜pH值范围
                                         warning: { min: 6, max: 9 } // 可接受pH值范围
                                     }
                                 },
-                                { 
-                                    label: '亚硝酸盐含量', 
-                                    value: latest.nitrite, 
+                                {
+                                    label: '亚硝酸盐含量',
+                                    value: latest.nitrite,
                                     unit: 'mg/L',
                                     thresholds: {
                                         good: { min: 0, max: 0.1 }, // 安全亚硝酸盐范围
@@ -724,7 +724,7 @@
             // 根据监测值确定状态颜色
             getStatusColor(item) {
                 console.log('获取状态颜色，项目:', item.label, '值:', item.value); // 调试日志
-                
+
                 // 水质特殊处理（因为是文字值）
                 if (item.label === '水质') {
                     return item.thresholds.good.includes(item.value) ? 'success' : // 如果是优，显示绿色
@@ -734,7 +734,7 @@
                 // 其他数值类型的处理
                 const value = parseFloat(item.value);
                 console.log('解析后的数值:', value); // 调试日志
-                
+
                 // 判断数值是否在不同范围内
                 if (item.thresholds.good.min <= value && value <= item.thresholds.good.max) {
                     return 'success'; // 在最佳范围内，显示绿色
@@ -752,13 +752,13 @@
                 }
 
                 this.combinedChart = this.$echarts.init(chartDom);
-                
+
                 // 更新颜色方案
                 const colors = {
                     vegetables: ['#91CC75', '#73C0DE', '#5470C6', '#FAC858'], // 外圈：绿色系为主
                     fish: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE']  // 内圈：蓝色系为主
                 };
-                
+
                 const option = {
                     tooltip: {
                         trigger: 'item',
@@ -766,7 +766,7 @@
                             // 根据系列名称添加不同的前缀
                             const title = params.seriesName === '种植任务' ? '种植任务' : '养殖状态';
                             // 使用 <br/> 进行换行，添加一些样式
-                            return `<div style="font-weight: bold; margin-bottom: 3px;">${title}</div>` + 
+                            return `<div style="font-weight: bold; margin-bottom: 3px;">${title}</div>` +
                                    `${params.name}: ${params.value} (${params.percent}%)`;
                         },
                         show: false,  // 默认不显示tooltip
@@ -837,7 +837,7 @@
                         }
                     ]
                 };
-                
+
                 // 添加鼠标事件监听
                 this.combinedChart.on('mouseover', (params) => {
                     // 当鼠标悬停在某个扇形上时，显示该系列的tooltip
@@ -856,7 +856,7 @@
                         }
                     });
                 });
-                
+
                 this.combinedChart.setOption(option);
 
                 window.addEventListener('resize', () => {
@@ -910,7 +910,7 @@
 
     .data-panel {
         transition: all 0.3s ease;
-        
+
         &:hover {
             transform: translateY(-5px);
         }
@@ -920,24 +920,24 @@
         background: transparent !important;
         margin-top: 15px;
         height: 440px !important;  // 调整表格高度
-        
+
         ::v-deep .el-table__body-wrapper {
             overflow-y: auto;
-            
+
             &::-webkit-scrollbar {
                 width: 6px;
             }
-            
+
             &::-webkit-scrollbar-thumb {
                 background: #ddd;
                 border-radius: 3px;
             }
-            
+
             &::-webkit-scrollbar-track {
                 background: #f5f5f5;
             }
         }
-        
+
         ::v-deep .el-table__header-wrapper {
             th {
                 background: rgba(64, 158, 255, 0.1);
@@ -945,12 +945,12 @@
                 font-weight: 600;
             }
         }
-        
+
         ::v-deep .el-table__body {
             td {
                 padding: 8px 0;
             }
-            
+
             tr:hover > td {
                 background: rgba(64, 158, 255, 0.05);
             }
@@ -963,7 +963,7 @@
         background: rgba(255, 255, 255, 0.3);
         border-radius: 8px;
         width: 100%;
-        
+
         // 蔬菜大棚卡片样式
         &.vegetable-cards {
             .el-row {
@@ -972,12 +972,12 @@
                 display: flex;
                 justify-content: space-between;
             }
-            
+
             .el-col {
                 padding: 0 10px;
             }
         }
-        
+
         // 养殖池卡片样式
         &.fish-cards {
             .el-row {
@@ -986,14 +986,14 @@
                 display: flex;
                 justify-content: flex-start;
             }
-            
+
             .el-col {
                 padding: 0 10px;
                 flex: 1;
                 max-width: 20%;
             }
         }
-        
+
         .env-card {
             height: 100px;
             display: flex;
@@ -1007,27 +1007,27 @@
             border-left: 4px solid transparent;
             margin-bottom: 0;
             width: 100%;
-            
+
             &:hover {
                 transform: translateY(-3px);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             }
-            
+
             &.success {
                 border-left-color: #67C23A;
                 .env-value { color: #67C23A; }
             }
-            
+
             &.warning {
                 border-left-color: #E6A23C;
                 .env-value { color: #E6A23C; }
             }
-            
+
             &.danger {
                 border-left-color: #F56C6C;
                 .env-value { color: #F56C6C; }
             }
-            
+
             .env-title {
                 color: #666;
                 font-size: 13px;
@@ -1039,19 +1039,19 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
-            
+
             .env-value {
                 font-size: 20px;
                 font-weight: bold;
                 margin: 5px 0;
             }
-            
+
             .env-unit {
                 color: #999;
                 font-size: 12px;
             }
         }
-        
+
         .env-time {
             text-align: right;
             color: #999;
@@ -1065,16 +1065,16 @@
         display: flex;
         justify-content: flex-start;  // 改为左对齐
         padding-left: 10px;           // 添加左边距
-        
+
         .el-pagination {
             padding: 0;
-            
+
             // 可选：调整分页组件内部元素的间距
             ::v-deep {
                 .el-pagination__total {
                     margin-right: 16px;
                 }
-                
+
                 .el-pagination__jump {
                     margin-left: 16px;
                 }
@@ -1084,7 +1084,7 @@
 
     .el-table {
         background: transparent !important;
-        
+
         ::v-deep .el-table__body-wrapper {
             overflow-y: auto;
         }
@@ -1095,7 +1095,7 @@
             margin: 0;
             padding-left: 10px;  // 添加左内边距以对齐标题
         }
-        
+
         ::v-deep .el-tabs__nav-wrap {
             padding-top: 5px;  // 微调上边距使其与标题垂直对齐
         }
@@ -1123,7 +1123,7 @@
     .stats-section {
         flex: 1;
         padding: 10px 0;
-        
+
         .stats-title {
             font-size: 14px;
             color: #606266;
@@ -1141,7 +1141,7 @@
 
     .section-container {
         margin-bottom: 20px;
-        
+
         &:last-child {
             margin-bottom: 0;
         }
@@ -1158,7 +1158,7 @@
         .section-content {
             .el-col {
                 margin-bottom: 15px;
-                
+
                 &:last-child {
                     margin-bottom: 0;
                 }
@@ -1168,7 +1168,7 @@
 
     .data-box {
         transition: all 0.3s ease;
-        
+
         &:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -1181,7 +1181,7 @@
         flex-direction: column;
         align-items: center; // 水平居中
         justify-content: center; // 垂直居中
-        
+
         .chart-area {
             width: 310px; // 增加宽度
             height: 310px; // 增加高度
@@ -1190,23 +1190,23 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .stats-data {
             width: 100%; // 确保数据区域占满宽度
             padding: 0 20px;
-            
+
             .stats-section {
                 & + .stats-section {
                     margin-top: 15px;
                 }
-                
+
                 .stats-title {
                     font-size: 14px;
                     color: #333;
                     margin-bottom: 10px;
                     position: relative;
                     padding-left: 10px;
-                    
+
                     &:before {
                         content: '';
                         position: absolute;
@@ -1218,12 +1218,12 @@
                         background: #409EFF;
                     }
                 }
-                
+
                 .stats-items {
                     display: grid;
                     grid-template-columns: repeat(2, 1fr);
                     gap: 10px;
-                    
+
                     .stats-item {
                         display: flex;
                         justify-content: space-between;
@@ -1231,12 +1231,12 @@
                         padding: 8px 12px;
                         background: #F5F7FA;
                         border-radius: 4px;
-                        
+
                         .item-name {
                             color: #606266;
                             font-size: 13px;
                         }
-                        
+
                         .item-value {
                             color: #333;
                             font-size: 13px;
