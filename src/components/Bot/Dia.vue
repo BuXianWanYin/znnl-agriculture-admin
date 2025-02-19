@@ -911,6 +911,8 @@ export default {
 
     toggleChat() {
       this.showChat = !this.showChat
+      // 清除输入框内容
+      this.userInput = ''
 
       if (!this.showChat) {
         const diaBody = document.getElementById('Aurora-Dia--body')
@@ -932,6 +934,8 @@ export default {
 
     handleDiaClick() {
       this.showChat = true
+      // 清除输入框内容
+      this.userInput = ''
 
       const diaBody = document.getElementById('Aurora-Dia--body')
       const platform = document.querySelector('.Aurora-Dia--platform')
@@ -940,6 +944,13 @@ export default {
       if (diaBody) diaBody.style.display = 'none'
       if (platform) platform.style.display = 'none'
       if (voiceBtn) voiceBtn.style.display = 'none'
+
+      // 当点击打开聊天窗口时，等待 DOM 更新后滚动到底部
+      this.$nextTick(() => {
+        if (this.$refs.messagesContainer) {
+          this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
+        }
+      });
     },
 
     // 修改判断是否显示时间戳的方法
