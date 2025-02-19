@@ -1,6 +1,6 @@
 <template>
   <div>
-    <svg-icon icon-class="github" @click="goto" />
+    <svg-icon icon-class="github" @click="goto" class="github-icon"/>
   </div>
 </template>
 
@@ -19,3 +19,13 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.github-icon {
+  font-size: 20px;
+  cursor: pointer;
+}
+.github-icon:hover {
+  color: #24292e;
+}
+</style>

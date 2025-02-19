@@ -16,20 +16,27 @@
                     <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
                 </el-form-item>
                 <el-form-item class="fr">
-                    <!-- <el-button
-                    type="warning"
-                    plain
-                    icon="el-icon-download"
-                    size="mini"
-                    @click="handleExport"
-                    v-hasPermi="['agriculture:task:export']"
-            >导出</el-button> -->
-                    <el-button-group>
-                        <el-button type="primary" @click="handleChange('table')" :plain="gantt" size="mini"
-                            icon="el-icon-s-order">列表</el-button>
-                        <el-button type="primary" @click="handleChange('gantt')" :plain="!gantt" size="mini"
-                            icon="el-icon-s-unfold">甘特图</el-button>
-                    </el-button-group>
+                    <el-button 
+                        class="width-90" 
+                        v-if="tableBorder" 
+                        type="primary"
+                        :disabled="!checkPermi(['agriculture:batchTask:add'])" 
+                        size="mini" 
+                        plain 
+                        icon="el-icon-plus"
+                        @click="handleAdd">新增任务</el-button>
+                    <el-button 
+                        type="primary" 
+                        @click="handleChange('table')" 
+                        :plain="gantt" 
+                        size="mini"
+                        icon="el-icon-s-order">列表</el-button>
+                    <el-button 
+                        type="primary" 
+                        @click="handleChange('gantt')" 
+                        :plain="!gantt" 
+                        size="mini"
+                        icon="el-icon-s-unfold">甘特图</el-button>
                 </el-form-item>
             </el-form>
         </div>
@@ -79,6 +86,7 @@
                                 <div class="status-tag">
                                     <dict-tag :options="dict.type.agriculture_batch_task_status" :value="task.status" />
                                 </div>
+                                
                                 <div class="action-buttons">
                                     <el-button size="small" type="primary" plain icon="el-icon-edit"
                                         @click="handleTask(task.taskId)" v-if="!tableBorder"
@@ -503,6 +511,33 @@
             position: sticky;
             top: 0px;
             z-index: 2;
+
+            ::v-deep .el-button-group {
+                margin-left: 10px;
+                
+                .el-button {
+                    margin: 0 5px;  // 给按钮添加左右间距
+                    border-radius: 4px !important;  // 强制每个按钮都有圆角
+                    border-color: #DCDFE6;  // 使用灰色边框
+                    
+                    &:first-child {
+                        margin-left: 0;
+                    }
+                    
+                    &:last-child {
+                        margin-right: 0;
+                    }
+                    
+                    // 未选中状态使用灰色边框
+                    &.is-plain {
+                        border-color: #DCDFE6;
+                        
+                        &:hover {
+                            border-color: #409EFF;
+                        }
+                    }
+                }
+            }
         }
     }
 
