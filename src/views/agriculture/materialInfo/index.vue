@@ -97,6 +97,9 @@
                             :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
                     </el-select>
                 </el-form-item>
+                <div class="error-message" v-if="showTypeError">
+                    农资类别不能为空
+                </div>
                 <el-form-item label="计量单位" prop="measureUnit">
                     <el-input v-model="form.measureUnit" placeholder="请输入计量单位" />
                 </el-form-item>
@@ -173,8 +176,8 @@
                     }],
                     materialTypeId: [{
                         required: true,
-                        message: "农资类别不能为空",
-                        trigger: "blur"
+                        message: "请选择农资类别",
+                        trigger: "change"
                     }],
                     measureUnit: [{
                         required: true,
@@ -186,7 +189,9 @@
                         message: "删除标志不能为空",
                         trigger: "blur"
                     }]
-                }
+                },
+                // 新增或修改表单提交状态
+                isSubmitted: false
             };
         },
         created() {
@@ -294,6 +299,11 @@
                 this.download('agriculture/materialInfo/export', {
                     ...this.queryParams
                 }, `materialInfo_${new Date().getTime()}.xlsx`)
+            }
+        },
+        computed: {
+            showTypeError() {
+                return this.form.materialTypeId === '' && this.isSubmitted; // 只在提交时且为空时显示
             }
         }
     };

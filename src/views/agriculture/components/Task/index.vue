@@ -134,8 +134,8 @@
             placeholder="选择实际结束日期">
           </el-date-picker>
         </el-form-item> -->
-                <el-form-item label="任务详情" prop="taskDetail">
-                    <el-input v-model="form.taskDetail" type="textarea" placeholder="请输入内容" />
+                <el-form-item label="任务详情" prop="remark">
+                    <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">

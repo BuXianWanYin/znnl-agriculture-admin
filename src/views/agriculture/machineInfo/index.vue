@@ -173,12 +173,12 @@
                     machineTypeId: [{
                         required: true,
                         message: "农机类别不能为空",
-                        trigger: "blur"
+                        trigger: "change"
                     }],
                     measureUnit: [{
                         required: true,
                         message: "计量单位不能为空",
-                        trigger: "blur"
+                        trigger: "change"
                     }],
                     orderNum: [{
                         required: true,

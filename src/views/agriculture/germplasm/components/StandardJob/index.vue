@@ -167,7 +167,7 @@ export default {
           { required: true, message: "作业任务名称不能为空", trigger: "blur" }
         ],
         cycleUnit: [
-          { required: true, message: "作业周期单位不能为空", trigger: "blur" }
+          { required: true, message: "作业周期单位不能为空", trigger: "change" }
         ],
         jobStart: [
           { required: true, message: "不能为空", trigger: "blur" }

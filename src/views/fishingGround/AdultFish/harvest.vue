@@ -142,7 +142,7 @@
         <el-dialog :title="image.title" :visible.sync="image.open" width="240px">
             <img style="width:200px;height:200px;" :src="image.imgUrl"/>
         </el-dialog>
-        <!-- 种植计划对话框 -->
+        <!-- 养殖计划对话框 -->
         <el-dialog v-if="batchTask.open" :title="batchTask.title" :visible.sync="batchTask.open" width="1300px">
             <div style="height:500px;width:100%;overflow:auto;">
                 <task :batchId="this.batchTask.batchId" :tableBorder="true"></task>
