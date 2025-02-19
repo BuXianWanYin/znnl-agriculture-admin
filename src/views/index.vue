@@ -11,15 +11,6 @@
                                 <el-row :gutter="10" class="section-content">
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box 
-                                            icon="el-icon-s-data"
-                                            backgroundColor="#5470c6" 
-                                            text="基地面积(亩)" 
-                                            :value="baseInfo.areaCount"
-                                            class="flex1">
-                                        </data-box>
-                                    </el-col>
-                                    <el-col :span="8" class="h100 flex aic">
-                                        <data-box 
                                             icon="el-icon-s-claim"
                                             backgroundColor="#73c0de" 
                                             text="种植批次(批)" 
@@ -56,8 +47,8 @@
                                         <data-box 
                                             icon="el-icon-s-grid"
                                             backgroundColor="#fac858" 
-                                            text="养殖池(个)" 
-                                            :value="fishInfo.pondCount"
+                                            text="养殖批次(个)" 
+                                            :value="fishInfo.batchCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
@@ -74,8 +65,8 @@
                                         <data-box 
                                             icon="el-icon-s-custom"
                                             backgroundColor="#73c0de" 
-                                            text="存栏数量(尾)" 
-                                            :value="fishInfo.fishCount"
+                                            text="鱼棚数量(个)" 
+                                            :value="fishInfo.pengCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
@@ -86,6 +77,15 @@
                             <div class="section-container">
                                 <div class="section-title">公共信息</div>
                                 <el-row :gutter="10" class="section-content">
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box 
+                                            icon="el-icon-s-data"
+                                            backgroundColor="#5470c6" 
+                                            text="基地总面积(亩)" 
+                                            :value="baseInfo.areaCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
                                     <el-col :span="12" class="h100 flex aic">
                                         <data-box 
                                             icon="el-icon-s-custom"
@@ -139,7 +139,7 @@
                                                     <data-box 
                                                         icon="el-icon-s-promotion"
                                                         :backgroundColor="item.color || '#67C23A'"
-                                                        :text="item.name+'(尾)'"
+                                                        :text="item.name+'(条)'"
                                                         :value="item.value"
                                                         :isBorder="false"
                                                         :isIcon="false">
@@ -245,7 +245,10 @@
         selectDeviceJobInfo,
         selectRecordGroupByMonth,
         selectTaskInfo
-    } from "@/api/agriculture/dataStatistics"
+    } from "@/api/agriculture/dataStatistics";
+    import { selectFishBaseInfo,
+            selectFishTaskInfo 
+    } from "@/api/fishingGround/fishDataStatistics";
     import DataPanel from "./components/DataPanel";
     import DataBox from "./components/DataBox";
     import {
@@ -303,10 +306,10 @@
                     fishCount: 25000
                 },
                 fishStatsInfo: [
-                    { name: '在养', value: 145, color: '#409EFF' },
-                    { name: '已出塘', value: 45, color: '#67C23A' },
-                    { name: '生病', value: 3, color: '#E6A23C' },
-                    { name: '死亡', value: 0, color: '#F56C6C' }
+                    { name: '未分配', value: 145, color: '#409EFF' },
+                    { name: '已分配', value: 45, color: '#67C23A' },
+                    { name: '进行中', value: 3, color: '#E6A23C' },
+                    { name: '已完成', value: 0, color: '#F56C6C' }
                 ],
                 latestEnvItems: [
                     { 
@@ -530,41 +533,7 @@
                 } = await listLand();
                 this.landList = rows;
             },
-            // addFeatures() {
-            //     this.landList.forEach(item => {
-            //         let {
-            //             landPath,
-            //             fillColor,
-            //             fillOpacity,
-            //             strokeColor,
-            //             strokeOpacity,
-            //             strokeWeight,
-            //             landName
-            //         } = item;
-            //         let path = landPath && landPath.split('|').map(item => item.split(','))
-            //         let centerPoint = this.getAreaCenter(path);
-            //         if (path) {
-            //             this.map.add(new this.AMap.Polygon({
-            //                 path,
-            //                 fillColor,
-            //                 fillOpacity,
-            //                 strokeColor,
-            //                 strokeOpacity,
-            //                 strokeWeight
-            //             }));
-            //             this.map.add(new this.AMap.Text({
-            //                 position: centerPoint,
-            //                 anchor: 'center',
-            //                 text: landName,
-            //                 style: {
-            //                     'background': 'none',
-            //                     'border': 'none',
-            //                     'color': '#fff'
-            //                 }
-            //             }))
-            //         }
-            //     });
-            // },
+        
             getAreaCenter(points) {
                 var total = points.length;
                 var X = 0,
@@ -595,9 +564,38 @@
             },
             /** 获取首页统计数据 */
             async getDate() {
-                //基地信息
+                //蔬菜基地信息
                 const res = await selectBaseInfo()
                 this.baseInfo = res.rows[0]
+                console.log('蔬菜基地信息:', this.baseInfo)
+
+                // 获取养殖基地信息
+                const fishRes = await selectFishBaseInfo()
+                this.fishInfo = fishRes.rows[0]
+                console.log('养殖基地信息:', this.fishInfo)
+
+                // 获取养殖任务状态信息
+                const fishTaskRes = await selectFishTaskInfo()
+                console.log('养殖任务状态:', fishTaskRes)
+                
+
+                    //未分配
+                    let fishwfp = fishTaskRes.rows.find(item => item.status == 0) ? fishTaskRes.rows.find(item => item.status == 0).num : 0;
+                    //已分配
+                    let fishyfp = fishTaskRes.rows.find(item => item.status == 1) ? fishTaskRes.rows.find(item => item.status == 1).num : 0;
+                    //进行中
+                    let fishjxz = fishTaskRes.rows.find(item => item.status == 2) ? fishTaskRes.rows.find(item => item.status == 2).num : 0;
+                    //已完成
+                    let fishywc = fishTaskRes.rows.find(item => item.status == 3) ? fishTaskRes.rows.find(item => item.status == 3).num : 0;
+                    
+                    // 更新养殖状态信息数组
+                    this.fishStatsInfo = [
+                        { name: '未分配', value: fishwfp, color: '#909399' },
+                        { name: '已分配', value: fishyfp, color: '#E6A23C' },
+                        { name: '进行中', value: fishjxz, color: '#409EFF' },
+                        { name: '已完成', value: fishywc, color: '#67C23A' }
+                    ];
+                
 
                 const res4 = await selectRecordGroupByMonth()
                 res4.rows.forEach(item => {
@@ -625,6 +623,9 @@
                     { name: '进行中', value: jxz, color: '#409EFF' },
                     { name: '已完成', value: ywc, color: '#67C23A' }
                 ];
+
+
+                
 
                 // 初始化溯源图表
                 lineChart(this.$refs.indexDeviceMonitorChart, {
