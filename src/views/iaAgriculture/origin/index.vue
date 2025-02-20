@@ -151,8 +151,11 @@
         allBatchTask
     } from "@/api/agriculture/batchTask";
     import {
-        listBatchTask
+        listBatchTask,
+        
     } from "@/api/agriculture/batchTask";
+    import { getBatch } from "@/api/agriculture/batch";
+    import { getGermplasm } from "@/api/agriculture/germplasm";
     import http from "@/utils/request";
     export default {
         data() {
@@ -160,7 +163,9 @@
                 originName: '',
                 tabStatus: 1,
                 ivPastureInfo: {},
-                iaPartitionInfo: {},
+                iaPartitionInfo: {
+                    variety: '',
+                },
                 shopInfo: {},
                 taskList: [],
                 fertilizationSteps: [], // 存储施肥步骤
@@ -190,7 +195,7 @@
 
                 // 重置数据
                 this.ivPastureInfo = {};
-                this.iaPartitionInfo = {};
+                this.iaPartitionInfo = { variety: '' };
                 this.shopInfo = {};
                 this.iaPartitionFood
                 // 发送请求获取追溯信息
@@ -253,9 +258,7 @@
                     const {
                         data
                     } = await http.post('/iaPartitionFood/detail', {}, {
-                        params: {
-                            id
-                        }
+                        params: { id }
                     });
                     return data.iaPartitionId;
                 } catch (e) {
@@ -266,7 +269,7 @@
 
             async getStepsList(id) {
                 try {
-                    const batchId = await this.getProcessList(id); // 等待获取批次ID
+                    const batchId = await this.getProcessList(id);
 
                     const response = await listBatchTask({
                         pageNum: 1,
@@ -274,10 +277,17 @@
                         batchId,
                     });
 
-                    const {
-                        rows,
-                        total
-                    } = response;
+                    // 获取批次详细信息
+                    const batchDetails = await getBatch(batchId);
+
+                    // 批次详细信息中有种质ID，通过种质ID 获取种质详细信息
+                    if (batchDetails.data.germplasmId) {
+                        const germplasmDetails = await getGermplasm(batchDetails.data.germplasmId);
+                        // 更新种植品种显示
+                        this.iaPartitionInfo.variety = germplasmDetails.data.cropName;
+                    }
+
+                    const { rows, total } = response;
                     this.taskList = rows;
                     this.total = total;
                     this.loading = false;

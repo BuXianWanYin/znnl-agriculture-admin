@@ -321,85 +321,174 @@
 </script>
 
 <style lang="scss" scoped>
+.app-container-sm {
+    padding: 20px;
+    background-color: #f5f7fa;
+}
+
+.card-margin-bottom {
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: none;
+}
+
 .warning-cards-container {
     .el-row {
-        margin: 0 -10px;
+        margin: 0 -12px;
         
         .el-col {
-            padding: 0 10px;
-            margin-bottom: 20px;
+            padding: 0 12px;
+            margin-bottom: 24px;
         }
     }
     
     .warning-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         height: 100%;
-        margin-bottom: 0;
+        
+        &:hover {
+            background: rgba(250, 250, 250, 0.95);
+            .card-header .greenhouse-name {
+                color: #007AFF;
+            }
+        }
         
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             
             .greenhouse-name {
-                font-size: 16px;
-                font-weight: bold;
+                font-size: 18px;
+                font-weight: 600;
+                color: #333;
+                transition: color 0.3s ease;
+            }
+            
+            .el-tag {
+                border-radius: 6px;
+                padding: 0 8px;
             }
         }
         
         .card-content {
             .info-item {
-                margin-bottom: 10px;
                 display: flex;
                 align-items: center;
+                margin-bottom: 12px;
                 
                 i {
+                    font-size: 16px;
+                    color: #007AFF;
                     margin-right: 8px;
-                    color: #409EFF;  // 统一使用蓝色
+                    transition: transform 0.3s ease;
                 }
                 
                 .label {
-                    color: #606266;
-                    margin-right: 8px;
+                    color: #666;
+                    width: 80px;
+                    font-size: 14px;
                 }
                 
                 .value {
-                    color: #303133;
-                    font-weight: 500;
+                    color: #333;
+                    flex: 1;
+                    font-size: 14px;
                 }
             }
             
             .time-info {
                 margin-top: 15px;
                 padding-top: 15px;
-                border-top: 1px solid #EBEEF5;
+                border-top: 1px solid rgba(0, 0, 0, 0.05);
                 
                 .time-range {
-                    color: #606266;
-                    margin-bottom: 5px;
+                    color: #666;
+                    margin-bottom: 8px;
+                    font-size: 14px;
                     
                     i {
-                        margin-right: 5px;
-                        color: #409EFF;  // 统一使用蓝色
+                        color: #007AFF;
+                        margin-right: 8px;
                     }
                 }
                 
                 .update-time {
+                    color: #999;
                     font-size: 12px;
-                    color: #909399;
                 }
             }
         }
         
         .card-footer {
-            margin-top: 15px;
+            margin-top: 20px;
             padding-top: 15px;
-            border-top: 1px solid #EBEEF5;
-            text-align: right;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: flex-end;
             
-            .danger-text {
-                color: #F56C6C;
+            .el-button {
+                &.danger-text {
+                    color: #FF3B30;
+                    transition: all 0.3s ease;
+                    
+                    &:hover {
+                        color: #FF2D55;
+                        transform: scale(1.05);
+                    }
+                }
             }
+        }
+    }
+}
+
+.pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+// 弹窗样式
+.el-dialog {
+    border-radius: 16px;
+    
+    .el-dialog__header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .el-dialog__body {
+        padding: 24px;
+    }
+    
+    .el-form-item {
+        margin-bottom: 20px;
+    }
+    
+    .el-input__inner {
+        border-radius: 8px;
+    }
+    
+    .el-textarea__inner {
+        border-radius: 8px;
+    }
+    
+    .dialog-footer {
+        padding: 16px 20px;
+        border-top: 1px solid #eee;
+        
+        .el-button {
+            border-radius: 8px;
+            padding: 8px 20px;
         }
     }
 }

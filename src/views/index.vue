@@ -962,11 +962,10 @@
         margin-bottom: 20px;
         padding: 15px;
         background: rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
+        border-radius: 12px;
         width: 100%;
         
-        // 蔬菜大棚卡片样式
-        &.vegetable-cards {
+        &.vegetable-cards, &.fish-cards {
             .el-row {
                 margin-bottom: 10px;
                 width: 100%;
@@ -975,23 +974,7 @@
             }
             
             .el-col {
-                padding: 0 10px;
-            }
-        }
-        
-        // 养殖池卡片样式
-        &.fish-cards {
-            .el-row {
-                margin: 0 -10px 10px -10px;
-                width: calc(100% + 20px);
-                display: flex;
-                justify-content: flex-start;
-            }
-            
-            .el-col {
-                padding: 0 10px;
-                flex: 1;
-                max-width: 20%;
+                padding: 0 8px;
             }
         }
         
@@ -1001,63 +984,64 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(255, 255, 255, 0.7);
             padding: 15px 10px;
-            border-radius: 10px;
+            border-radius: 16px;
             transition: all 0.3s ease;
-            border-left: 4px solid transparent;
             margin-bottom: 0;
             width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             
             &:hover {
                 transform: translateY(-3px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             }
             
             &.success {
-                border-left-color: #67C23A;
+                background: linear-gradient(145deg, rgba(103, 194, 58, 0.05), rgba(103, 194, 58, 0.15));
                 .env-value { color: #67C23A; }
             }
             
             &.warning {
-                border-left-color: #E6A23C;
+                background: linear-gradient(145deg, rgba(230, 162, 60, 0.05), rgba(230, 162, 60, 0.15));
                 .env-value { color: #E6A23C; }
             }
             
             &.danger {
-                border-left-color: #F56C6C;
+                background: linear-gradient(145deg, rgba(245, 108, 108, 0.05), rgba(245, 108, 108, 0.15));
                 .env-value { color: #F56C6C; }
             }
             
             .env-title {
                 color: #666;
                 font-size: 13px;
-                margin-bottom: 5px;
+                margin-bottom: 8px;
                 text-align: center;
-                white-space: nowrap;
-                padding: 0 5px;
-                width: 100%;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                font-weight: 500;
+                letter-spacing: 0.3px;
             }
             
             .env-value {
-                font-size: 20px;
-                font-weight: bold;
+                font-size: 24px;
+                font-weight: 600;
                 margin: 5px 0;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
             
             .env-unit {
-                color: #999;
+                color: #8c8c8c;
                 font-size: 12px;
+                margin-top: 2px;
+                letter-spacing: 0.2px;
             }
         }
         
         .env-time {
             text-align: right;
-            color: #999;
+            color: #8c8c8c;
             font-size: 12px;
-            margin-top: 5px;
+            margin-top: 8px;
+            letter-spacing: 0.2px;
         }
     }
 
@@ -1258,6 +1242,26 @@
                 }
                 .env-value {
                     font-size: 18px;
+                }
+            }
+        }
+    }
+
+    .env-cards-wrapper {
+        &.fish-cards {
+            .el-row {
+                margin: 0 -8px; // 抵消padding的间距
+                width: calc(100% + 16px); // 补偿margin的负值
+                
+                .el-col {
+                    padding: 0 8px;
+                    width: 20%; // 确保每个卡片占20%宽度
+                    
+                    // 修复 el-col 的默认样式
+                    @media only screen and (min-width: 768px) {
+                        flex: 0 0 20%;
+                        max-width: 20%;
+                    }
                 }
             }
         }

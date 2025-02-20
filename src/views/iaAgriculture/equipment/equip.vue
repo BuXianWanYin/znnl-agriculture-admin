@@ -1,60 +1,62 @@
 <template>
     <div class="app-container-sm">
-
-        <el-card class="card-margin-bottom">
-            <el-form :inline="true" class="demo-form-inline">
-                <el-form-item label="ID">
-                    <el-input v-model="searchForm.id" placeholder="请输入ID" size="small"></el-input>
+        <!-- 搜索栏改造 -->
+        <el-card class="search-card">
+            <el-form :inline="true" class="search-form">
+                <el-form-item label="设备ID">
+                    <el-input v-model="searchForm.id" placeholder="请输入设备ID" size="small" class="search-input"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" icon="el-icon-search" size="mini" @click="equipmentSearch">搜索</el-button>
-                    <el-button icon="el-icon-refresh" size="mini" @click="equipmentReset">重置</el-button>
+                    <el-button type="primary" icon="el-icon-search" size="small" @click="equipmentSearch" class="search-btn">搜索</el-button>
+                    <el-button icon="el-icon-refresh" size="small" @click="equipmentReset" class="reset-btn">重置</el-button>
                 </el-form-item>
                 <el-form-item class="fr">
-                    <el-button type="primary" plain icon="el-icon-plus" size="mini"
-                        @click="equipmentEditAdd('新增')">新增</el-button>
+                    <el-button type="primary" plain icon="el-icon-plus" size="small" @click="equipmentEditAdd('新增')" class="add-btn">新增设备</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
-        <el-card class="card-padding-bottom">
+
+        <!-- 设备卡片列表改造 -->
+        <el-card class="device-card">
             <div class="equipment-grid">
-                <el-row :gutter="20">
+                <el-row :gutter="24">
                     <el-col :span="8" v-for="(item, index) in equipmentData" :key="item.id">
-                        <el-card class="equipment-card" shadow="hover">
+                        <div class="equipment-card">
                             <div class="card-header">
                                 <span class="device-name">{{ item.deviceName }}</span>
-                                <el-tag :type="item.status == 0 ? 'danger' : 'success'" size="small">
-                                    {{ item.status == 0 ? '不在线' : '在线' }}
+                                <el-tag :type="item.status == 0 ? 'danger' : 'success'" size="small" class="status-tag">
+                                    {{ item.status == 0 ? '离线' : '在线' }}
                                 </el-tag>
                             </div>
                             <div class="card-content">
                                 <div class="info-item">
                                     <i class="el-icon-cpu"></i>
-                                    <span class="label">设备ID:</span>
+                                    <span class="label">设备ID</span>
                                     <span class="value">{{ item.id }}</span>
                                 </div>
                                 <div class="info-item">
                                     <i class="el-icon-link"></i>
-                                    <span class="label">合约地址:</span>   
+                                    <span class="label">合约地址</span>   
                                     <span class="value">{{ item.address }}</span>
                                 </div>
                                 <div class="info-item">
                                     <i class="el-icon-notebook-2"></i>
-                                    <span class="label">备注:</span>
-                                    <span class="value">{{ item.remark || '/' }}</span>
+                                    <span class="label">备注</span>
+                                    <span class="value">{{ item.remark || '暂无备注' }}</span>
                                 </div>
                             </div>
                             <div class="card-footer">
                                 <el-button 
                                     size="small" 
-                                    type="danger" 
+                                    type="text" 
                                     icon="el-icon-delete"
                                     @click="deleteData(item.id)"
-                                    v-hasPermi="['agriculture:materialType:remove']">
+                                    v-hasPermi="['agriculture:materialType:remove']"
+                                    class="delete-btn">
                                     删除
                                 </el-button>
                             </div>
-                        </el-card>
+                        </div>
                     </el-col>
                 </el-row>
             </div>
@@ -64,32 +66,29 @@
                 :page.sync="pager.page"
                 :limit.sync="pager.pages" 
                 @pagination="handleCurrentChange" 
+                class="pagination-container"
             />
         </el-card>
-        <!-- 添加或修改农资类别对话 框 -->
-        <!-- 新增/修改弹框 -->
-        <el-dialog :title="dialogTitle" :visible.sync="equipmentEditDialog" width="30%">
-            <el-form :model="equipmentForm" ref="equipmentForm" :rules="rules" label-width="120px">
+
+        <!-- 弹窗样式改造 -->
+        <el-dialog :title="dialogTitle" :visible.sync="equipmentEditDialog" width="460px" custom-class="custom-dialog">
+            <el-form :model="equipmentForm" ref="equipmentForm" :rules="rules" label-width="100px">
                 <el-form-item label="设备ID" prop="deviceId">
-                    <el-input v-model="equipmentForm.deviceId" required placeholder="请输入设备ID"
-                        class="manureInput"></el-input>
+                    <el-input v-model="equipmentForm.deviceId" placeholder="请输入设备ID"></el-input>
                 </el-form-item>
                 <el-form-item label="设备名称" prop="deviceName">
-                    <el-input v-model="equipmentForm.deviceName" required placeholder="请输入设备名称"
-                        class="manureInput"></el-input>
+                    <el-input v-model="equipmentForm.deviceName" placeholder="请输入设备名称"></el-input>
                 </el-form-item>
                 <el-form-item label="备注">
-                    <el-input type="textarea" v-model="equipmentForm.remark" :rows="3" class="manureInput"
-                        placeholder="请输入备注信息"></el-input>
+                    <el-input type="textarea" v-model="equipmentForm.remark" :rows="3" placeholder="请输入备注信息"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
-                <el-button size="small" @click="equipmentEditDialog = false">关闭</el-button>
-                <el-button type="success" size="small" @click="equipmentDoBtn">保存</el-button>
+                <el-button @click="equipmentEditDialog = false">取 消</el-button>
+                <el-button type="primary" @click="equipmentDoBtn">确 定</el-button>
             </div>
         </el-dialog>
     </div>
-
 </template>
 
 <script>
@@ -236,158 +235,191 @@
 </script>
 
 <style lang="scss" scoped>
-    // .manureInput {
-    //     width: 300px;
-    // }
+.app-container-sm {
+    padding: 20px;
+    background-color: #f5f7fa;
+}
 
-    // .form-top {
-    //     margin: 10px 10px 0;
-    //     display: flex;
-    //     justify-content: space-between;
-    //     align-items: center;
-
-    //     .demo-form-inline {
-    //         height: 50px;
-    //     }
-
-    //     .inpname {
-    //         width: 240px;
-    //     }
-    // }
-
-    // .plant-do {
-    //     // height: 100px;
-    //     margin-left: 10px;
-    //     display: flex;
-    //     justify-content: space-between;
-    //     align-items: center;
-
-    //     .do-right {
-    //         width: 40%;
-    //         display: flex;
-    //         justify-content: space-between;
-    //         align-items: center;
-
-    //         .desc-item {
-    //             display: flex;
-    //             align-items: center;
-    //             font-size: 14px;
-
-    //             p {
-    //                 margin-right: 10px;
-    //             }
-
-    //             ul {
-    //                 font-size: 12px;
-    //                 display: flex;
-
-    //                 .dot {
-    //                     width: 10px;
-    //                     height: 10px;
-    //                 }
-
-    //                 li {
-    //                     height: 20px;
-    //                     display: flex;
-    //                     align-items: center;
-    //                     margin-right: 8px;
-    //                     width: 50px;
-
-    //                     &:first-child {
-    //                         color: #FA7C01;
-
-    //                     }
-
-    //                     &:nth-child(2) {
-    //                         color: #0CBF5B;
-    //                     }
-
-    //                     &:nth-child(3) {
-    //                         color: #019FE8;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
-    // .plant-table {
-    //     margin: 10px;
-    // }
-
-    // .table-content {
-
-    //     // height: 100%;
-
-
-    //     .do-text {
-    //         font-size: 12px;
-    //     }
-
-    //     .txt-btn {
-    //         font-size: 12px;
-    //         margin: 0 5px;
-    //     }
-    // }
-
-    // .page-block {
-    //     display: flex;
-    //     justify-content: flex-end;
-    //     margin-top: 10px;
-    // }
-
-    .equipment-grid {
-        margin-bottom: 20px;
-    }
-
-    .equipment-card {
-        margin-bottom: 20px;
-        transition: all 0.3s;
-
-        &:hover {
-            transform: translateY(-5px);
+.search-card {
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: none;
+    
+    .search-form {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        
+        .search-input {
+            width: 240px;
+            .el-input__inner {
+                border-radius: 8px;
+            }
         }
+        
+        .el-button {
+            border-radius: 8px;
+            padding: 8px 16px;
+            transition: all 0.3s;
+            
+            &:hover {
+                transform: translateY(-1px);
+            }
+        }
+        
+        .fr {
+            margin-left: auto;
+        }
+        
+        .add-btn {
+            &:hover {
+                opacity: 0.9;
+            }
+            
+            &:active {
+                opacity: 0.8;
+            }
+        }
+    }
+}
 
+.device-card {
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: none;
+    
+    .equipment-grid {
+        margin: -12px;
+        padding: 12px;
+    }
+    
+    .equipment-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        
+        &:hover {
+            background: rgba(250, 250, 250, 0.95);
+            .card-header .device-name {
+                color: #007AFF;
+            }
+            
+            // .info-item i {
+            //     transform: scale(1.1);
+            // }
+        }
+        
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-
+            margin-bottom: 20px;
+            
             .device-name {
-                font-size: 16px;
-                font-weight: bold;
+                font-size: 18px;
+                font-weight: 600;
+                color: #333;
+                transition: color 0.3s ease;
+            }
+            
+            .status-tag {
+                border-radius: 6px;
+                padding: 0px 8px;
             }
         }
-
+        
         .card-content {
             .info-item {
                 display: flex;
                 align-items: center;
-                margin-bottom: 10px;
+                margin-bottom: 12px;
                 
                 i {
+                    font-size: 16px;
+                    color: #007AFF;
                     margin-right: 8px;
-                    color: #409EFF;
+                    transition: transform 0.3s ease;
                 }
-
+                
                 .label {
-                    color: #606266;
-                    margin-right: 8px;
-                    min-width: 70px;
+                    color: #666;
+                    width: 80px;
+                    font-size: 14px;
                 }
-
+                
                 .value {
-                    color: #303133;
-                    word-break: break-all;
+                    color: #333;
+                    flex: 1;
+                    font-size: 14px;
                 }
             }
         }
-
+        
         .card-footer {
-            margin-top: 15px;
+            margin-top: 20px;
             display: flex;
             justify-content: flex-end;
+            
+            .delete-btn {
+                color: #FF3B30;
+                transition: all 0.3s ease;
+                
+                &:hover {
+                    color: #FF2D55;
+                    transform: scale(1.05);
+                }
+            }
         }
     }
+}
+
+.pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.custom-dialog {
+    border-radius: 16px;
+    
+    .el-dialog__header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .el-dialog__body {
+        padding: 24px;
+    }
+    
+    .el-form-item {
+        margin-bottom: 20px;
+    }
+    
+    .el-input__inner {
+        border-radius: 8px;
+    }
+    
+    .el-textarea__inner {
+        border-radius: 8px;
+    }
+    
+    .dialog-footer {
+        padding: 16px 20px;
+        border-top: 1px solid #eee;
+        
+        .el-button {
+            border-radius: 8px;
+            padding: 8px 20px;
+        }
+    }
+}
 </style>
