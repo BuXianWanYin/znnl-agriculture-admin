@@ -28,47 +28,44 @@
             <div v-loading="loading">
                 <el-row :gutter="16">
                     <el-col :span="24" v-for="item in machineInfoList" :key="item.machineId" class="mb-16">
-                        <el-card shadow="hover">
-                            <div class="machine-card">
-                                <div class="machine-info">
-                                    <el-row :gutter="20">
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">农机编码：</span>
-                                                <span class="value">{{ item.machineCode }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">农机名称：</span>
-                                                <span class="value">{{ item.machineName }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">农机类别：</span>
-                                                <span class="value">{{ item.machineTypeId }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">计量单位：</span>
-                                                <span class="value">{{ item.measureUnit }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="16">
-                                            <div class="info-item">
-                                                <span class="label">备注：</span>
-                                                <span class="value">{{ item.remark }}</span>
-                                            </div>
-                                        </el-col>
-                                    </el-row>
+                        <el-card shadow="always" class="machine-card">
+                            <div class="machine-content">
+                                <div class="machine-main">
+                                    <div class="machine-name">
+                                        {{ item.machineName }}
+                                    </div>
+                                    <div class="machine-info">
+                                        <span class="info-item">
+                                            <i class="el-icon-price-tag"></i>
+                                            编码：{{ item.machineCode }}
+                                        </span>
+                                        <span class="info-item">
+                                            <i class="el-icon-collection-tag"></i>
+                                            农机类别：{{ machineTypeMap[item.machineTypeId] || item.machineTypeId }}
+                                        </span>
+                                        <span class="info-item">
+                                            <i class="el-icon-box"></i>
+                                            计量单位：{{ item.measureUnit }}
+                                        </span>
+                                    </div>
+                                    <div class="machine-remark" v-if="item.remark">
+                                        <i class="el-icon-document"></i>
+                                        备注：{{ item.remark }}
+                                    </div>
                                 </div>
                                 <div class="machine-actions">
-                                    <el-button size="small" type="primary" icon="el-icon-edit"
+                                    <el-button 
+                                        size="small" 
+                                        type="primary" 
+                                        plain 
+                                        icon="el-icon-edit"
                                         @click="handleUpdate(item)"
                                         v-hasPermi="['agriculture:machineInfo:edit']">修改</el-button>
-                                    <el-button size="small" type="danger" icon="el-icon-delete"
+                                    <el-button 
+                                        size="small" 
+                                        type="danger" 
+                                        plain
+                                        icon="el-icon-delete"
                                         @click="handleDelete(item)"
                                         v-hasPermi="['agriculture:machineInfo:remove']">删除</el-button>
                                 </div>
@@ -121,7 +118,8 @@
         updateMachineInfo
     } from "@/api/agriculture/machineInfo";
     import {
-        listMachineType
+        listMachineType,
+        getMachineType
     } from "@/api/agriculture/machineType";
 
     export default {
@@ -190,7 +188,8 @@
                         message: "删除标志不能为空",
                         trigger: "blur"
                     }]
-                }
+                },
+                machineTypeMap: {}, // 存储农机类别名称的映射
             };
         },
         created() {
@@ -201,8 +200,22 @@
             /** 查询农机信息列表 */
             getList() {
                 this.loading = true;
-                listMachineInfo(this.queryParams).then(response => {
+                listMachineInfo(this.queryParams).then(async response => {
                     this.machineInfoList = response.rows;
+                    
+                    // 获取每个农机的类别详细信息
+                    for (const item of this.machineInfoList) {
+                        if (item.machineTypeId) {
+                            try {
+                                const typeResponse = await getMachineType(item.machineTypeId);
+                                // 使用 machineTypeName 作为类别名称
+                                this.$set(this.machineTypeMap, item.machineTypeId, typeResponse.data.machineTypeName);
+                            } catch (error) {
+                                console.error('获取农机类别详情失败:', error);
+                            }
+                        }
+                    }
+                    
                     this.total = response.total;
                     this.loading = false;
                 });
@@ -303,48 +316,100 @@
     };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .mb-16 {
     margin-bottom: 16px;
 }
 
 .machine-card {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    margin: 0;
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+
+    .machine-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+
+        .machine-main {
+            flex: 1;
+            min-width: 0;
+
+            .machine-name {
+                font-size: 15px;
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 8px;
+            }
+
+            .machine-info {
+                display: flex;
+                gap: 24px;
+                
+                .info-item {
+                    display: flex;
+                    align-items: center;
+                    font-size: 13px;
+                    color: #666;
+                    white-space: nowrap;
+                    
+                    i {
+                        color: #409EFF;
+                        margin-right: 8px;
+                        font-size: 14px;
+                    }
+                }
+            }
+
+            .machine-remark {
+                display: flex;
+                align-items: center;
+                font-size: 13px;
+                color: #666;
+                margin-top: 8px;
+                
+                i {
+                    color: #409EFF;
+                    margin-right: 8px;
+                    font-size: 14px;
+                }
+            }
+        }
+
+        .machine-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+
+            .el-button {
+                padding: 5px 10px;
+                height: 28px;
+                font-size: 12px;
+            }
+        }
+    }
 }
 
-.machine-info {
-    flex: 1;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.info-item:last-child {
-    margin-bottom: 0;
-}
-
-.label {
-    font-weight: bold;
-    margin-right: 8px;
-    color: #606266;
-    white-space: nowrap;
-}
-
-.value {
-    color: #333;
-}
-
-.machine-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    border-top: 1px solid #EBEEF5;
-    padding-top: 16px;
-    margin-top: 8px;
+// 响应式布局
+@media screen and (max-width: 768px) {
+    .machine-content {
+        flex-direction: column;
+        align-items: flex-start !important;
+        
+        .machine-info {
+            flex-direction: column;
+            gap: 8px !important;
+        }
+        
+        .machine-actions {
+            width: 100%;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+    }
 }
 </style>
