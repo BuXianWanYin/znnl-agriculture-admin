@@ -36,52 +36,57 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <div class="batch-cards">
-                <el-card v-for="item in batchList" :key="item.batchId" class="batch-card" shadow="hover">
-                    <div class="card-content">
-                        <div class="card-left">
-                            <div class="image-wrapper" @click="previewImage(`${image.baseUrl + item.germplasmImg}`, item)">
-                                <img :src="`${image.baseUrl + item.germplasmImg}`" class="circular-image" />
-                            </div>
-                        </div>
-                        <div class="card-right">
-                            <div class="info-grid">
-                                <div class="info-row">
-                                    <span class="label">批次名称:</span>
-                                    <span class="value">{{ item.batchName }}</span>
+            <div class="batch-card-grid">
+                <el-row :gutter="24">
+                    <el-col :span="8" v-for="item in batchList" :key="item.batchId">
+                        <el-card class="batch-card" shadow="hover">
+                            <div class="batch-card-header">
+                                <div class="header-content">
+                                    <div class="section-name">批次名称</div>
+                                    <div class="batch-name">{{ item.batchName }}</div>
                                 </div>
-                                <div class="info-row">
-                                    <span class="label">种质:</span>
-                                    <span class="value">
+                                <el-tag :type="item.status == 1 ? 'warning' : 'success'">
+                                    {{ item.status == 1 ? '已成熟' : '已采摘' }}
+                                </el-tag>
+                            </div>
+
+                            <div class="batch-image" @click="previewImage(`${image.baseUrl + item.germplasmImg}`, item)">
+                                <img :src="`${image.baseUrl + item.germplasmImg}`" alt="种质图片"/>
+                            </div>
+                            
+                            <div class="batch-card-content">
+                                <div class="batch-info">
+                                    <div class="info-item">
+                                        <i class="el-icon-menu"></i>
+                                        <span class="label">种质：</span>
                                         <data-tag :options="germplasmList" :value="item.germplasmId" 
                                             labelName="germplasmName" valueName="germplasmId" type="" />
-                                    </span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="label">负责人:</span>
-                                    <span class="value">
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-user"></i>
+                                        <span class="label">负责人：</span>
                                         <data-tag :options="userList" :value="item.batchHead" 
                                             labelName="userName" valueName="userId" type="notag" />
-                                    </span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="label">所属大棚:</span>
-                                    <span class="value">{{ getLabel(item.landId) }}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="label">状态:</span>
-                                    <span class="value">{{ item.status == 1 ? '已成熟' : '已采摘' }}</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="label">种植面积:</span>
-                                    <span class="value">{{ item.cropArea }}亩</span>
-                                </div>
-                                <div class="info-row">
-                                    <span class="label">开始时间:</span>
-                                    <span class="value">{{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-office-building"></i>
+                                        <span class="label">所属大棚：</span>
+                                        <span>{{ getLabel(item.landId) }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-full-screen"></i>
+                                        <span class="label">种植面积：</span>
+                                        <span>{{ item.cropArea }}亩</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-date"></i>
+                                        <span class="label">开始时间：</span>
+                                        <span>{{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card-actions">
+
+                            <div class="batch-card-actions">
                                 <el-button size="small" type="primary" icon="el-icon-edit"
                                     @click="handleProcess(item.batchId, '采摘')">
                                     {{item.status==1?"采摘":"采摘详情"}}
@@ -90,9 +95,9 @@
                                     @click="handleBatchTask(item)"
                                     v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
                             </div>
-                        </div>
-                    </div>
-                </el-card>
+                        </el-card>
+                    </el-col>
+                </el-row>
             </div>
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
@@ -1026,93 +1031,159 @@
         width: 100%;
     }
 
-    .batch-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        padding: 10px;
+    .batch-card-grid {
+        padding: 20px;
+        
+        .el-row {
+            margin: -12px;
+        }
+        
+        .el-col {
+            padding: 12px;
+        }
     }
 
     .batch-card {
-        width: 100%;
+        height: 100%;
+        background: white;
+        border-radius: 16px;
+        padding: 16px;
         transition: all 0.3s ease;
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         
+        .batch-card-header {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            
+            .header-content {
+                .section-name {
+                    font-size: 12px;
+                    color: #909399;
+                    margin-bottom: 4px;
+                }
+
+                .batch-name {
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #333;
+                }
+            }
+
+            .el-tag {
+                border-radius: 4px;
+                padding: 0 8px;
+            }
+        }
+        
+        .batch-image {
+            width: 100%;
+            height: 180px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            margin-bottom: 16px;
+            
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s ease;
+            }
+            
+            &:hover img {
+                transform: scale(1.05);
+            }
+        }
+
+        .batch-card-content {
+            padding: 0;
+            
+            .batch-info {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
+
+                .info-item {
+                    font-size: 13px;
+                    display: flex;
+                    align-items: center;
+
+                    i {
+                        color: #409EFF;
+                        margin-right: 8px;
+                        font-size: 14px;
+                    }
+
+                    .label {
+                        color: #666;
+                        margin-right: 8px;
+                    }
+                }
+            }
+        }
+
+        .batch-card-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ebeef5;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            
+            .el-button {
+                padding: 6px 12px;
+                height: 32px;
+                border-radius: 4px;
+                margin: 0;
+                transition: all 0.3s ease;
+                
+                &.el-button--primary {
+                    background-color: #f2f6fc;
+                    border-color: transparent;
+                    color: #409eff;
+                    
+                    &:hover {
+                        background-color: #409eff;
+                        color: #ffffff;
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+                    }
+                }
+                
+                &.el-button--warning {
+                    background-color: #fdf6ec;
+                    border-color: transparent;
+                    color: #e6a23c;
+                    
+                    &:hover {
+                        background-color: #e6a23c;
+                        color: #ffffff;
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
+                    }
+                }
+            }
+        }
+
         &:hover {
             transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         }
     }
 
-    .card-content {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-        min-height: 160px;
-    }
-
-    .card-left {
-        flex: 0 0 120px;
-    }
-
-    .card-right {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 12px 24px;
-    }
-
-    .image-wrapper {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        background: linear-gradient(45deg, #f3f4f6 0%, #ffffff 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-
-        &:hover {
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-            transform: scale(1.02);
+    // 响应式布局
+    @media screen and (max-width: 1400px) {
+        .el-col {
+            width: 50% !important;
         }
     }
 
-    .circular-image {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .info-row {
-        display: flex;
-        align-items: center;
-        
-        .label {
-            font-weight: 600;
-            color: #606266;
-            width: 100px;
-            flex-shrink: 0;
+    @media screen and (max-width: 992px) {
+        .el-col {
+            width: 100% !important;
         }
-        
-        .value {
-            color: #303133;
-            flex: 1;
-        }
-    }
-
-    .card-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: auto;
     }
 </style>
