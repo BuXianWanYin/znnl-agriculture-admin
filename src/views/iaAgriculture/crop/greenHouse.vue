@@ -149,8 +149,8 @@
                 </div>
             </div>
             <div slot="footer" class="dialog-footer">
-                <el-button type="success" size="small" @click="houseDoBtn">确认</el-button>
                 <el-button size="small" @click="houseStatusDialog = false">关闭</el-button>
+                <el-button type="success" size="small" @click="houseDoBtn">确认</el-button>
             </div>
         </el-dialog>
     </div>
@@ -366,13 +366,15 @@
 <style lang="scss" scoped>
 .app-container-sm {
     padding: 20px;
-    background-color: #f0f2f5;
+    background-color: #f5f7fa;
 }
 
 .search-card {
     margin-bottom: 20px;
     border-radius: 12px;
-    background: #f0f2f5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
     border: none;
     
     .search-form {
@@ -381,53 +383,32 @@
         
         .search-input {
             width: 240px;
+            .el-input__inner {
+                border-radius: 8px;
+            }
+        }
+        
+        .el-button {
+            border-radius: 8px;
+            padding: 8px 16px;
+            transition: all 0.3s;
             
-            ::v-deep .el-input__inner {
-                background: #fff;
-                border: 1px solid #dcdfe6;
-                border-radius: 4px;
-                box-shadow: none;
+            &:hover {
+                transform: translateY(-1px);
             }
         }
         
         .fr {
             margin-left: auto;
         }
-
-        .el-button--primary {
-            background-color: #409eff;
-            border-color: #409eff;
-            color: #fff;
-            box-shadow: none;
-            
-            &:hover {
-                background-color: #66b1ff;
-                border-color: #66b1ff;
-                color: #fff;
-                transform: none;
-            }
-        }
-
-        .el-button--default {
-            background-color: #fff;
-            border: 1px solid #dcdfe6;
-            color: #606266;
-            box-shadow: none;
-            
-            &:hover {
-                background-color: #f5f7fa;
-                border-color: #409eff;
-                color: #409eff;
-                transform: none;
-            }
-        }
     }
 }
 
 .device-card {
     border-radius: 12px;
-    box-shadow: none;
-    background: #f0f2f5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
     border: none;
     
     .greenhouse-grid {
@@ -436,22 +417,13 @@
     }
     
     .greenhouse-card {
-        background: #f0f2f5;
+        background: white;
         border-radius: 16px;
         padding: 20px;
         margin-bottom: 24px;
         transition: all 0.3s ease;
-        border: none;
-        box-shadow: 
-            8px 8px 15px rgba(163, 177, 198, 0.6),
-            -8px -8px 15px rgba(255, 255, 255, 0.9);
-        
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                12px 12px 20px rgba(163, 177, 198, 0.7),
-                -12px -12px 20px rgba(255, 255, 255, 1);
-        }
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         
         .card-header {
             display: flex;
@@ -502,6 +474,16 @@
                             box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
                         }
                     }
+                }
+            }
+        }
+        
+        &:hover {
+            background: rgba(250, 250, 250, 0.95);
+            
+            .card-header {
+                .greenhouse-name {
+                    color: #007AFF;
                 }
             }
         }
@@ -697,268 +679,6 @@
     .house-footer {
         margin-top: 15px;
         text-align: right;
-    }
-}
-
-// 统一所有按钮样式
-::v-deep .el-button {
-    background: #f0f2f5;
-    border: none;
-    border-radius: 8px;
-    box-shadow: 
-        5px 5px 10px rgba(163, 177, 198, 0.4),
-        -5px -5px 10px rgba(255, 255, 255, 0.8);
-    transition: all 0.3s ease;
-    color: #333;
-
-    &:hover {
-        transform: translateY(-2px);
-    }
-
-    &:active {
-        transform: translateY(0);
-        box-shadow: 
-            inset 2px 2px 5px rgba(163, 177, 198, 0.4),
-            inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-    }
-
-    // 主要按钮
-    &.el-button--primary {
-        background-color: #f2f6fc;
-        border-color: transparent;
-        color: #409eff;
-        
-        &:hover {
-            background-color: #409eff;
-            color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
-        }
-
-        &.is-plain {
-            background-color: #f2f6fc;
-            color: #409eff;
-            
-            &:hover {
-                background-color: #409eff;
-                color: #ffffff;
-            }
-        }
-    }
-    
-    // 成功按钮
-    &.el-button--success {
-        background-color: #f0f9eb;
-        border-color: transparent;
-        color: #67c23a;
-        
-        &:hover {
-            background-color: #67c23a;
-            color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(103, 194, 58, 0.2);
-        }
-    }
-    
-    // 警告按钮
-    &.el-button--warning {
-        background-color: #fdf6ec;
-        border-color: transparent;
-        color: #e6a23c;
-        
-        &:hover {
-            background-color: #e6a23c;
-            color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
-        }
-
-        &.is-plain {
-            background-color: #fdf6ec;
-            color: #e6a23c;
-            
-            &:hover {
-                background-color: #e6a23c;
-                color: #ffffff;
-            }
-        }
-    }
-    
-    // 危险按钮
-    &.el-button--danger {
-        background-color: #fef0f0;
-        border-color: transparent;
-        color: #f56c6c;
-        
-        &:hover {
-            background-color: #f56c6c;
-            color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
-        }
-    }
-
-    // 默认按钮
-    &.el-button--default {
-        background-color: #f0f2f5;
-        border-color: transparent;
-        color: #606266;
-        
-        &:hover {
-            background-color: #606266;
-            color: #ffffff;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(96, 98, 102, 0.2);
-        }
-    }
-
-    // 小尺寸按钮调整
-    &.el-button--small {
-        padding: 8px 15px;
-        font-size: 12px;
-    }
-
-    // 迷你尺寸按钮调整
-    &.el-button--mini {
-        padding: 6px 12px;
-        font-size: 12px;
-    }
-}
-
-// 添加/修改弹框样式
-::v-deep .el-dialog {
-    background: #f0f2f5;
-    border-radius: 16px;
-    box-shadow: 
-        5px 5px 10px rgba(163, 177, 198, 0.4),
-        -5px -5px 10px rgba(255, 255, 255, 0.2);
-    border: none;
-    overflow: hidden;
-
-    .el-dialog__header {
-        background: #f0f2f5;
-        padding: 20px;
-        border-bottom: none;
-    }
-
-    .el-dialog__body {
-        background: #f0f2f5;
-        padding: 20px;
-    }
-
-    .el-dialog__footer {
-        background: #f0f2f5;
-        padding: 20px;
-        border-top: none;
-
-        .el-button--success {
-            background-color: #409eff;
-            border-color: #409eff;
-            color: #fff;
-            box-shadow: none;
-            
-            &:hover {
-                background-color: #66b1ff;
-                border-color: #66b1ff;
-                color: #fff;
-                transform: none;
-            }
-        }
-
-        .el-button--default {
-            background-color: #fff;
-            border: 1px solid #dcdfe6;
-            color: #606266;
-            box-shadow: none;
-            
-            &:hover {
-                background-color: #f5f7fa;
-                border-color: #409eff;
-                color: #409eff;
-                transform: none;
-            }
-        }
-    }
-
-    // 表单项样式
-    .el-form-item {
-        margin-bottom: 20px;
-
-        .el-input__inner,
-        .el-textarea__inner {
-            background: #f0f2f5;
-            border: none;
-            border-radius: 8px;
-            box-shadow: 
-                inset 2px 2px 5px rgba(163, 177, 198, 0.4),
-                inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-        }
-    }
-
-    // 按钮样式统一
-    .el-button {
-        background: #f0f2f5;
-        border: none;
-        border-radius: 8px;
-        box-shadow: 
-            5px 5px 10px rgba(163, 177, 198, 0.4),
-            -5px -5px 10px rgba(255, 255, 255, 0.8);
-        transition: all 0.3s ease;
-        color: #333;
-
-        &:hover {
-            transform: translateY(-2px);
-        }
-
-        &:active {
-            transform: translateY(0);
-            box-shadow: 
-                inset 2px 2px 5px rgba(163, 177, 198, 0.4),
-                inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-        }
-
-        // 主要按钮
-        &.el-button--primary {
-            background-color: #409eff;
-            border-color: #409eff;
-            color: #fff;
-            box-shadow: none;
-            
-            &:hover {
-                background-color: #66b1ff;
-                border-color: #66b1ff;
-                color: #fff;
-                transform: none;
-            }
-        }
-        
-        // 危险按钮
-        &.el-button--danger {
-            background-color: #fef0f0;
-            border-color: transparent;
-            color: #f56c6c;
-            
-            &:hover {
-                background-color: #f56c6c;
-                color: #ffffff;
-                transform: translateY(-2px);
-                box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
-            }
-        }
-        
-        // 警告按钮
-        &.el-button--warning {
-            background-color: #fdf6ec;
-            border-color: transparent;
-            color: #e6a23c;
-            
-            &:hover {
-                background-color: #e6a23c;
-                color: #ffffff;
-                transform: translateY(-2px);
-                box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
-            }
-        }
     }
 }
 </style>

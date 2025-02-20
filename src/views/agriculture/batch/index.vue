@@ -114,14 +114,11 @@
                 </el-row>
             </div>
 
-            <pagination 
-                v-show="total > 0" 
-                :total="total" 
-                :page.sync="queryParams.pageNum"
-                :limit.sync="queryParams.pageSize" 
-                @pagination="getList" 
-                layout="total,sizes, prev, pager, next, jumper"
-            />
+            <pagination v-show="total > 0" 
+                        :total="total" 
+                        :page.sync="queryParams.pageNum"
+                        :limit.sync="queryParams.pageSize" 
+                        @pagination="getList" />
         </el-card>
         <!-- 添加或修改作物批次对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
@@ -443,44 +440,29 @@
         width: 100%;
     }
 
-    .app-container-sm {
-        padding: 20px;
-        background-color: #f0f2f5;
-        min-height: calc(100vh - 40px);
-    }
-
     .batch-card-grid {
         padding: 20px;
-        background: #f0f2f5;
         
         .el-row {
-            margin: -12px;
+            margin: -12px;  // 抵消 el-row 的默认边距
         }
         
         .el-col {
-            padding: 12px;
+            padding: 12px;  // 给每个卡片添加间距
         }
     }
 
     .batch-card {
-        background: #f0f2f5;
+        height: 100%;
+        background: white;
         border-radius: 16px;
-        padding: 20px;
+        padding: 16px;  // 添加整体内边距
         transition: all 0.3s ease;
-        border: none;
-        box-shadow: 
-            8px 8px 15px rgba(163, 177, 198, 0.6),
-            -8px -8px 15px rgba(255, 255, 255, 0.9);
-        
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                12px 12px 20px rgba(163, 177, 198, 0.7),
-                -12px -12px 20px rgba(255, 255, 255, 1);
-        }
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         
         .batch-card-header {
-            margin-bottom: 16px;
+            margin-bottom: 16px;  // 添加与图片的间距
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -508,10 +490,10 @@
         .batch-image {
             width: 100%;
             height: 180px;
-            border-radius: 8px;
+            border-radius: 8px;  // 添加圆角
             overflow: hidden;
             cursor: pointer;
-            margin-bottom: 16px;
+            margin-bottom: 16px;  // 添加与内容的间距
             
             img {
                 width: 100%;
@@ -526,7 +508,7 @@
         }
 
         .batch-card-content {
-            padding: 0;
+            padding: 0;  // 移除多余的内边距
             
             .batch-info {
                 display: grid;
@@ -555,117 +537,63 @@
         .batch-card-actions {
             margin-top: 20px;
             padding-top: 20px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            border-top: 1px solid #ebeef5;
             display: flex;
-            gap: 12px;
+            gap: 8px;
             justify-content: flex-end;
             
             .el-button {
-                padding: 8px 16px;
+                padding: 6px 12px;
                 height: 32px;
-                border-radius: 8px;
+                border-radius: 4px;
                 margin: 0;
                 transition: all 0.3s ease;
-                border: none;
-                background: #f0f2f5;
-                box-shadow: 
-                    5px 5px 10px rgba(163, 177, 198, 0.4),
-                    -5px -5px 10px rgba(255, 255, 255, 0.8);
-                
-                &:active {
-                    box-shadow: 
-                        inset 2px 2px 5px rgba(163, 177, 198, 0.4),
-                        inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-                    transform: translateY(0);
-                }
                 
                 &.el-button--primary {
-                    background: #f0f2f5;
+                    background-color: #f2f6fc;
+                    border-color: transparent;
                     color: #409eff;
                     
                     &:hover {
-                        background: linear-gradient(145deg, #409eff, #3a8ee6);
+                        background-color: #409eff;
                         color: #ffffff;
                         transform: translateY(-2px);
-                        box-shadow: 
-                            5px 5px 10px rgba(64, 158, 255, 0.3),
-                            -5px -5px 10px rgba(255, 255, 255, 0.8);
+                        box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
                     }
                 }
                 
                 &.el-button--danger {
-                    background: #f0f2f5;
+                    background-color: #fef0f0;
+                    border-color: transparent;
                     color: #f56c6c;
                     
                     &:hover {
-                        background: linear-gradient(145deg, #f56c6c, #dd6161);
+                        background-color: #f56c6c;
                         color: #ffffff;
                         transform: translateY(-2px);
-                        box-shadow: 
-                            5px 5px 10px rgba(245, 108, 108, 0.3),
-                            -5px -5px 10px rgba(255, 255, 255, 0.8);
+                        box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
                     }
                 }
                 
                 &.el-button--warning {
-                    background: #f0f2f5;
+                    background-color: #fdf6ec;
+                    border-color: transparent;
                     color: #e6a23c;
                     
                     &:hover {
-                        background: linear-gradient(145deg, #e6a23c, #cf9136);
+                        background-color: #e6a23c;
                         color: #ffffff;
                         transform: translateY(-2px);
-                        box-shadow: 
-                            5px 5px 10px rgba(230, 162, 60, 0.3),
-                            -5px -5px 10px rgba(255, 255, 255, 0.8);
+                        box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
                     }
-                }
-
-                i {
-                    margin-right: 4px;
                 }
             }
         }
-    }
-    
-    .card-margin-bottom {
-        margin-bottom: 20px;
-        border-radius: 12px;
-        background: #f0f2f5;
-        border: none;
-        box-shadow: 
-            8px 8px 15px rgba(163, 177, 198, 0.6),
-            -8px -8px 15px rgba(255, 255, 255, 0.9);
-    }
 
-    .card-padding-bottom {
-        border-radius: 12px;
-        background: #f0f2f5;
-        border: none;
-        box-shadow: 
-            8px 8px 15px rgba(163, 177, 198, 0.6),
-            -8px -8px 15px rgba(255, 255, 255, 0.9);
-
-        ::v-deep .el-card__body {
-            padding-left: 0;
-            padding-right: 0;
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         }
-
-        .pagination-container {
-            margin-top: 20px;
-            display: flex;
-            justify-content: flex-start;
-            background: #f0f2f5;
-            padding-left: 20px;
-        }
-    }
-
-    .pagination-container {
-        margin-top: 20px;
-        display: flex;
-        justify-content: flex-start;
-        background: #f0f2f5;
-        padding-left: 20px;
     }
     
     // 响应式布局
@@ -678,114 +606,6 @@
     @media screen and (max-width: 992px) {
         .el-col {
             width: 100% !important;  // 在移动设备上显示单列
-        }
-    }
-
-    .device-card {
-        ::v-deep .el-card__body {
-            padding: 20px 0;  // 移除左右内边距，保留上下内边距
-        }
-    }
-
-    ::v-deep .el-dialog {
-        background: #f0f2f5;
-        border-radius: 16px;
-        box-shadow: 
-            5px 5px 10px rgba(163, 177, 198, 0.4),  // 减小阴影范围和强度
-            -5px -5px 10px rgba(255, 255, 255, 0.2);
-        border: none;
-        overflow: hidden;
-
-        .el-dialog__header {
-            background: #f0f2f5;
-            padding: 20px;
-            border-bottom: none;
-        }
-
-        .el-dialog__body {
-            background: #f0f2f5;
-            padding: 20px;
-        }
-
-        .el-dialog__footer {
-            background: #f0f2f5;
-            padding: 20px;
-            border-top: none;
-        }
-
-        .el-form-item {
-            margin-bottom: 20px;
-
-            .el-input__inner,
-            .el-textarea__inner {
-                background: #f0f2f5;
-                border: none;
-                border-radius: 8px;
-                box-shadow: 
-                    inset 2px 2px 5px rgba(163, 177, 198, 0.4),
-                    inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-            }
-        }
-
-        .el-button {
-            background: #f0f2f5;
-            border: none;
-            border-radius: 8px;
-            box-shadow: 
-                5px 5px 10px rgba(163, 177, 198, 0.4),
-                -5px -5px 10px rgba(255, 255, 255, 0.8);
-            transition: all 0.3s ease;
-            color: #333;
-
-            &:hover {
-                transform: translateY(-2px);
-            }
-
-            &:active {
-                transform: translateY(0);
-                box-shadow: 
-                    inset 2px 2px 5px rgba(163, 177, 198, 0.4),
-                    inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-            }
-
-            &.el-button--primary {
-                background-color: #f2f6fc;
-                border-color: transparent;
-                color: #409eff;
-                
-                &:hover {
-                    background-color: #409eff;
-                    color: #ffffff;
-                    transform: translateY(-2px);
-                    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
-                }
-            }
-            
-            &.el-button--danger {
-                background-color: #fef0f0;
-                border-color: transparent;
-                color: #f56c6c;
-                
-                &:hover {
-                    background-color: #f56c6c;
-                    color: #ffffff;
-                    transform: translateY(-2px);
-                    box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
-                }
-            }
-            
-            &.el-button--warning {
-                background-color: #fdf6ec;
-                border-color: transparent;
-                color: #e6a23c;
-                
-                &:hover {
-                    background-color: #e6a23c;
-                    color: #ffffff;
-                    transform: translateY(-2px);
-                    box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
-                }
-            }
         }
     }
 </style>
