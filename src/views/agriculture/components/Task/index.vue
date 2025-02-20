@@ -16,86 +16,99 @@
                     <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
                 </el-form-item>
                 <el-form-item class="fr">
-                    <!-- <el-button
-                    type="warning"
-                    plain
-                    icon="el-icon-download"
-                    size="mini"
-                    @click="handleExport"
-                    v-hasPermi="['agriculture:task:export']"
-            >导出</el-button> -->
-                    <el-button-group>
-                        <el-button type="primary" @click="handleChange('table')" :plain="gantt" size="mini"
-                            icon="el-icon-s-order">列表</el-button>
-                        <el-button type="primary" @click="handleChange('gantt')" :plain="!gantt" size="mini"
-                            icon="el-icon-s-unfold">甘特图</el-button>
-                    </el-button-group>
+                    <el-button 
+                        class="width-90" 
+                        v-if="tableBorder" 
+                        type="primary"
+                        :disabled="!checkPermi(['agriculture:batchTask:add'])" 
+                        size="mini" 
+                        plain 
+                        icon="el-icon-plus"
+                        @click="handleAdd">新增任务</el-button>
+                    <el-button 
+                        type="primary" 
+                        @click="handleChange('table')" 
+                        :plain="gantt" 
+                        size="mini"
+                        icon="el-icon-s-order">列表</el-button>
+                    <el-button 
+                        type="primary" 
+                        @click="handleChange('gantt')" 
+                        :plain="!gantt" 
+                        size="mini"
+                        icon="el-icon-s-unfold">甘特图</el-button>
                 </el-form-item>
             </el-form>
         </div>
         <div class="table">
-            <div v-if="!gantt" class="task-cards">
-                <el-card v-loading="loading" 
+            <div v-if="!gantt" class="task-list" v-loading="loading">
+                <el-card 
                     v-for="task in taskList" 
-                    :key="task.taskId" 
-                    class="task-card"
-                    :body-style="{ padding: '15px' }">
-                    <el-row :gutter="20">
-                        <el-col :span="16">
+                    :key="task.taskId"
+                    class="task-card" 
+                    :class="{'task-completed': task.status == 1}"
+                    shadow="always"
+                >
+                    <div class="task-content">
+                        <div class="task-main">
+                            <div class="task-name" :class="{'task-name-completed': task.status == 1}">
+                                {{ task.taskName }}
+                            </div>
                             <div class="task-info">
-                                <h3 class="task-name">{{ task.taskName }}</h3>
-                                <div class="task-dates">
-                                    <el-row :gutter="20">
-                                        <el-col :span="12">
-                                            <div class="date-group">
-                                                <div class="date-item">
-                                                    <span class="label">计划开始：</span>
-                                                    <span>{{ parseTime(task.planStart, "{y}-{m}-{d}") }}</span>
-                                                </div>
-                                                <div class="date-item">
-                                                    <span class="label">计划结束：</span>
-                                                    <span>{{ parseTime(task.planFinish, "{y}-{m}-{d}") }}</span>
-                                                </div>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="12">
-                                            <div class="date-group">
-                                                <div class="date-item">
-                                                    <span class="label">实际开始：</span>
-                                                    <span>{{ parseTime(task.actualStart, "{y}-{m}-{d}") }}</span>
-                                                </div>
-                                                <div class="date-item">
-                                                    <span class="label">实际结束：</span>
-                                                    <span>{{ parseTime(task.actualFinish, "{y}-{m}-{d}") }}</span>
-                                                </div>
-                                            </div>
-                                        </el-col>
-                                    </el-row>
-                                </div>
+                                <span class="info-item">
+                                    <i class="el-icon-date"></i>
+                                    计划时间：{{ parseTime(task.planStart, "{y}-{m}-{d}") }} 至 {{ parseTime(task.planFinish, "{y}-{m}-{d}") }}
+                                </span>
+                                <span class="info-item" v-if="shouldShowActualTime(task)">
+                                    <i class="el-icon-time"></i>
+                                    实际时间：{{ parseTime(task.actualStart, "{y}-{m}-{d}") }} 至 {{ parseTime(task.actualFinish, "{y}-{m}-{d}") }}
+                                </span>
                             </div>
-                        </el-col>
-                        <el-col :span="8">
-                            <div class="task-actions">
-                                <div class="status-tag">
-                                    <dict-tag :options="dict.type.agriculture_batch_task_status" :value="task.status" />
-                                </div>
-                                <div class="action-buttons">
-                                    <el-button size="small" type="primary" plain icon="el-icon-edit"
-                                        @click="handleTask(task.taskId)" v-if="!tableBorder"
-                                        v-hasPermi="['agriculture:batchTask:query']">任务处理</el-button>
-                                    <el-button size="small" type="primary" icon="el-icon-edit"
-                                        @click="handleUpdate(task)" v-if="tableBorder"
-                                        v-hasPermi="['agriculture:batchTask:edit']">修改</el-button>
-                                    <el-button size="small" type="danger" icon="el-icon-delete"
-                                        @click="handleDelete(task)" v-if="tableBorder"
-                                        v-hasPermi="['agriculture:batchTask:remove']">删除</el-button>
-                                </div>
+                        </div>
+
+                        <div class="task-actions">
+                            <dict-tag 
+                                :options="dict.type.agriculture_batch_task_status" 
+                                :value="task.status"
+                                class="status-tag"
+                            />
+                            <div class="action-buttons">
+                                <el-button 
+                                    size="small" 
+                                    type="primary" 
+                                    plain 
+                                    icon="el-icon-edit"
+                                    @click="handleTask(task.taskId)" 
+                                    v-if="!tableBorder"
+                                    v-hasPermi="['agriculture:batchTask:query']">任务处理</el-button>
+                                <el-button 
+                                    size="small" 
+                                    type="primary" 
+                                    plain
+                                    icon="el-icon-edit"
+                                    @click="handleUpdate(task)" 
+                                    v-if="tableBorder"
+                                    v-hasPermi="['agriculture:batchTask:edit']">修改</el-button>
+                                <el-button 
+                                    size="small" 
+                                    type="danger" 
+                                    plain
+                                    icon="el-icon-delete"
+                                    @click="handleDelete(task)" 
+                                    v-if="tableBorder"
+                                    v-hasPermi="['agriculture:batchTask:remove']">删除</el-button>
                             </div>
-                        </el-col>
-                    </el-row>
+                        </div>
+                    </div>
                 </el-card>
-                <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
-                    :limit.sync="queryParams.pageSize" @pagination="getList" />
+                
+                <pagination 
+                    v-show="total > 0" 
+                    :total="total" 
+                    :page.sync="queryParams.pageNum"
+                    :limit.sync="queryParams.pageSize" 
+                    @pagination="getList" 
+                />
             </div>
             <gantt v-else class="gantt" :tasks="tasks"></gantt>
         </div>
@@ -134,8 +147,8 @@
             placeholder="选择实际结束日期">
           </el-date-picker>
         </el-form-item> -->
-                <el-form-item label="任务详情" prop="taskDetail">
-                    <el-input v-model="form.taskDetail" type="textarea" placeholder="请输入内容" />
+                <el-form-item label="任务详情" prop="remark">
+                    <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -424,6 +437,13 @@
             cancel() {
                 this.getList();
             },
+            shouldShowActualTime(task) {
+                // 只有当实际开始时间存在，并且不是"未开始"状态时才显示
+                return task.actualStart && 
+                       !(task.actualStart === '未开始' || task.actualStart === '') && 
+                       task.actualFinish && 
+                       !(task.actualFinish === '未结束' || task.actualFinish === '');
+            }
         },
     };
 </script>
@@ -431,78 +451,96 @@
     .gantt-container {
         height: 100%;
 
+        .search {
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
         .table {
             background: #fff;
-            padding: 15px;
-            height: calc(100% - 70px - 70px);
-            overflow-y: auto;
+            padding: 24px;
+            border-radius: 8px;
+            min-height: calc(100% - 70px - 70px);
 
-            .task-cards {
+            .task-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+
                 .task-card {
-                    margin-bottom: 15px;
-                    transition: all 0.3s;
+                    margin: 0;
+                    background: white;
+                    border-radius: 8px;
+                    padding: 12px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
                     
-                    &:hover {
-                        box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+                    &.task-completed {
+                        border-left: 4px solid #67c23a;
                     }
 
-                    .task-info {
-                        .task-name {
-                            margin: 0 0 15px 0;
-                            font-size: 16px;
-                            font-weight: 500;
-                        }
+                    .task-content {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        gap: 24px;
 
-                        .task-dates {
-                            .date-group {
-                                .date-item {
-                                    margin-bottom: 8px;
+                        .task-main {
+                            flex: 1;
+                            min-width: 0; // 防止flex子元素溢出
+
+                            .task-name {
+                                font-size: 15px;
+                                font-weight: 600;
+                                color: #333;
+                                margin-bottom: 8px;
+                                
+                                &.task-name-completed {
+                                    color: #67c23a;
+                                }
+                            }
+
+                            .task-info {
+                                display: flex;
+                                gap: 24px;
+                                
+                                .info-item {
+                                    display: flex;
+                                    align-items: center;
+                                    font-size: 13px;
+                                    color: #666;
+                                    white-space: nowrap;
                                     
-                                    .label {
-                                        color: #606266;
+                                    i {
+                                        color: #409EFF;
                                         margin-right: 8px;
+                                        font-size: 14px;
                                     }
                                 }
                             }
                         }
-                    }
 
-                    .task-actions {
-                        display: flex;
-                        flex-direction: column;
-                        align-items: flex-end;
-                        height: 100%;
-                        
-                        .status-tag {
-                            margin-bottom: 15px;
-                        }
+                        .task-actions {
+                            display: flex;
+                            align-items: center;
+                            gap: 16px;
+                            flex-shrink: 0;
 
-                        .action-buttons {
-                            margin-top: auto;
-                            
-                            .el-button {
-                                margin-left: 8px;
+                            .action-buttons {
+                                display: flex;
+                                gap: 8px;
+                                
+                                .el-button {
+                                    padding: 5px 10px;
+                                    height: 28px;
+                                    font-size: 12px;
+                                }
                             }
                         }
                     }
                 }
             }
-
-            .gantt {
-                overflow: hidden;
-                position: relative;
-                height: 100%;
-            }
-        }
-
-        .search {
-            background: #fff;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            position: sticky;
-            top: 0px;
-            z-index: 2;
         }
     }
 
@@ -516,5 +554,54 @@
 
     .search ::v-deep .el-form {
         flex: 1;
+    }
+
+    // 覆盖 Element UI 的默认标签样式
+    ::v-deep .el-tag.el-tag--success {
+        background-color: #f0f9eb;
+        border-color: #e1f3d8;
+        color: #67c23a;
+    }
+
+    // 覆盖 Element UI 的默认卡片阴影样式
+    ::v-deep .el-card {
+        &.is-always-shadow {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+        }
+    }
+
+    // 响应式布局
+    @media screen and (max-width: 1400px) {
+        .el-col {
+            width: 33.33% !important;
+        }
+    }
+
+    @media screen and (max-width: 1200px) {
+        .el-col {
+            width: 50% !important;
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .el-col {
+            width: 100% !important;
+        }
+
+        .task-content {
+            flex-direction: column;
+            align-items: flex-start !important;
+            
+            .task-info {
+                flex-direction: column;
+                gap: 8px !important;
+            }
+            
+            .task-actions {
+                width: 100%;
+                margin-top: 12px;
+                justify-content: flex-end;
+            }
+        }
     }
 </style>

@@ -11,15 +11,6 @@
                                 <el-row :gutter="10" class="section-content">
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-data"
-                                            backgroundColor="#5470c6"
-                                            text="基地面积(亩)"
-                                            :value="baseInfo.areaCount"
-                                            class="flex1">
-                                        </data-box>
-                                    </el-col>
-                                    <el-col :span="8" class="h100 flex aic">
-                                        <data-box
                                             icon="el-icon-s-claim"
                                             backgroundColor="#73c0de"
                                             text="种植批次(批)"
@@ -56,8 +47,8 @@
                                         <data-box
                                             icon="el-icon-s-grid"
                                             backgroundColor="#fac858"
-                                            text="养殖池(个)"
-                                            :value="fishInfo.pondCount"
+                                            text="养殖批次(个)"
+                                            :value="fishInfo.batchCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
@@ -74,8 +65,8 @@
                                         <data-box
                                             icon="el-icon-s-custom"
                                             backgroundColor="#73c0de"
-                                            text="存栏数量(尾)"
-                                            :value="fishInfo.fishCount"
+                                            text="鱼棚数量(个)"
+                                            :value="fishInfo.pengCount"
                                             class="flex1">
                                         </data-box>
                                     </el-col>
@@ -86,6 +77,15 @@
                             <div class="section-container">
                                 <div class="section-title">公共信息</div>
                                 <el-row :gutter="10" class="section-content">
+                                    <el-col :span="8" class="h100 flex aic">
+                                        <data-box
+                                            icon="el-icon-s-data"
+                                            backgroundColor="#5470c6"
+                                            text="基地总面积(亩)"
+                                            :value="baseInfo.areaCount"
+                                            class="flex1">
+                                        </data-box>
+                                    </el-col>
                                     <el-col :span="12" class="h100 flex aic">
                                         <data-box
                                             icon="el-icon-s-custom"
@@ -101,7 +101,7 @@
                     </data-panel>
                 </el-col>
                 <el-col :span="8">
-                    <data-panel title="鱼菜统计" more="更多详情" link="Task">
+                    <data-panel title="种植统计" more="更多详情" link="Task">
                         <div class="main main-large">
                             <el-row class="h100" :gutter="10">
                                 <!-- 图表部分 -->
@@ -139,7 +139,7 @@
                                                     <data-box
                                                         icon="el-icon-s-promotion"
                                                         :backgroundColor="item.color || '#67C23A'"
-                                                        :text="item.name+'(尾)'"
+                                                        :text="item.name+'(条)'"
                                                         :value="item.value"
                                                         :isBorder="false"
                                                         :isIcon="false">
@@ -245,7 +245,10 @@
         selectDeviceJobInfo,
         selectRecordGroupByMonth,
         selectTaskInfo
-    } from "@/api/agriculture/dataStatistics"
+    } from "@/api/agriculture/dataStatistics";
+    import { selectFishBaseInfo,
+            selectFishTaskInfo
+    } from "@/api/fishingGround/fishDataStatistics";
     import DataPanel from "./components/DataPanel";
     import DataBox from "./components/DataBox";
     import {
@@ -303,10 +306,10 @@
                     fishCount: 25000
                 },
                 fishStatsInfo: [
-                    { name: '在养', value: 145, color: '#409EFF' },
-                    { name: '已出塘', value: 45, color: '#67C23A' },
-                    { name: '生病', value: 3, color: '#E6A23C' },
-                    { name: '死亡', value: 0, color: '#F56C6C' }
+                    { name: '未分配', value: 145, color: '#409EFF' },
+                    { name: '已分配', value: 45, color: '#67C23A' },
+                    { name: '进行中', value: 3, color: '#E6A23C' },
+                    { name: '已完成', value: 0, color: '#F56C6C' }
                 ],
                 latestEnvItems: [
                     {
@@ -530,41 +533,7 @@
                 } = await listLand();
                 this.landList = rows;
             },
-            // addFeatures() {
-            //     this.landList.forEach(item => {
-            //         let {
-            //             landPath,
-            //             fillColor,
-            //             fillOpacity,
-            //             strokeColor,
-            //             strokeOpacity,
-            //             strokeWeight,
-            //             landName
-            //         } = item;
-            //         let path = landPath && landPath.split('|').map(item => item.split(','))
-            //         let centerPoint = this.getAreaCenter(path);
-            //         if (path) {
-            //             this.map.add(new this.AMap.Polygon({
-            //                 path,
-            //                 fillColor,
-            //                 fillOpacity,
-            //                 strokeColor,
-            //                 strokeOpacity,
-            //                 strokeWeight
-            //             }));
-            //             this.map.add(new this.AMap.Text({
-            //                 position: centerPoint,
-            //                 anchor: 'center',
-            //                 text: landName,
-            //                 style: {
-            //                     'background': 'none',
-            //                     'border': 'none',
-            //                     'color': '#fff'
-            //                 }
-            //             }))
-            //         }
-            //     });
-            // },
+
             getAreaCenter(points) {
                 var total = points.length;
                 var X = 0,
@@ -595,9 +564,38 @@
             },
             /** 获取首页统计数据 */
             async getDate() {
-                //基地信息
+                //蔬菜基地信息
                 const res = await selectBaseInfo()
                 this.baseInfo = res.rows[0]
+                console.log('蔬菜基地信息:', this.baseInfo)
+
+                // 获取养殖基地信息
+                const fishRes = await selectFishBaseInfo()
+                this.fishInfo = fishRes.rows[0]
+                console.log('养殖基地信息:', this.fishInfo)
+
+                // 获取养殖任务状态信息
+                const fishTaskRes = await selectFishTaskInfo()
+                console.log('养殖任务状态:', fishTaskRes)
+
+
+                    //未分配
+                    let fishwfp = fishTaskRes.rows.find(item => item.status == 0) ? fishTaskRes.rows.find(item => item.status == 0).num : 0;
+                    //已分配
+                    let fishyfp = fishTaskRes.rows.find(item => item.status == 1) ? fishTaskRes.rows.find(item => item.status == 1).num : 0;
+                    //进行中
+                    let fishjxz = fishTaskRes.rows.find(item => item.status == 2) ? fishTaskRes.rows.find(item => item.status == 2).num : 0;
+                    //已完成
+                    let fishywc = fishTaskRes.rows.find(item => item.status == 3) ? fishTaskRes.rows.find(item => item.status == 3).num : 0;
+
+                    // 更新养殖状态信息数组
+                    this.fishStatsInfo = [
+                        { name: '未分配', value: fishwfp, color: '#909399' },
+                        { name: '已分配', value: fishyfp, color: '#E6A23C' },
+                        { name: '进行中', value: fishjxz, color: '#409EFF' },
+                        { name: '已完成', value: fishywc, color: '#67C23A' }
+                    ];
+
 
                 const res4 = await selectRecordGroupByMonth()
                 res4.rows.forEach(item => {
@@ -625,6 +623,9 @@
                     { name: '进行中', value: jxz, color: '#409EFF' },
                     { name: '已完成', value: ywc, color: '#67C23A' }
                 ];
+
+
+
 
                 // 初始化溯源图表
                 lineChart(this.$refs.indexDeviceMonitorChart, {
@@ -961,11 +962,10 @@
         margin-bottom: 20px;
         padding: 15px;
         background: rgba(255, 255, 255, 0.3);
-        border-radius: 8px;
+        border-radius: 12px;
         width: 100%;
 
-        // 蔬菜大棚卡片样式
-        &.vegetable-cards {
+        &.vegetable-cards, &.fish-cards {
             .el-row {
                 margin-bottom: 10px;
                 width: 100%;
@@ -974,23 +974,7 @@
             }
 
             .el-col {
-                padding: 0 10px;
-            }
-        }
-
-        // 养殖池卡片样式
-        &.fish-cards {
-            .el-row {
-                margin: 0 -10px 10px -10px;
-                width: calc(100% + 20px);
-                display: flex;
-                justify-content: flex-start;
-            }
-
-            .el-col {
-                padding: 0 10px;
-                flex: 1;
-                max-width: 20%;
+                padding: 0 8px;
             }
         }
 
@@ -1000,63 +984,64 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(255, 255, 255, 0.7);
             padding: 15px 10px;
-            border-radius: 10px;
+            border-radius: 16px;
             transition: all 0.3s ease;
-            border-left: 4px solid transparent;
             margin-bottom: 0;
             width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
 
             &:hover {
                 transform: translateY(-3px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
             }
 
             &.success {
-                border-left-color: #67C23A;
+                background: linear-gradient(145deg, rgba(103, 194, 58, 0.05), rgba(103, 194, 58, 0.15));
                 .env-value { color: #67C23A; }
             }
 
             &.warning {
-                border-left-color: #E6A23C;
+                background: linear-gradient(145deg, rgba(230, 162, 60, 0.05), rgba(230, 162, 60, 0.15));
                 .env-value { color: #E6A23C; }
             }
 
             &.danger {
-                border-left-color: #F56C6C;
+                background: linear-gradient(145deg, rgba(245, 108, 108, 0.05), rgba(245, 108, 108, 0.15));
                 .env-value { color: #F56C6C; }
             }
 
             .env-title {
                 color: #666;
                 font-size: 13px;
-                margin-bottom: 5px;
+                margin-bottom: 8px;
                 text-align: center;
-                white-space: nowrap;
-                padding: 0 5px;
-                width: 100%;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                font-weight: 500;
+                letter-spacing: 0.3px;
             }
 
             .env-value {
-                font-size: 20px;
-                font-weight: bold;
+                font-size: 24px;
+                font-weight: 600;
                 margin: 5px 0;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
 
             .env-unit {
-                color: #999;
+                color: #8c8c8c;
                 font-size: 12px;
+                margin-top: 2px;
+                letter-spacing: 0.2px;
             }
         }
 
         .env-time {
             text-align: right;
-            color: #999;
+            color: #8c8c8c;
             font-size: 12px;
-            margin-top: 5px;
+            margin-top: 8px;
+            letter-spacing: 0.2px;
         }
     }
 
@@ -1257,6 +1242,26 @@
                 }
                 .env-value {
                     font-size: 18px;
+                }
+            }
+        }
+    }
+
+    .env-cards-wrapper {
+        &.fish-cards {
+            .el-row {
+                margin: 0 -8px; // 抵消padding的间距
+                width: calc(100% + 16px); // 补偿margin的负值
+
+                .el-col {
+                    padding: 0 8px;
+                    width: 20%; // 确保每个卡片占20%宽度
+
+                    // 修复 el-col 的默认样式
+                    @media only screen and (min-width: 768px) {
+                        flex: 0 0 20%;
+                        max-width: 20%;
+                    }
                 }
             }
         }

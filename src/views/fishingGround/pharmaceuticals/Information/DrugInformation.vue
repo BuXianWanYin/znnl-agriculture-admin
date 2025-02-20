@@ -95,7 +95,7 @@
                 </el-form-item>
                 <el-form-item label="药品类别" prop="medicineTypeId">
                     <el-select v-model="form.medicineTypeId" placeholder="请选择药品类别" class="display-block" clearable
-                        @change="handleQuery">
+                        @change="handleTypeChange">
                         <el-option v-for="item in medicineTypeList" :key="item.medicineTypeId"
                             :label="item.medicineTypeName" :value="item.medicineTypeId"></el-option>
                     </el-select>
@@ -252,6 +252,11 @@
                 this.open = true;
                 this.title = "添加药品信息";
             },
+            /** 药品类别选择改变时的处理 */
+            handleTypeChange(value) {
+                // 手动触发表单验证
+                this.$refs.form.validateField('medicineTypeId');
+            },
             /** 修改按钮操作 */
             handleUpdate(row) {
                 this.reset();
@@ -260,6 +265,12 @@
                     this.form = response.data;
                     this.open = true;
                     this.title = "修改药品信息";
+                    // 添加这一行，等待DOM更新后触发验证
+                    this.$nextTick(() => {
+                        if (this.$refs.form) {
+                            this.$refs.form.clearValidate();
+                        }
+                    });
                 });
             },
             /** 提交按钮 */

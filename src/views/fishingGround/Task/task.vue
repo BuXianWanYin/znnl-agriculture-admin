@@ -19,7 +19,16 @@
                     <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
                 </el-form-item>
                 <el-form-item class="fr">
-                    <el-button-group>
+                    <el-button-group class="spaced-button-group">
+                        <el-button 
+                            class="width-90" 
+                            v-if="tableBorder" 
+                            type="primary"
+                            :disabled="!checkPermi(['agriculture:batchTask:add'])" 
+                            size="mini" 
+                            plain 
+                            icon="el-icon-plus"
+                            @click="handleAdd">新增任务</el-button>
                         <el-button type="primary" @click="handleChange('table')" :plain="gantt" size="mini"
                             icon="el-icon-s-order">列表</el-button>
                         <el-button type="primary" @click="handleChange('gantt')" :plain="!gantt" size="mini"
@@ -110,8 +119,8 @@
                         value-format="yyyy-MM-dd" placeholder="选择计划结束日期">
                     </el-date-picker>
                 </el-form-item>
-                <el-form-item label="任务详情" prop="taskDetail">
-                    <el-input v-model="form.taskDetail" type="textarea" placeholder="请输入内容" />
+                <el-form-item label="任务详情" prop="remark">
+                    <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -493,5 +502,28 @@
 
     .search ::v-deep .el-form {
         flex: 1;
+    }
+
+    .spaced-button-group {
+        ::v-deep .el-button {
+            margin-left: 8px !important;
+            border: 1px solid #dcdfe6 !important;
+            
+            &:first-child {
+                margin-left: 0 !important;
+            }
+
+            &.is-plain {
+                border-color: #dcdfe6 !important;
+                
+                &:hover {
+                    border-color: #409eff !important;
+                }
+            }
+
+            &:not(.is-plain) {
+                border-color: #409eff !important;
+            }
+        }
     }
 </style>

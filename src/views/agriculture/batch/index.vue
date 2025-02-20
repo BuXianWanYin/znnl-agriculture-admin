@@ -38,73 +38,80 @@
         </el-card>
         <el-card class="card-padding-bottom">
             <div v-loading="loading" class="batch-card-grid">
-                <el-card v-for="(item, index) in batchList" 
-                         :key="index" 
-                         class="batch-card"
-                         shadow="hover">
-                    <div class="batch-card-header">
-                        <div class="header-content">
-                            <div class="section-name">分区名称</div>
-                            <div class="batch-name">{{ item.batchName }}</div>
-                        </div>
-                        <el-tag :type="item.status == 0 ? 'warning' : 'success'">
-                            {{ item.status == 0 ? '未完成' : '已完成' }}
-                        </el-tag>
-                    </div>
-                    
-                    <div class="batch-card-content">
-                        <div class="batch-image" @click="previewImage(`${image.baseUrl + item.germplasmImg}`, item)">
-                            <img :src="`${image.baseUrl + item.germplasmImg}`" alt="种质图片"/>
-                        </div>
-                        
-                        <div class="batch-info">
-                            <div class="info-item">
-                                <span class="label">种质：</span>
-                                <data-tag :options="germplasmList" 
-                                         :value="item.germplasmId" 
-                                         labelName="germplasmName"
-                                         valueName="germplasmId" 
-                                         type="" />
+                <el-row :gutter="24">
+                    <el-col :span="8" v-for="(item, index) in batchList" :key="index">
+                        <el-card class="batch-card" shadow="hover">
+                            <div class="batch-card-header">
+                                <div class="header-content">
+                                    <div class="section-name">分区名称</div>
+                                    <div class="batch-name">{{ item.batchName }}</div>
+                                </div>
+                                <el-tag :type="item.status == 0 ? 'warning' : 'success'">
+                                    {{ item.status == 0 ? '未完成' : '已完成' }}
+                                </el-tag>
                             </div>
-                            <div class="info-item">
-                                <span class="label">负责人：</span>
-                                <data-tag :options="userList" 
-                                         :value="item.batchHead" 
-                                         labelName="userName"
-                                         valueName="userId" 
-                                         type="notag" />
-                            </div>
-                            <div class="info-item">
-                                <span class="label">所属大棚：</span>
-                                <span>{{ getLabel(item.landId) }}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">种植面积：</span>
-                                <span>{{ item.cropArea }}亩</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">合约地址：</span>
-                                <span>{{ item.contractAddress }}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">开始时间：</span>
-                                <span>{{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="batch-card-actions">
-                        <el-button size="small" type="primary" icon="el-icon-edit"
-                            @click="handleUpdate(item)" 
-                            v-hasPermi="['agriculture:batch:edit']">修改</el-button>
-                        <el-button size="small" type="danger" icon="el-icon-delete"
-                            @click="handleDelete(item)" 
-                            v-hasPermi="['agriculture:batch:remove']">删除</el-button>
-                        <el-button size="small" plain type="warning" icon="el-icon-s-claim"
-                            @click="handleBatchTask(item)"
-                            v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
-                    </div>
-                </el-card>
+                            <div class="batch-image" @click="previewImage(`${image.baseUrl + item.germplasmImg}`, item)">
+                                <img :src="`${image.baseUrl + item.germplasmImg}`" alt="种质图片"/>
+                            </div>
+                            
+                            <div class="batch-card-content">
+                                <div class="batch-info">
+                                    <div class="info-item">
+                                        <i class="el-icon-menu"></i>
+                                        <span class="label">种质：</span>
+                                        <data-tag :options="germplasmList" 
+                                                 :value="item.germplasmId" 
+                                                 labelName="germplasmName"
+                                                 valueName="germplasmId" 
+                                                 type="" />
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-user"></i>
+                                        <span class="label">负责人：</span>
+                                        <data-tag :options="userList" 
+                                                 :value="item.batchHead" 
+                                                 labelName="userName"
+                                                 valueName="userId" 
+                                                 type="notag" />
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-office-building"></i>
+                                        <span class="label">所属大棚：</span>
+                                        <span>{{ getLabel(item.landId) }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-full-screen"></i>
+                                        <span class="label">种植面积：</span>
+                                        <span>{{ item.cropArea }}亩</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-link"></i>
+                                        <span class="label">合约地址：</span>
+                                        <span>{{ item.contractAddress }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-date"></i>
+                                        <span class="label">开始时间：</span>
+                                        <span>{{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="batch-card-actions">
+                                <el-button size="small" type="primary" icon="el-icon-edit"
+                                    @click="handleUpdate(item)" 
+                                    v-hasPermi="['agriculture:batch:edit']">修改</el-button>
+                                <el-button size="small" type="danger" icon="el-icon-delete"
+                                    @click="handleDelete(item)" 
+                                    v-hasPermi="['agriculture:batch:remove']">删除</el-button>
+                                <el-button size="small" plain type="warning" icon="el-icon-s-claim"
+                                    @click="handleBatchTask(item)"
+                                    v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
             </div>
 
             <pagination v-show="total > 0" 
@@ -434,24 +441,32 @@
     }
 
     .batch-card-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px; 
         padding: 20px;
+        
+        .el-row {
+            margin: -12px;  // 抵消 el-row 的默认边距
+        }
+        
+        .el-col {
+            padding: 12px;  // 给每个卡片添加间距
+        }
     }
 
     .batch-card {
-        background: #fff;
-        border-radius: 8px;
-        width: 100%;
+        height: 100%;
+        background: white;
+        border-radius: 16px;
+        padding: 16px;  // 添加整体内边距
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
         
         .batch-card-header {
+            margin-bottom: 16px;  // 添加与图片的间距
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding: 15px 20px;
-            border-bottom: 1px solid #ebeef5;
-
+            
             .header-content {
                 .section-name {
                     font-size: 12px;
@@ -461,79 +476,136 @@
 
                 .batch-name {
                     font-size: 16px;
-                    font-weight: bold;
-                    color: #303133;
+                    font-weight: 600;
+                    color: #333;
                 }
+            }
+
+            .el-tag {
+                border-radius: 4px;
+                padding: 0 8px;
+            }
+        }
+        
+        .batch-image {
+            width: 100%;
+            height: 180px;
+            border-radius: 8px;  // 添加圆角
+            overflow: hidden;
+            cursor: pointer;
+            margin-bottom: 16px;  // 添加与内容的间距
+            
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s ease;
+            }
+            
+            &:hover img {
+                transform: scale(1.05);
             }
         }
 
         .batch-card-content {
-            padding: 20px;
-            display: flex;
-            flex-direction: row;
-            gap: 20px;
-            align-items: center;
-
-            .batch-image {
-                flex-shrink: 0;
-                text-align: center;
-                margin: 0 auto;
-                width: 150px;
-                height: 150px;
-                overflow: hidden;
-                border-radius: 50%;
-                cursor: pointer;
-                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1),
-                            0 2px 6px rgba(0, 0, 0, 0.08);
-                background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
-                padding: 4px;
-
-                img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    border-radius: 50%;
-                }
-            }
-
+            padding: 0;  // 移除多余的内边距
+            
             .batch-info {
-                flex: 1;
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: 1fr;
                 gap: 12px;
-                padding: 0 10px;
 
                 .info-item {
+                    font-size: 13px;
                     display: flex;
-                    align-items: flex-start;
-                    font-size: 14px;
+                    align-items: center;
 
-                    .label {
-                        color: #606266;
-                        min-width: 80px;
+                    i {
+                        color: #409EFF;
                         margin-right: 8px;
+                        font-size: 14px;
                     }
 
-                    span {
-                        word-break: break-all;
-                        line-height: 1.4;
+                    .label {
+                        color: #666;
+                        margin-right: 8px;
                     }
                 }
             }
         }
 
         .batch-card-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            padding: 15px 20px;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 1px solid #ebeef5;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            
+            .el-button {
+                padding: 6px 12px;
+                height: 32px;
+                border-radius: 4px;
+                margin: 0;
+                transition: all 0.3s ease;
+                
+                &.el-button--primary {
+                    background-color: #f2f6fc;
+                    border-color: transparent;
+                    color: #409eff;
+                    
+                    &:hover {
+                        background-color: #409eff;
+                        color: #ffffff;
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+                    }
+                }
+                
+                &.el-button--danger {
+                    background-color: #fef0f0;
+                    border-color: transparent;
+                    color: #f56c6c;
+                    
+                    &:hover {
+                        background-color: #f56c6c;
+                        color: #ffffff;
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
+                    }
+                }
+                
+                &.el-button--warning {
+                    background-color: #fdf6ec;
+                    border-color: transparent;
+                    color: #e6a23c;
+                    
+                    &:hover {
+                        background-color: #e6a23c;
+                        color: #ffffff;
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
+                    }
+                }
+            }
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         }
     }
-
-    ::v-deep .el-card.is-hover-shadow:hover {
-        box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-        transition: all 0.3s;
+    
+    // 响应式布局
+    @media screen and (max-width: 1400px) {
+        .el-col {
+            width: 50% !important;  // 在较小屏幕上显示两列
+        }
+    }
+    
+    @media screen and (max-width: 992px) {
+        .el-col {
+            width: 100% !important;  // 在移动设备上显示单列
+        }
     }
 </style>

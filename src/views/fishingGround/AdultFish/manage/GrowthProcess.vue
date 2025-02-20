@@ -86,7 +86,7 @@
             <el-input v-model="form.jobName" placeholder="请输入作业任务名称" />
           </el-form-item>
           <el-form-item label="作业周期单位" prop="cycleUnit">
-            <el-select v-model="form.cycleUnit" placeholder="请选择作业周期单位" @change="handleCycleUnitChange">
+            <el-select v-model="form.cycleUnit" placeholder="请选择作业周期单位" @change="handleSelectChange('cycleUnit')">
               <el-option
                 v-for="dict in dict.type.agriculture_cycle_unit"
                 :key="dict.value"
@@ -288,7 +288,12 @@
           this.label.startLabel='起始周';
           this.label.endLabel='结束周';
         }
-      }
+      },
+      // 作业周期单位 ,不用等鼠标事件焦点离开 就会进行校验
+      handleSelectChange(field) {
+                console.log('form values:', this.form);
+                this.$refs.form.validateField(field);
+            }
     }
   };
   </script>

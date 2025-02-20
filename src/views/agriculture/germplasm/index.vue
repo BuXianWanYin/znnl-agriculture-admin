@@ -15,7 +15,7 @@
                     <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
                     <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
                 </el-form-item>
-                <el-form-item class="fr">
+                <el-form-item class="fr"> 
                     <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
                         v-hasPermi="['agriculture:germplasm:add']">新增</el-button>
                     <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
@@ -24,39 +24,64 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-row :gutter="20" v-loading="loading">
-                <el-col :span="8" v-for="(item, index) in germplasmList" :key="index" class="mb-20">
-                    <el-card shadow="hover" class="germplasm-card">
-                        <div class="card-header">
-                            <div class="image-container" @click="previewImage(`${image.baseUrl + item.germplasmImg}`, item)">
-                                <img :src="`${image.baseUrl + item.germplasmImg}`" class="germplasm-image" />
+            <el-row :gutter="24">
+                <el-col :span="6" v-for="(item, index) in germplasmList" :key="index">
+                    <el-card class="germplasm-card" shadow="hover">
+                        <div class="germplasm-card-header">
+                            <div class="header-content">
+                                <div class="section-name">种质信息</div>
+                                <div class="germplasm-name">{{ item.germplasmName }}</div>
                             </div>
                         </div>
-                        <div class="card-content">
-                            <div class="content-row">
-                                <span class="label">作物名称：</span>
-                                <span class="value">{{ item.cropName }}</span>
-                            </div>
-                            <div class="content-row">
-                                <span class="label">英文名称：</span>
-                                <span class="value">{{ item.cropEnName }}</span>
-                            </div>
-                            <div class="content-row">
-                                <span class="label">种质名称：</span>
-                                <span class="value">{{ item.germplasmName }}</span>
-                            </div>
-                            <div class="content-row">
-                                <span class="label">种质英文：</span>
-                                <span class="value">{{ item.germplasmEnName }}</span>
+
+                        <div class="germplasm-image" @click="previewImage(`${image.baseUrl + item.germplasmImg}`, item)">
+                            <img :src="`${image.baseUrl + item.germplasmImg}`" alt="种质图片"/>
+                        </div>
+                        
+                        <div class="germplasm-card-content">
+                            <div class="germplasm-info">
+                                <div class="info-group">
+                                    <div class="info-row">
+                                        <div class="info-item">
+                                            <i class="el-icon-menu"></i>
+                                            <span class="label">作物名称：</span>
+                                            <span class="value">{{ item.cropName }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="el-icon-edit-outline"></i>
+                                            <span class="label">英文名称：</span>
+                                            <span class="value">{{ item.cropEnName }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <div class="info-row">
+                                        <div class="info-item">
+                                            <i class="el-icon-document"></i>
+                                            <span class="label">种质名称：</span>
+                                            <span class="value">{{ item.germplasmName }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="el-icon-tickets"></i>
+                                            <span class="label">种质英文：</span>
+                                            <span class="value">{{ item.germplasmEnName }}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-footer">
-                            <el-button size="mini" type="primary" icon="el-icon-edit"
-                                @click="handleUpdate(item)" v-hasPermi="['agriculture:germplasm:edit']">修改</el-button>
-                            <el-button size="mini" type="danger" icon="el-icon-delete"
-                                @click="handleDelete(item)" v-hasPermi="['agriculture:germplasm:remove']">删除</el-button>
-                            <el-button size="mini" type="success" icon="el-icon-document"
-                                @click="showStandardJob(item)" v-hasPermi="['agriculture:germplasm:jobProcess']">作业流程</el-button>
+
+                        <div class="germplasm-card-actions">
+                            <el-button size="small" type="primary" icon="el-icon-edit"
+                                @click="handleUpdate(item)" 
+                                v-hasPermi="['agriculture:germplasm:edit']">修改</el-button>
+                            <el-button size="small" type="danger" icon="el-icon-delete"
+                                @click="handleDelete(item)" 
+                                v-hasPermi="['agriculture:germplasm:remove']">删除</el-button>
+                            <el-button size="small" plain type="warning" icon="el-icon-s-claim"
+                                @click="showStandardJob(item)" 
+                                v-hasPermi="['agriculture:germplasm:jobProcess']">作业流程</el-button>
                         </div>
                     </el-card>
                 </el-col>
@@ -327,81 +352,194 @@
     };
 </script>
 
-<style scoped>
-.mb-20 {
-    margin-bottom: 20px;
+<style lang="scss" scoped>
+.germplasm-card-grid {
+    padding: 20px;
+}
+
+// 修改行和列的间距
+.el-row {
+    margin: 0 -12px; // 只设置水平方向的负边距
+}
+
+.el-col {
+    padding: 0 12px; // 水平方向的内边距
+    margin-bottom: 24px; // 添加垂直方向的下边距
 }
 
 .germplasm-card {
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.3s;
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    
+    .germplasm-card-header {
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        
+        .header-content {
+            .section-name {
+                font-size: 12px;
+                color: #909399;
+                margin-bottom: 4px;
+            }
+
+            .germplasm-name {
+                font-size: 14px;
+                font-weight: 600;
+                color: #333;
+            }
+        }
+    }
+    
+    .germplasm-image {
+        width: 100%;
+        height: 180px;
+        border-radius: 6px;
+        overflow: hidden;
+        cursor: pointer;
+        margin-bottom: 12px;
+        
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .germplasm-card-content {
+        padding: 0;
+        
+        .germplasm-info {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+
+            .info-group {
+                padding-bottom: 12px;
+                
+                &:first-child {
+                    border-bottom: 1px dashed #ebeef5;
+                }
+
+                .info-row {
+                    display: flex;
+                    gap: 16px;
+                    
+                    .info-item {
+                        flex: 1;
+                        font-size: 12px;
+                        display: flex;
+                        align-items: center;
+                        white-space: nowrap;
+
+                        i {
+                            color: #67C23A;
+                            margin-right: 8px;
+                            font-size: 14px;
+                        }
+
+                        .label {
+                            color: #666;
+                            margin-right: 8px;
+                            min-width: 60px;
+                        }
+
+                        .value {
+                            color: #333;
+                            flex: 1;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .germplasm-card-actions {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #ebeef5;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        
+        .el-button {
+            padding: 4px 8px;
+            height: 28px;
+            border-radius: 4px;
+            margin: 0;
+            transition: all 0.3s ease;
+            
+            &.el-button--primary {
+                background-color: #f2f6fc;
+                border-color: transparent;
+                color: #409eff;
+                
+                &:hover {
+                    background-color: #409eff;
+                    color: #ffffff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+                }
+            }
+            
+            &.el-button--danger {
+                background-color: #fef0f0;
+                border-color: transparent;
+                color: #f56c6c;
+                
+                &:hover {
+                    background-color: #f56c6c;
+                    color: #ffffff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
+                }
+            }
+            
+            &.el-button--warning {
+                background-color: #fdf6ec;
+                border-color: transparent;
+                color: #e6a23c;
+                
+                &:hover {
+                    background-color: #e6a23c;
+                    color: #ffffff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
+                }
+            }
+        }
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    }
 }
 
-.germplasm-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+// 响应式布局
+@media screen and (max-width: 1600px) {
+    .el-col {
+        width: 33.33% !important;
+    }
 }
 
-.card-header {
-    text-align: center;
-    padding: 15px;
+@media screen and (max-width: 1200px) {
+    .el-col {
+        width: 50% !important;
+    }
 }
 
-.image-container {
-    cursor: pointer;
-    overflow: hidden;
-    margin: 0 auto;
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    position: relative;
-    background: linear-gradient(145deg, #f3f3f3, #ffffff);
-    box-shadow: 
-        -8px -8px 15px rgba(255, 255, 255, 0.7),
-        8px 8px 15px rgba(0, 0, 0, 0.05),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.8);
-}
-
-.germplasm-image {
-    width: 140px;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 50%;
-    padding: 5px;
-}
-
-.card-content {
-    padding: 10px;
-    flex-grow: 1;
-}
-   
-.content-row {
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-}
-
-.label {
-    color: #606266;
-    width: 80px;
-    font-size: 14px;
-}
-
-.value {
-    color: #303133;
-    flex: 1;
-    font-size: 14px;
-}
-
-.card-footer {
-    padding: 10px;
-    text-align: center;
-    border-top: 1px solid #EBEEF5;
-}
-
-.card-footer .el-button {
-    margin: 0 5px;
+@media screen and (max-width: 768px) {
+    .el-col {
+        width: 100% !important;
+    }
 }
 </style>

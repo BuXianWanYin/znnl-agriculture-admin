@@ -90,39 +90,62 @@
         </div>
         <!-- 新增/修改弹框 -->
         <el-dialog :title="btnTxt == 1 ? '编辑' : btnTxt == 2 ? '详情' : '新增'" :visible.sync="houseEditDialog" width="40%">
-            <el-form :model="houseDoForm" label-width="120px">
-                <el-form-item label="鱼池名称">
-                    <el-input v-model="houseDoForm.name" required placeholder="请输入名称"
-                        :disabled="btnTxt == 2 ? true : false"></el-input>
+            <el-form :model="houseDoForm" 
+                     :rules="rules" 
+                     ref="houseForm" 
+                     label-width="120px">
+                <el-form-item label="鱼池名称" prop="name">
+                    <el-input v-model="houseDoForm.name" 
+                             placeholder="请输入名称"
+                             :disabled="btnTxt == 2 ? true : false">
+                    </el-input>
                 </el-form-item>
-                <el-form-item label="鱼池面积">
-                    <el-input v-model="houseDoForm.area" required placeholder="请输入鱼池面积"
-                        :disabled="btnTxt == 2 ? true : false"></el-input>
+                <el-form-item label="鱼池面积" prop="area">
+                    <el-input v-model="houseDoForm.area" 
+                             placeholder="请输入鱼池面积"
+                             :disabled="btnTxt == 2 ? true : false">
+                    </el-input>
                 </el-form-item>
-                <el-form-item label="最大分区数量">
-                    <el-input v-model="houseDoForm.bigBreedingQuantity" required placeholder="最大分区数量"
-                        :disabled="btnTxt == 2 ? true : false"></el-input>
+                <el-form-item label="最大分区数量" prop="bigBreedingQuantity">
+                    <el-input v-model="houseDoForm.bigBreedingQuantity" 
+                             placeholder="最大分区数量"
+                             :disabled="btnTxt == 2 ? true : false">
+                    </el-input>
                 </el-form-item>
-                <el-form-item label="鱼池位置">
-                    <el-input v-model="houseDoForm.address" required placeholder="请输入鱼池位置"
-                        :disabled="btnTxt == 2 ? true : false"></el-input>
+                <el-form-item label="鱼池位置" prop="address">
+                    <el-input v-model="houseDoForm.address" 
+                             placeholder="请输入鱼池位置"
+                             :disabled="btnTxt == 2 ? true : false">
+                    </el-input>
                 </el-form-item>
-                <el-form-item label="绑定设备">
-                    <el-input v-if="btnTxt == 2" v-model="houseDoForm.deviceId" required :disabled="true"></el-input>
-                    <el-select v-model="houseDoForm.deviceId" placeholder="请选择" size="small" v-else>
-                        <el-option v-for="item in deviceOptions" :key="item.id" :label="item.deviceName"
-                            :value="item.id">
+                <el-form-item label="绑定设备" prop="deviceId">
+                    <el-input v-if="btnTxt == 2" 
+                             v-model="houseDoForm.deviceId" 
+                             :disabled="true">
+                    </el-input>
+                    <el-select v-else
+                              v-model="houseDoForm.deviceId" 
+                              placeholder="请选择" 
+                              size="small">
+                        <el-option v-for="item in deviceOptions" 
+                                  :key="item.id" 
+                                  :label="item.deviceName"
+                                  :value="item.id">
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="备注信息">
-                    <el-input type="textarea" :disabled="btnTxt == 2 ? true : false" v-model="houseDoForm.description"
-                        :rows="3" placeholder="请输入备注信息"></el-input>
+                <el-form-item label="备注信息" prop="description">
+                    <el-input type="textarea" 
+                             :disabled="btnTxt == 2 ? true : false" 
+                             v-model="houseDoForm.description"
+                             :rows="3" 
+                             placeholder="请输入备注信息">
+                    </el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
-                <el-button size="small" @click="houseEditDialog = false">关闭</el-button>
-                <el-button type="success" size="small" @click="houseDoBtn">确认</el-button>
+                <el-button size="small" @click="closeDialog">关闭</el-button>
+                <el-button type="success" size="small" @click="submitForm('houseForm')">确认</el-button>
             </div>
         </el-dialog>
         <!-- 鱼池状态抽屉页面 -->
@@ -193,6 +216,26 @@
                     description: ''
                 },
                 sbId: '',
+                // 表单验证规则
+                rules: {
+                    name: [
+                        { required: true, message: '鱼池名称不能为空', trigger: 'blur' }
+                    ],
+                    area: [
+                        { required: true, message: '鱼池面积不能为空', trigger: 'blur' }
+                        // { pattern: /^[0-9]*$/, message: '请输入数字', trigger: 'blur' }
+                    ],
+                    bigBreedingQuantity: [
+                        { required: true, message: '最大分区数量不能为空', trigger: 'blur' },
+                        { pattern: /^[0-9]*$/, message: '请输入数字', trigger: 'blur' }
+                    ],
+                    address: [
+                        { required: true, message: '鱼池位置不能为空', trigger: 'blur' }
+                    ],
+                    deviceId: [
+                        { required: true, message: '请选择绑定设备', trigger: 'change' }
+                    ]
+                }
             }
         },
         mounted() {
@@ -327,38 +370,43 @@
                 });
             },
             //   弹框确定按钮
-            houseDoBtn() {
-                if (this.btnTxt == 0) {
-                    this.$http.post("/dev-api/fishPasture/create", this.houseDoForm).then(res => {
-                        console.log(res)
-                        if (res.data.code == 0) {
-                            this.$message.success("数据新增成功");
-                            this.houseEditDialog = false;
-                            this.getHouseData()
-                        } else {
-                            this.$message.error(res.data.msg);
+            closeDialog() {
+                this.$refs['houseForm'].resetFields();
+                this.houseEditDialog = false;
+            },
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        if (this.btnTxt == 0) {
+                            // 新增
+                            this.$http.post("/dev-api/fishPasture/create", this.houseDoForm).then(res => {
+                                if (res.data.code == 0) {
+                                    this.$message.success("数据新增成功");
+                                    this.closeDialog();
+                                    this.getHouseData();
+                                } else {
+                                    this.$message.error(res.data.msg);
+                                }
+                            })
+                        } else if (this.btnTxt == 1) {
+                            // 编辑
+                            this.deviceOptions.forEach(item => {
+                                if (item.id == this.sbId) {
+                                    this.houseDoForm.deviceId = item.id
+                                }
+                            })
+                            this.$http.post("/dev-api/fishPasture/update", this.houseDoForm).then(res => {
+                                if (res.data.code == 0) {
+                                    this.$message.success("数据修改成功");
+                                    this.closeDialog();
+                                    this.getHouseData();
+                                }
+                            })
                         }
-                    })
-                } else if (this.btnTxt == 1) {
-                    console.log("确认编辑")
-                    this.deviceOptions.forEach(item => {
-                        if (item.id == this.sbId) {
-                            this.houseDoForm.deviceId = item.id
-                        }
-                    })
-                    this.$http.post("/dev-api/fishPasture/update", this.houseDoForm).then(res => {
-                        console.log(res)
-                        if (res.data.code == 0) {
-                            this.$message.success("数据修改成功");
-                            this.houseEditDialog = false;
-                            this.getHouseData()
-                        }
-                    })
-                } else {
-                    this.houseEditDialog = false;
-                }
-
-
+                    } else {
+                        return false;
+                    }
+                });
             },
             // 抽屉页面搜索
             statusSearch() {

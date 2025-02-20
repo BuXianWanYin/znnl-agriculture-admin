@@ -107,7 +107,7 @@
         </el-card>
         <!-- 添加或修改作物批次对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
-            <el-alert class="margin-bottom-10" title="新建批次会根据选择种质的种植流程生成批次任务，新增完成可以到批次任务管理界面调整批次任务！" type="warning"
+            <el-alert class="margin-bottom-10" title="新建批次会根据选择鱼类的养殖流程生成批次任务，新增完成可以到批次任务管理界面调整批次任务！" type="warning"
                 effect="light" show-icon closable></el-alert>
 
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
@@ -120,8 +120,8 @@
                 <el-form-item label="分区名称" prop="batchName">
                     <el-input v-model="form.batchName" placeholder="请输入分区名称" />
                 </el-form-item>
-                <el-form-item label="种质" prop="speciesId">
-                    <el-select v-model="form.speciesId" placeholder="请选择种质">
+                <el-form-item label="鱼类" prop="speciesId">
+                    <el-select v-model="form.speciesId" placeholder="请选择鱼类" @change="handleSelectChange('speciesId')">
                         <el-option v-for="fishPasture in speciesList" :key="fishPasture.speciesId"
                             :label="fishPasture.fishName" :value="fishPasture.speciesId"></el-option>
                     </el-select>
@@ -137,7 +137,7 @@
                     </el-date-picker>
                 </el-form-item>
                 <el-form-item label="负责人" prop="batchHead">
-                    <el-select v-model="form.batchHead" placeholder="请选择负责人">
+                    <el-select v-model="form.batchHead" placeholder="请选择负责人" @change="handleSelectChange('batchHead')">
                         <el-option v-for="user in userList" :key="user.userId" :label="user.nickName"
                             :value="user.userId"></el-option>
                     </el-select>
@@ -152,7 +152,7 @@
         <el-dialog :title="image.title" :visible.sync="image.open" width="240px">
             <img style="width:200px;height:200px;" :src="image.imgUrl" />
         </el-dialog>
-        <!-- 种植计划对话框 -->
+        <!-- 养殖计划对话框 -->
         <el-dialog v-if="batchTask.open" :title="batchTask.title" :visible.sync="batchTask.open" width="1300px">
             <div style="height:500px;width:100%;overflow:auto;">
                 <task :batchId="this.batchTask.batchId" :tableBorder="true"></task>
@@ -242,13 +242,13 @@
                     }],
                     speciesId: [{
                         required: true,
-                        message: "种质ID不能为空",
-                        trigger: "blur"
+                        message: "鱼类ID不能为空",
+                        trigger: "change"
                     }],
                     landId: [{
                         required: true,
                         message: "地块ID不能为空",
-                        trigger: "blur"
+                        trigger: "change"
                     }],
                     cropArea: [{
                         required: true,
@@ -258,12 +258,12 @@
                     startTime: [{
                         required: true,
                         message: "开始时间不能为空",
-                        trigger: "blur"
+                        trigger: "change"
                     }],
                     batchHead: [{
                         required: true,
                         message: "负责人不能为空",
-                        trigger: "blur"
+                        trigger: "change"
                     }],
                 }
             };
@@ -279,7 +279,7 @@
             })
         },
         methods: {
-            /** 查询作物批次列表 */
+            /** 查询养殖批次列表 */
             getLabel(landId) {
                 const houe = this.houeList.find(item => item.id === landId);
                 return houe ? houe.name : '未知鱼池';
@@ -298,7 +298,7 @@
                     this.landList = response.rows;
                 });
             },
-            /** 查询种质列表 */
+            /** 查询鱼类列表 */
             getspeciesList() {
                 listGermplasm().then(response => {
                     this.speciesList = response.rows;
@@ -350,7 +350,7 @@
             handleAdd() {
                 this.reset();
                 this.open = true;
-                this.title = "添加作物批次";
+                this.title = "添加养殖批次";
             },
             /** 修改按钮操作 */
             handleUpdate(row) {
@@ -359,7 +359,7 @@
                 getBatch(batchId).then(response => {
                     this.form = response.data;
                     this.open = true;
-                    this.title = "修改作物批次";
+                    this.title = "修改养殖批次";
                 });
             },
             /** 提交按钮 */
@@ -385,7 +385,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const batchIds = row.batchId || this.ids;
-                this.$modal.confirm('是否确认删除作物批次编号为"' + batchIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除养殖批次编号为"' + batchIds + '"的数据项？').then(function() {
                     return delBatch(batchIds);
                 }).then(() => {
                     this.getList();
@@ -409,6 +409,10 @@
                 this.batchTask.open = true;
                 this.batchTask.title = '养殖计划';
                 this.batchTask.batchId = row.batchId;
+            },
+            handleSelectChange(field) {
+                console.log('form values:', this.form);
+                this.$refs.form.validateField(field);
             }
         },
         components: {

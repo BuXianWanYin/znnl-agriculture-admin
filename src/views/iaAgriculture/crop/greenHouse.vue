@@ -1,90 +1,88 @@
 <!-- 大棚页面 -->
 <template>
-    <div class="list-content">
-        <el-card class="card-margin-bottom">
-            <div class="form-top">
-                <el-form :inline="true" class="form-minus-bottom">
-                    <el-form-item label="大棚名称">
-                        <el-input v-model="mcName" placeholder="请输入名称" size="small" class="inpname"></el-input>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" icon="el-icon-search" size="mini" @click="houseSearch">搜索</el-button>
-                        <el-button icon="el-icon-refresh" size="mini" @click="resetName">重置</el-button>
-                    </el-form-item>
-                    <el-form-item class="fr">
-                        <el-button type="primary" plain icon="el-icon-plus" size="mini"
-                            @click="addHouse()">新增</el-button>
-                    </el-form-item>
-                    <!-- <el-form-item>
-                        <el-button type="success" size="mini" @click="houseSearch">&nbsp;查询&nbsp;</el-button>
-                        <el-button @click="resetName" size="mini">&nbsp;重置&nbsp;</el-button>
-                    </el-form-item> -->
-                </el-form>
-                <!-- <div class="do-right">
-                    <el-button type="success" size="mini" plain @click="addHouse()">&nbsp; 新增 &nbsp;</el-button>
-                </div> -->
-            </div>
+    <div class="app-container-sm">
+        <el-card class="search-card">
+            <el-form :inline="true" class="search-form">
+                <el-form-item label="大棚名称">
+                    <el-input v-model="mcName" placeholder="请输入名称" size="small" class="search-input"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" icon="el-icon-search" size="small" @click="houseSearch">搜索</el-button>
+                    <el-button icon="el-icon-refresh" size="small" @click="resetName">重置</el-button>
+                </el-form-item>
+                <el-form-item class="fr">
+                    <el-button type="primary" plain icon="el-icon-plus" size="small" @click="addHouse()">新增</el-button>
+                </el-form-item>
+            </el-form>
         </el-card>
-        <div class="plant-table">
-            <el-row :gutter="20">
-                <el-col :span="12" v-for="(item, index) in houseData" :key="index">
-                    <el-card class="house-card" shadow="hover">
-                        <div class="house-header">
-                            <span class="house-title">{{ item.name }}</span>
-                            <div class="house-actions">
-                                <el-button size="mini" type="primary" icon="el-icon-edit"
-                                    @click="addHouse(item.id)"
-                                    v-hasPermi="['agriculture:batch:edit']">修改</el-button>
-                                <el-button size="mini" type="danger" icon="el-icon-delete"
-                                    @click="deleteData(item.id)"
-                                    v-hasPermi="['agriculture:batch:remove']">删除</el-button>
+
+        <el-card class="device-card">
+            <div class="greenhouse-grid">
+                <el-row :gutter="24">
+                    <el-col :span="12" v-for="(item, index) in houseData" :key="index">
+                        <div class="greenhouse-card">
+                            <div class="card-header">
+                                <span class="greenhouse-name">{{ item.name }}</span>
+                                <div class="header-actions">
+                                    <el-button size="mini" type="primary" icon="el-icon-edit"
+                                        @click="addHouse(item.id)"
+                                        v-hasPermi="['agriculture:batch:edit']">修改</el-button>
+                                    <el-button size="mini" type="danger" icon="el-icon-delete"
+                                        @click="deleteData(item.id)"
+                                        v-hasPermi="['agriculture:batch:remove']">删除</el-button>
+                                </div>
+                            </div>
+                            <div class="card-content">
+                                <div class="info-item">
+                                    <i class="el-icon-link"></i>
+                                    <span class="label">合约地址</span>
+                                    <span class="value">{{ item.contractAddr }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="el-icon-full-screen"></i>
+                                    <span class="label">面积</span>
+                                    <span class="value">{{ item.area }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="el-icon-data-line"></i>
+                                    <span class="label">最大区分数量</span>
+                                    <span class="value">{{ item.bigBreedingQuantity }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="el-icon-sunny"></i>
+                                    <span class="label">温度</span>
+                                    <span class="value">{{ item.temperature || '/' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="el-icon-umbrella"></i>
+                                    <span class="label">湿度</span>
+                                    <span class="value">{{ item.humidity || '/' }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="el-icon-location"></i>
+                                    <span class="label">位置</span>
+                                    <span class="value">{{ item.address }}</span>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <el-button size="small" type="warning" plain icon="el-icon-s-claim"
+                                    @click="houseCheck(item.id)"
+                                    v-hasPermi="['agriculture:batch:edit']">环境详情</el-button>
                             </div>
                         </div>
-                        <div class="house-content">
-                            <div class="info-item">
-                                <span class="label">合约地址：</span>
-                                <span class="value">{{ item.contractAddr }}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">面积：</span>
-                                <span class="value">{{ item.area }}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">最大区分数量/头：</span>
-                                <span class="value">{{ item.bigBreedingQuantity }}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">温度：</span>
-                                <span class="value">{{ item.temperature || '/' }}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">湿度：</span>
-                                <span class="value">{{ item.humidity || '/' }}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">位置：</span>
-                                <span class="value">{{ item.address }}</span>
-                            </div>
-                        </div>
-                        <div class="house-footer">
-                            <el-button size="small" plain type="warning" icon="el-icon-s-claim"
-                                @click="houseCheck(item.id)"
-                                v-hasPermi="['agriculture:batch:edit']">环境详情</el-button>
-                        </div>
-                    </el-card>
-                </el-col>
-            </el-row>
-            <div class="page-block">
-                <el-pagination 
-                    @size-change="handleSizeChange" 
-                    @current-change="handleCurrentChange"
-                    :current-page="currentPage" 
-                    :page-size="pSize" 
-                    layout="total, prev, pager, next, jumper"
-                    :total="totalPage">
-                </el-pagination>
+                    </el-col>
+                </el-row>
             </div>
-        </div>
+            <pagination 
+                v-show="totalPage>0" 
+                :total="totalPage" 
+                :page.sync="currentPage"
+                :limit.sync="pSize" 
+                @pagination="handleCurrentChange" 
+                class="pagination-container"
+            />
+        </el-card>
+
         <!-- 新增/修改弹框 -->
         <el-dialog :title="btnTxt == 1 ? '编辑' : btnTxt == 2 ? '详情' : '新增'" :visible.sync="houseEditDialog" width="40%">
             <el-form :model="houseDoForm" label-width="120px">
@@ -366,143 +364,321 @@
 </script>
 
 <style lang="scss" scoped>
-    .form-top {
-        margin: 10px 10px 0;
+.app-container-sm {
+    padding: 20px;
+    background-color: #f5f7fa;
+}
+
+.search-card {
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: none;
+    
+    .search-form {
         display: flex;
-        justify-content: space-between;
         align-items: center;
-
-        .demo-form-inline {
-            height: 50px;
-        }
-
-        .inpname {
+        
+        .search-input {
             width: 240px;
+            .el-input__inner {
+                border-radius: 8px;
+            }
+        }
+        
+        .el-button {
+            border-radius: 8px;
+            padding: 8px 16px;
+            transition: all 0.3s;
+            
+            &:hover {
+                transform: translateY(-1px);
+            }
+        }
+        
+        .fr {
+            margin-left: auto;
         }
     }
+}
 
-    .plant-do {
-        // height: 100px;
-        margin-left: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .do-right {
-            width: 40%;
+.device-card {
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: none;
+    
+    .greenhouse-grid {
+        margin: -12px;
+        padding: 12px;
+    }
+    
+    .greenhouse-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-
-            .desc-item {
+            margin-bottom: 20px;
+            
+            .greenhouse-name {
+                font-size: 18px;
+                font-weight: 600;
+                color: #333;
+                transition: color 0.3s ease;
+            }
+            
+            .header-actions {
+                display: flex;
+                gap: 8px;
+                
+                .el-button {
+                    padding: 6px 12px;
+                    height: 32px;
+                    border-radius: 4px;
+                    margin: 0;
+                    transition: all 0.3s ease;
+                    
+                    &.el-button--primary {
+                        background-color: #f2f6fc;
+                        border-color: transparent;
+                        color: #409eff;
+                        
+                        &:hover {
+                            background-color: #409eff;
+                            color: #ffffff;
+                            transform: translateY(-2px);
+                            box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+                        }
+                    }
+                    
+                    &.el-button--danger {
+                        background-color: #fef0f0;
+                        border-color: transparent;
+                        color: #f56c6c;
+                        
+                        &:hover {
+                            background-color: #f56c6c;
+                            color: #ffffff;
+                            transform: translateY(-2px);
+                            box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
+                        }
+                    }
+                }
+            }
+        }
+        
+        &:hover {
+            background: rgba(250, 250, 250, 0.95);
+            
+            .card-header {
+                .greenhouse-name {
+                    color: #007AFF;
+                }
+            }
+        }
+        
+        .card-content {
+            .info-item {
                 display: flex;
                 align-items: center;
-                font-size: 14px;
-
-                p {
-                    margin-right: 10px;
+                margin-bottom: 12px;
+                
+                i {
+                    font-size: 16px;
+                    color: #007AFF;
+                    margin-right: 8px;
                 }
-
-                ul {
-                    font-size: 12px;
-                    display: flex;
-
-                    .dot {
-                        width: 10px;
-                        height: 10px;
-                    }
-
-                    li {
-                        height: 20px;
-                        display: flex;
-                        align-items: center;
-                        margin-right: 8px;
-                        width: 50px;
-
-                        &:first-child {
-                            color: #FA7C01;
-
-                        }
-
-                        &:nth-child(2) {
-                            color: #0CBF5B;
-                        }
-
-                        &:nth-child(3) {
-                            color: #019FE8;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    .plant-table {
-        margin: 10px;
-    }
-
-    .table-content {
-
-        // height: 100%;
-        .dp-name {
-            color: #0CBF5B;
-        }
-
-        .do-text {
-            font-size: 12px;
-        }
-
-        .txt-btn {
-            font-size: 12px;
-            margin: 0 5px;
-        }
-    }
-
-    .page-block {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 10px;
-    }
-
-    .house-card {
-        margin-bottom: 20px;
-        
-        .house-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            
-            .house-title {
-                font-size: 16px;
-                font-weight: bold;
-                color: #303133;
-            }
-        }
-        
-        .house-content {
-            .info-item {
-                margin-bottom: 8px;
-                display: flex;
                 
                 .label {
-                    color: #909399;
-                    width: 150px;
-                    flex-shrink: 0;
-                    white-space: nowrap;
+                    color: #666;
+                    width: 100px;
+                    font-size: 14px;
                 }
                 
                 .value {
-                    color: #606266;
+                    color: #333;
                     flex: 1;
-                    word-break: break-all;
+                    font-size: 14px;
                 }
             }
         }
         
-        .house-footer {
-            margin-top: 15px;
-            text-align: right;
+        .card-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            
+            .el-button {
+                transition: all 0.3s ease;
+                
+                &.el-button--warning {
+                    background-color: #fdf6ec;
+                    border-color: transparent;
+                    color: #e6a23c;
+                    
+                    &:hover {
+                        background-color: #e6a23c;
+                        color: #ffffff;
+                        transform: translateY(-2px);
+                        box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
+                    }
+                }
+            }
         }
     }
+}
+
+.pagination-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.form-top {
+    margin: 10px 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .demo-form-inline {
+        height: 50px;
+    }
+
+    .inpname {
+        width: 240px;
+    }
+}
+
+.plant-do {
+    margin-left: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .do-right {
+        width: 40%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .desc-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+
+            p {
+                margin-right: 10px;
+            }
+
+            ul {
+                font-size: 12px;
+                display: flex;
+
+                .dot {
+                    width: 10px;
+                    height: 10px;
+                }
+
+                li {
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    margin-right: 8px;
+                    width: 50px;
+
+                    &:first-child {
+                        color: #FA7C01;
+
+                    }
+
+                    &:nth-child(2) {
+                        color: #0CBF5B;
+                    }
+
+                    &:nth-child(3) {
+                        color: #019FE8;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.plant-table {
+    margin: 10px;
+}
+
+.table-content {
+    .dp-name {
+        color: #0CBF5B;
+    }
+
+    .do-text {
+        font-size: 12px;
+    }
+
+    .txt-btn {
+        font-size: 12px;
+        margin: 0 5px;
+    }
+}
+
+.page-block {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.house-card {
+    margin-bottom: 20px;
+    
+    .house-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        
+        .house-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #303133;
+        }
+    }
+    
+    .house-content {
+        .info-item {
+            margin-bottom: 8px;
+            display: flex;
+            
+            .label {
+                color: #909399;
+                width: 150px;
+                flex-shrink: 0;
+                white-space: nowrap;
+            }
+            
+            .value {
+                color: #606266;
+                flex: 1;
+                word-break: break-all;
+            }
+        }
+    }
+    
+    .house-footer {
+        margin-top: 15px;
+        text-align: right;
+    }
+}
 </style>

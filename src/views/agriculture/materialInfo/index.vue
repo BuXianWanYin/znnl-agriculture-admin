@@ -28,47 +28,44 @@
             <div v-loading="loading">
                 <el-row :gutter="16">
                     <el-col :span="24" v-for="item in materialInfoList" :key="item.materialId" class="mb-16">
-                        <el-card shadow="hover">
-                            <div class="material-card">
-                                <div class="material-info">
-                                    <el-row :gutter="20">
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">农资编码：</span>
-                                                <span class="value">{{ item.materialCode }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">农资名称：</span>
-                                                <span class="value">{{ item.materialName }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">农资类别：</span>
-                                                <span class="value">{{ item.materialTypeId }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="8">
-                                            <div class="info-item">
-                                                <span class="label">计量单位：</span>
-                                                <span class="value">{{ item.measureUnit }}</span>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="16">
-                                            <div class="info-item">
-                                                <span class="label">备注：</span>
-                                                <span class="value">{{ item.remark }}</span>
-                                            </div>
-                                        </el-col>
-                                    </el-row>
+                        <el-card shadow="always" class="material-card">
+                            <div class="material-content">
+                                <div class="material-main">
+                                    <div class="material-name">
+                                        {{ item.materialName }}
+                                    </div>
+                                    <div class="material-info">
+                                        <span class="info-item">
+                                            <i class="el-icon-price-tag"></i>
+                                            编码：{{ item.materialCode }}
+                                        </span>
+                                        <span class="info-item">
+                                            <i class="el-icon-collection-tag"></i>
+                                            农资类别：{{ materialTypeMap[item.materialTypeId] || item.materialTypeId }}
+                                        </span>
+                                        <span class="info-item">
+                                            <i class="el-icon-box"></i>
+                                            计量单位：{{ item.measureUnit }}
+                                        </span>
+                                    </div>
+                                    <div class="material-remark" v-if="item.remark">
+                                        <i class="el-icon-document"></i>
+                                        备注：{{ item.remark }}
+                                    </div>
                                 </div>
                                 <div class="material-actions">
-                                    <el-button size="small" type="primary" icon="el-icon-edit"
+                                    <el-button 
+                                        size="small" 
+                                        type="primary" 
+                                        plain 
+                                        icon="el-icon-edit"
                                         @click="handleUpdate(item)"
                                         v-hasPermi="['agriculture:materialInfo:edit']">修改</el-button>
-                                    <el-button size="small" type="danger" icon="el-icon-delete"
+                                    <el-button 
+                                        size="small" 
+                                        type="danger" 
+                                        plain
+                                        icon="el-icon-delete"
                                         @click="handleDelete(item)"
                                         v-hasPermi="['agriculture:materialInfo:remove']">删除</el-button>
                                 </div>
@@ -97,6 +94,9 @@
                             :label="item.materialTypeName" :value="item.materialTypeId"></el-option>
                     </el-select>
                 </el-form-item>
+                <div class="error-message" v-if="showTypeError">
+                    农资类别不能为空
+                </div>
                 <el-form-item label="计量单位" prop="measureUnit">
                     <el-input v-model="form.measureUnit" placeholder="请输入计量单位" />
                 </el-form-item>
@@ -121,7 +121,8 @@
         updateMaterialInfo
     } from "@/api/agriculture/materialInfo";
     import {
-        listMaterialType
+        listMaterialType,
+        getMaterialType
     } from "@/api/agriculture/materialType";
 
     export default {
@@ -173,8 +174,8 @@
                     }],
                     materialTypeId: [{
                         required: true,
-                        message: "农资类别不能为空",
-                        trigger: "blur"
+                        message: "请选择农资类别",
+                        trigger: "change"
                     }],
                     measureUnit: [{
                         required: true,
@@ -186,7 +187,10 @@
                         message: "删除标志不能为空",
                         trigger: "blur"
                     }]
-                }
+                },
+                // 新增或修改表单提交状态
+                isSubmitted: false,
+                materialTypeMap: {}, // 存储农资类别名称的映射
             };
         },
         created() {
@@ -197,8 +201,22 @@
             /** 查询农资信息列表 */
             getList() {
                 this.loading = true;
-                listMaterialInfo(this.queryParams).then(response => {
+                listMaterialInfo(this.queryParams).then(async response => {
                     this.materialInfoList = response.rows;
+                    
+                    // 获取每个农资的类别详细信息
+                    for (const item of this.materialInfoList) {
+                        if (item.materialTypeId) {
+                            try {
+                                const typeResponse = await getMaterialType(item.materialTypeId);
+                                // 使用 materialTypeName 作为类别名称
+                                this.$set(this.materialTypeMap, item.materialTypeId, typeResponse.data.materialTypeName);
+                            } catch (error) {
+                                console.error('获取农资类别详情失败:', error);
+                            }
+                        }
+                    }
+                    
                     this.total = response.total;
                     this.loading = false;
                 });
@@ -282,12 +300,17 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const materialIds = row.materialId || this.ids;
-                this.$modal.confirm('是否确认删除农资信息编号为"' + materialIds + '"的数据项？').then(function() {
-                    return delMaterialInfo(materialIds);
-                }).then(() => {
-                    this.getList();
-                    this.$modal.msgSuccess("删除成功");
-                }).catch(() => {});
+                const materialName = row.materialName || this.materialInfoList.find(item => item.materialId === materialIds)?.materialName;
+                
+                this.$modal.confirm('是否确认删除农资"' + materialName + '"？')
+                    .then(function() {
+                        return delMaterialInfo(materialIds);
+                    })
+                    .then(() => {
+                        this.getList();
+                        this.$modal.msgSuccess("删除成功");
+                    })
+                    .catch(() => {});
             },
             /** 导出按钮操作 */
             handleExport() {
@@ -295,52 +318,109 @@
                     ...this.queryParams
                 }, `materialInfo_${new Date().getTime()}.xlsx`)
             }
+        },
+        computed: {
+            showTypeError() {
+                return this.form.materialTypeId === '' && this.isSubmitted; // 只在提交时且为空时显示
+            }
         }
     };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .mb-16 {
     margin-bottom: 16px;
 }
 
 .material-card {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    margin: 0;
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+
+    .material-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+
+        .material-main {
+            flex: 1;
+            min-width: 0;
+
+            .material-name {
+                font-size: 15px;
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 8px;
+            }
+
+            .material-info {
+                display: flex;
+                gap: 24px;
+                
+                .info-item {
+                    display: flex;
+                    align-items: center;
+                    font-size: 13px;
+                    color: #666;
+                    white-space: nowrap;
+                    
+                    i {
+                        color: #409EFF;
+                        margin-right: 8px;
+                        font-size: 14px;
+                    }
+                }
+            }
+
+            .material-remark {
+                display: flex;
+                align-items: center;
+                font-size: 13px;
+                color: #666;
+                margin-top: 8px;
+                
+                i {
+                    color: #409EFF;
+                    margin-right: 8px;
+                    font-size: 14px;
+                }
+            }
+        }
+
+        .material-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+
+            .el-button {
+                padding: 5px 10px;
+                height: 28px;
+                font-size: 12px;
+            }
+        }
+    }
 }
 
-.material-info {
-    flex: 1;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.info-item:last-child {
-    margin-bottom: 0;
-}
-
-.label {
-    font-weight: bold;
-    margin-right: 8px;
-    color: #606266;
-    white-space: nowrap;
-}
-
-.value {
-    color: #333;
-}
-
-.material-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    border-top: 1px solid #EBEEF5;
-    padding-top: 16px;
-    margin-top: 8px;
+// 响应式布局
+@media screen and (max-width: 768px) {
+    .material-content {
+        flex-direction: column;
+        align-items: flex-start !important;
+        
+        .material-info {
+            flex-direction: column;
+            gap: 8px !important;
+        }
+        
+        .material-actions {
+            width: 100%;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+    }
 }
 </style>
