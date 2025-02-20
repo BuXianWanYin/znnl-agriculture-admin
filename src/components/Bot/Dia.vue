@@ -670,7 +670,7 @@ export default {
         const formData = new FormData()
         formData.append('prompt', currentInput)
 
-        const response = await fetch('http://10.0.28.47:8081/ai/generateStream', {
+        const response = await fetch('http://127.0.0.1:8081/ai/chatStream', {
           method: 'POST',
           body: formData
         })

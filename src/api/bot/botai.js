@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function botAiStream(data) {
   return request({
-    url: '/ai/generateStream',
+    url: '/ai/chatStream',
     method: 'post',
     data: data,
     responseType: 'stream',
