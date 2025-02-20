@@ -14,8 +14,8 @@
         <el-card
           v-for="(item, index) in list"
           :key="item[keyName]"
-          :class="['batch-card', { 'is-active': defaultActive === index.toString() }]"
-          @click.native="handleSelect(index.toString())"
+          :class="['batch-card', { 'is-active': selectedIndex === index }]"
+          @click.native="handleSelect(index)"
           shadow="hover"
         >
           <div class="batch-content">
@@ -89,6 +89,7 @@ export default {
       loading: false,
       list: [],
       total: null,
+      selectedIndex: null,
       queryParams: {
         pageNum: 1,
         pageSize: 16,
@@ -150,15 +151,16 @@ export default {
       }
     },
     handleSelect(index) {
-        if(this.isSub){
-            let childrenList=[];
-            this.list.forEach(item => {
-                childrenList = childrenList.concat(item.children);
-            });
-            this.$emit('select', childrenList.filter(item=>item.channelSipId==index)[0]);
-        }else{
-            this.$emit('select', this.list[Number(index)]);
-        }
+      this.selectedIndex = index;
+      if(this.isSub){
+        let childrenList=[];
+        this.list.forEach(item => {
+            childrenList = childrenList.concat(item.children);
+        });
+        this.$emit('select', childrenList.filter(item=>item.channelSipId==index)[0]);
+      }else{
+        this.$emit('select', this.list[Number(index)]);
+      }
     },
     handleInput(value) {
       this.queryParams[this.searchParma] = value;
@@ -175,22 +177,30 @@ export default {
 <style lang="scss" scoped>
 .search-menu {
   &-header {
-    height: 70px;
+    height: 56px;
     display: flex;
     align-items: center;
-    padding-left: 15px;
+    padding: 0 20px;
     font-size: 16px;
     font-weight: 500;
+    border-bottom: 1px solid #ebeef5;
   }
 
   &-body {
-    height: calc(100vh - 84px - 70px - 50px - 30px);
-    padding: 0 15px;
+    height: calc(100vh - 84px - 56px - 50px - 30px);
+    padding: 15px 20px;
     display: flex;
     flex-direction: column;
 
     .search-input {
-      margin-bottom: 15px;
+      margin-bottom: 20px;
+      
+      ::v-deep .el-input__inner {
+        border-radius: 4px;
+        &:focus {
+          border-color: #409EFF;
+        }
+      }
     }
 
     .batch-list {
@@ -208,18 +218,27 @@ export default {
       }
 
       .batch-card {
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         cursor: pointer;
         transition: all 0.3s;
+        border-radius: 4px;
 
         &:hover {
           transform: translateY(-2px);
+          box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
         }
 
         &.is-active {
-          border-color: #409EFF;
+          background-color: #f0f7ff !important;
+          border-color: #ebeef5;
+          box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
           
           .batch-name {
+            color: #409EFF;
+            font-weight: 500;
+          }
+
+          .batch-icon {
             color: #409EFF;
           }
         }
@@ -230,13 +249,15 @@ export default {
             align-items: center;
             
             .batch-icon {
-              margin-right: 8px;
-              font-size: 16px;
+              margin-right: 10px;
+              font-size: 18px;
+              color: #606266;
             }
 
             .batch-name {
               flex: 1;
               font-size: 14px;
+              color: #303133;
               overflow: hidden;
               text-overflow: ellipsis;
               white-space: nowrap;
@@ -253,18 +274,25 @@ export default {
     justify-content: center;
     align-items: center;
     padding: 10px 0;
+    border-top: 1px solid #ebeef5;
   }
 }
 
 ::v-deep {
   .el-card__body {
-    padding: 12px 15px;
+    padding: 14px 16px;
   }
 
   .el-pagination {
-    .el-pager li.active {
-      background-color: #409EFF;
-      color: #fff;
+    .el-pager li {
+      background: transparent;
+      &.active {
+        background-color: #409EFF;
+        color: #fff;
+      }
+      &:hover {
+        color: #409EFF;
+      }
     }
   }
 }
