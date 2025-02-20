@@ -366,7 +366,7 @@
 <style lang="scss" scoped>
 .app-container-sm {
     padding: 20px;
-    background-color: #f5f7fa;
+    background-color: #f0f2f5;
 }
 
 .search-card {
@@ -406,8 +406,8 @@
 
 .device-card {
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    background: rgba(255, 255, 255, 0.9);
+    box-shadow: none;
+    background: #ffffff;
     backdrop-filter: blur(10px);
     border: none;
     
@@ -417,13 +417,22 @@
     }
     
     .greenhouse-card {
-        background: white;
+        background: #f0f2f5;
         border-radius: 16px;
         padding: 20px;
         margin-bottom: 24px;
         transition: all 0.3s ease;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        border: none;
+        box-shadow: 
+            8px 8px 15px rgba(163, 177, 198, 0.6),
+            -8px -8px 15px rgba(255, 255, 255, 0.9);
+        
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                12px 12px 20px rgba(163, 177, 198, 0.7),
+                -12px -12px 20px rgba(255, 255, 255, 1);
+        }
         
         .card-header {
             display: flex;
@@ -445,9 +454,12 @@
                 .el-button {
                     padding: 6px 12px;
                     height: 32px;
-                    border-radius: 4px;
+                    border-radius: 8px;
                     margin: 0;
                     transition: all 0.3s ease;
+                    box-shadow: 
+                        5px 5px 10px rgba(163, 177, 198, 0.4),
+                        -5px -5px 10px rgba(255, 255, 255, 0.7);
                     
                     &.el-button--primary {
                         background-color: #f2f6fc;
@@ -455,10 +467,17 @@
                         color: #409eff;
                         
                         &:hover {
-                            background-color: #409eff;
-                            color: #ffffff;
                             transform: translateY(-2px);
-                            box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+                            box-shadow: 
+                                8px 8px 15px rgba(163, 177, 198, 0.5),
+                                -8px -8px 15px rgba(255, 255, 255, 0.8);
+                        }
+                        
+                        &:active {
+                            transform: translateY(0);
+                            box-shadow: inset 
+                                4px 4px 8px rgba(163, 177, 198, 0.4),
+                                inset -4px -4px 8px rgba(255, 255, 255, 0.7);
                         }
                     }
                     
@@ -468,22 +487,19 @@
                         color: #f56c6c;
                         
                         &:hover {
-                            background-color: #f56c6c;
-                            color: #ffffff;
                             transform: translateY(-2px);
-                            box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
+                            box-shadow: 
+                                8px 8px 15px rgba(163, 177, 198, 0.5),
+                                -8px -8px 15px rgba(255, 255, 255, 0.8);
+                        }
+                        
+                        &:active {
+                            transform: translateY(0);
+                            box-shadow: inset 
+                                4px 4px 8px rgba(163, 177, 198, 0.4),
+                                inset -4px -4px 8px rgba(255, 255, 255, 0.7);
                         }
                     }
-                }
-            }
-        }
-        
-        &:hover {
-            background: rgba(250, 250, 250, 0.95);
-            
-            .card-header {
-                .greenhouse-name {
-                    color: #007AFF;
                 }
             }
         }
@@ -521,6 +537,10 @@
             
             .el-button {
                 transition: all 0.3s ease;
+                border-radius: 8px;
+                box-shadow: 
+                    5px 5px 10px rgba(163, 177, 198, 0.4),
+                    -5px -5px 10px rgba(255, 255, 255, 0.7);
                 
                 &.el-button--warning {
                     background-color: #fdf6ec;
@@ -528,10 +548,17 @@
                     color: #e6a23c;
                     
                     &:hover {
-                        background-color: #e6a23c;
-                        color: #ffffff;
                         transform: translateY(-2px);
-                        box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
+                        box-shadow: 
+                            8px 8px 15px rgba(163, 177, 198, 0.5),
+                            -8px -8px 15px rgba(255, 255, 255, 0.8);
+                    }
+                    
+                    &:active {
+                        transform: translateY(0);
+                        box-shadow: inset 
+                            4px 4px 8px rgba(163, 177, 198, 0.4),
+                            inset -4px -4px 8px rgba(255, 255, 255, 0.7);
                     }
                 }
             }
