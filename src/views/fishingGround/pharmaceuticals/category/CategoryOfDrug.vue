@@ -223,7 +223,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const medicineTypeIds = row.medicineTypeId || this.ids;
-                this.$modal.confirm('是否确认删除药品类别编号为"' + medicineTypeIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除药品类别"' + row.medicineTypeName + '"？').then(function() {
                     return delMedicineType(medicineTypeIds);
                 }).then(() => {
                     this.getList();

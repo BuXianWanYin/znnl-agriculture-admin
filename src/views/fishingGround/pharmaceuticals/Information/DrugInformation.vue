@@ -44,7 +44,7 @@
                                         </span>
                                         <span class="info-item">
                                             <i class="el-icon-collection-tag"></i>
-                                            药品类别：{{ item.medicineTypeId }}
+                                            药品类别：{{ item.medicineTypeName }}
                                         </span>
                                         <span class="info-item">
                                             <i class="el-icon-box"></i>
@@ -190,15 +190,20 @@
             };
         },
         created() {
-            this.getList();
-            this.getMedicineTypeList();
+            this.getMedicineTypeList().then(() => {
+                this.getList();
+            });
         },
         methods: {
             /** 查询药品信息列表 */
             getList() {
                 this.loading = true;
                 listMedicineInfo(this.queryParams).then(response => {
-                    this.medicineInfoList = response.rows;
+                    // 为每个药品信息添加对应的类别名称
+                    this.medicineInfoList = response.rows.map(item => ({
+                        ...item,
+                        medicineTypeName: this.medicineTypeList.find(type => type.medicineTypeId === item.medicineTypeId)?.medicineTypeName || '-'
+                    }));
                     this.total = response.total;
                     this.loading = false;
                 });
@@ -229,8 +234,8 @@
             },
             /** 获取药品类别数据源信息 */
             getMedicineTypeList() {
-                listMedicineType().then(response => {
-                    this.medicineTypeList = response.rows
+                return listMedicineType().then(response => {
+                    this.medicineTypeList = response.rows;
                 });
             },
             /** 搜索按钮操作 */
@@ -293,7 +298,8 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const medicineIds = row.medicineId || this.ids;
-                this.$modal.confirm('是否确认删除药品信息编号为"' + medicineIds + '"的数据项？').then(function() {
+                const medicineName = row.medicineName;
+                this.$modal.confirm('是否确认删除药品"' + medicineName + '"？').then(function() {
                     return delMedicineInfo(medicineIds);
                 }).then(() => {
                     this.getList();

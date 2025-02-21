@@ -218,7 +218,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const baitTypeIds = row.baitTypeId || this.ids;
-                this.$modal.confirm('是否确认删除饵料类别编号为"' + baitTypeIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除饵料类别"' + row.baitTypeName + '"？').then(function() {
                     return delBaitType(baitTypeIds);
                 }).then(() => {
                     this.getList();

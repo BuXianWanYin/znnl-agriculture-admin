@@ -44,7 +44,7 @@
                                         </span>
                                         <span class="info-item">
                                             <i class="el-icon-collection-tag"></i>
-                                            饵料类别：{{ item.baitTypeId }}
+                                            饵料类别：{{ getBaitTypeName(item.baitTypeId) }}
                                         </span>
                                         <span class="info-item">
                                             <i class="el-icon-box"></i>
@@ -230,8 +230,14 @@
             /** 获取饵料类别数据源信息 */
             getBaitTypeList() {
                 listBaitType().then(response => {
-                    this.BaitTypeList = response.rows
+                    this.BaitTypeList = response.rows;
+                    console.log('Bait Type List:', response.rows);
                 });
+            },
+            /** 根据饵料类别ID获取类别名称 */
+            getBaitTypeName(baitTypeId) {
+                const baitType = this.BaitTypeList.find(type => type.baitTypeId === baitTypeId);
+                return baitType ? baitType.baitTypeName : baitTypeId;
             },
             /** 搜索按钮操作 */
             handleQuery() {
@@ -282,7 +288,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const baitIds = row.baitId || this.ids;
-                this.$modal.confirm('是否确认删除饵料信息编号为"' + baitIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除饵料"' + row.baitName + '"？').then(function() {
                     return delBaitInfo(baitIds);
                 }).then(() => {
                     this.getList();
