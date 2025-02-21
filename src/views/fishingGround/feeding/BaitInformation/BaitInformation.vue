@@ -28,23 +28,55 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="BaitInfoList">
-                <el-table-column label="饵料编码" align="center" prop="baitCode" />
-                <el-table-column label="饵料名称" align="center" prop="baitName" />
-                <el-table-column label="饵料类别" align="center" prop="baitTypeId" />
-                <el-table-column label="饵料单位" align="center" prop="measureUnit" />
-                <el-table-column label="备注" align="center" prop="remark" />
-                <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-                    <template slot-scope="scope">
-                        <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
-                            @click="handleUpdate(scope.row)"
-                            v-hasPermi="['fishingGround:BaitInfo:edit']">修改</el-button>
-                        <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
-                            @click="handleDelete(scope.row)"
-                            v-hasPermi="['fishingGround:BaitInfo:remove']">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
+            <div v-loading="loading">
+                <el-row :gutter="16">
+                    <el-col :span="24" v-for="item in BaitInfoList" :key="item.baitId" class="mb-16">
+                        <el-card shadow="always" class="bait-card">
+                            <div class="bait-content">
+                                <div class="bait-main">
+                                    <div class="bait-name">
+                                        {{ item.baitName }}
+                                    </div>
+                                    <div class="bait-info">
+                                        <span class="info-item">
+                                            <i class="el-icon-price-tag"></i>
+                                            编码：{{ item.baitCode }}
+                                        </span>
+                                        <span class="info-item">
+                                            <i class="el-icon-collection-tag"></i>
+                                            饵料类别：{{ item.baitTypeId }}
+                                        </span>
+                                        <span class="info-item">
+                                            <i class="el-icon-box"></i>
+                                            计量单位：{{ item.measureUnit }}
+                                        </span>
+                                    </div>
+                                    <div class="bait-remark" v-if="item.remark">
+                                        <i class="el-icon-document"></i>
+                                        备注：{{ item.remark }}
+                                    </div>
+                                </div>
+                                <div class="bait-actions">
+                                    <el-button 
+                                        size="small" 
+                                        type="primary" 
+                                        plain 
+                                        icon="el-icon-edit"
+                                        @click="handleUpdate(item)"
+                                        v-hasPermi="['fishingGround:BaitInfo:edit']">修改</el-button>
+                                    <el-button 
+                                        size="small" 
+                                        type="danger" 
+                                        plain
+                                        icon="el-icon-delete"
+                                        @click="handleDelete(item)"
+                                        v-hasPermi="['fishingGround:BaitInfo:remove']">删除</el-button>
+                                </div>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </div>
 
             <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
@@ -267,48 +299,100 @@
     };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .mb-16 {
     margin-bottom: 16px;
 }
 
 .bait-card {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    margin: 0;
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+
+    .bait-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+
+        .bait-main {
+            flex: 1;
+            min-width: 0;
+
+            .bait-name {
+                font-size: 15px;
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 8px;
+            }
+
+            .bait-info {
+                display: flex;
+                gap: 24px;
+                
+                .info-item {
+                    display: flex;
+                    align-items: center;
+                    font-size: 13px;
+                    color: #666;
+                    white-space: nowrap;
+                    
+                    i {
+                        color: #409EFF;
+                        margin-right: 8px;
+                        font-size: 14px;
+                    }
+                }
+            }
+
+            .bait-remark {
+                display: flex;
+                align-items: center;
+                font-size: 13px;
+                color: #666;
+                margin-top: 8px;
+                
+                i {
+                    color: #409EFF;
+                    margin-right: 8px;
+                    font-size: 14px;
+                }
+            }
+        }
+
+        .bait-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+
+            .el-button {
+                padding: 5px 10px;
+                height: 28px;
+                font-size: 12px;
+            }
+        }
+    }
 }
 
-.bait-info {
-    flex: 1;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.info-item:last-child {
-    margin-bottom: 0;
-}
-
-.label {
-    font-weight: bold;
-    margin-right: 8px;
-    color: #606266;
-    white-space: nowrap;
-}
-
-.value {
-    color: #333;
-}
-
-.bait-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    border-top: 1px solid #EBEEF5;
-    padding-top: 16px;
-    margin-top: 8px;
+// 响应式布局
+@media screen and (max-width: 768px) {
+    .bait-content {
+        flex-direction: column;
+        align-items: flex-start !important;
+        
+        .bait-info {
+            flex-direction: column;
+            gap: 8px !important;
+        }
+        
+        .bait-actions {
+            width: 100%;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+    }
 }
 </style>

@@ -19,21 +19,48 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-table v-loading="loading" :data="BaitTypeList">
-                <el-table-column label="饵料类别名称" align="center" prop="baitTypeName" />
-                <el-table-column label="备注" align="center" prop="remark" />
-                <el-table-column label="排序" align="center" prop="orderNum" />
-                <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-                    <template slot-scope="scope">
-                        <el-button size="small" class="padding-5" type="primary" icon="el-icon-edit"
-                            @click="handleUpdate(scope.row)"
-                            v-hasPermi="['fishPasture:BaitType:edit']">修改</el-button>
-                        <el-button size="small" class="padding-5" type="danger" icon="el-icon-delete"
-                            @click="handleDelete(scope.row)"
-                            v-hasPermi="['fishPasture:BaitType:remove']">删除</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
+            <div v-loading="loading" class="bait-type-grid">
+                <el-row :gutter="24">
+                    <el-col :span="8" v-for="item in BaitTypeList" :key="item.baitTypeId">
+                        <el-card class="bait-type-card" shadow="hover">
+                            <div class="bait-type-card-header">
+                                <div class="header-content">
+                                    <div class="section-name">饵料类别</div>
+                                    <div class="type-name">{{ item.baitTypeName }}</div>
+                                </div>
+                                <div class="header-actions">
+                                    <el-button
+                                        size="small"
+                                        type="primary"
+                                        icon="el-icon-edit"
+                                        @click="handleUpdate(item)"
+                                        v-hasPermi="['fishPasture:BaitType:edit']"
+                                    >修改</el-button>
+                                    <el-button
+                                        size="small"
+                                        type="danger"
+                                        icon="el-icon-delete"
+                                        @click="handleDelete(item)"
+                                        v-hasPermi="['fishPasture:BaitType:remove']"
+                                    >删除</el-button>
+                                </div>
+                            </div>
+
+                            <div class="bait-type-card-content">
+                                <div class="type-info">
+                                    <div class="info-item" v-if="item.remark && item.remark !== '/'">
+                                        <i class="el-icon-document"></i>
+                                        <div class="remark-container">
+                                            <span class="label nowrap">备注：</span>
+                                            <span class="remark-content">{{ item.remark }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+            </div>
 
             <pagination v-show="total>0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
@@ -207,3 +234,146 @@
         }
     };
 </script>
+
+<style lang="scss" scoped>
+.bait-type-grid {
+  padding: 20px;
+  
+  .el-row {
+    margin: -12px;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .el-col {
+    padding: 12px;
+    display: flex;
+  }
+}
+
+.bait-type-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  
+  .bait-type-card-header {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    
+    .header-content {
+      .section-name {
+        font-size: 12px;
+        color: #909399;
+        margin-bottom: 4px;
+      }
+
+      .type-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      
+      .el-button {
+        padding: 6px 12px;
+        height: 32px;
+        border-radius: 4px;
+        margin: 0;
+        transition: all 0.3s ease;
+        
+        &.el-button--primary {
+          background-color: #f2f6fc;
+          border-color: transparent;
+          color: #409eff;
+          
+          &:hover {
+            background-color: #409eff;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+          }
+        }
+        
+        &.el-button--danger {
+          background-color: #fef0f0;
+          border-color: transparent;
+          color: #f56c6c;
+          
+          &:hover {
+            background-color: #f56c6c;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
+          }
+        }
+      }
+    }
+  }
+
+  .bait-type-card-content {
+    flex: 1;
+    
+    .type-info {
+      .info-item {
+        display: flex;
+        align-items: flex-start;
+        font-size: 13px;
+
+        i {
+          color: #409EFF;
+          margin-right: 8px;
+          font-size: 14px;
+          margin-top: 3px;
+        }
+
+        .remark-container {
+          flex: 1;
+          display: flex;
+          
+          .label {
+            white-space: nowrap;
+            color: #666;
+            margin-right: 8px;
+          }
+
+          .remark-content {
+            word-break: break-all;
+            white-space: pre-wrap;
+          }
+        }
+      }
+    }
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// 响应式布局
+@media screen and (max-width: 1400px) {
+  .el-col {
+    width: 50% !important;
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .el-col {
+    width: 100% !important;
+  }
+}
+</style>
