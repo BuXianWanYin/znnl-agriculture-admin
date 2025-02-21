@@ -38,7 +38,7 @@
                     <div class="module-title">{{ item.title }}</div>
                     <div class="module-status">
                         <i class="el-icon-check"></i>
-                        <span>可追溯</span>
+                        <span :style="{ color: '#59d181' }">可追溯</span>
                     </div>
                 </div>
             </div>
@@ -1175,9 +1175,27 @@
         &:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 32px rgba(31, 38, 135, 0.25);
-
+            
             &::before {
                 opacity: 1;
+            }
+            
+            .module-content {
+                .module-title {
+                    color: #59d181;
+                }
+                
+                .module-status {
+                    color: #59d181;
+                    
+                    i {
+                        color: #59d181;
+                    }
+                    
+                    span {
+                        color: #59d181;
+                    }
+                }
             }
         }
 
@@ -1187,6 +1205,7 @@
                 font-weight: 500;
                 margin-bottom: 10px;
                 color: #303133;
+                transition: color 0.3s ease;
             }
 
             .module-status {
@@ -1195,6 +1214,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                transition: color 0.3s ease;
                 
                 i {
                     margin-right: 5px;
@@ -1202,10 +1222,12 @@
                     background: #f0f9eb;
                     padding: 4px;
                     border-radius: 50%;
+                    transition: color 0.3s ease;
                 }
 
                 span {
                     color: #67c23a;
+                    transition: color 0.3s ease;
                 }
             }
         }
@@ -1252,19 +1274,20 @@
             margin: 0 auto;
             position: relative;
 
-            .search-input {
-                :deep(.el-input__inner) {
-                    height: 56px;
-                    line-height: 56px;
-                    font-size: 16px;
-                    border-radius: 28px;
-                    padding: 0 140px 0 30px;
-                    border: none;
+            ::v-deep .el-input {
+                .el-input__inner {
+                    height: 44px;
+                    line-height: 44px;
+                    font-size: 14px;
+                    border-radius: 12px;
+                    padding: 0 130px 0 20px;
+                    border: 2px solid #E4E7ED;
                     background: rgba(255, 255, 255, 0.9);
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
                     transition: all 0.3s ease;
 
                     &:focus {
+                        border-color: #42b983;
                         background: white;
                         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
                     }
@@ -1274,34 +1297,36 @@
                     }
                 }
 
-                :deep(.el-input-group__append) {
+                .el-input-group__append {
                     position: absolute;
-                    right: 6px;
-                    top: 6px;
+                    right: 8px;
+                    top: 50%;
+                    transform: translateY(-50%);
                     padding: 0;
                     border: none;
                     background: none;
 
                     .el-button {
-                        height: 44px;
-                        padding: 0 30px;
-                        border-radius: 22px;
-                        font-size: 16px;
+                        height: 36px;
+                        padding: 0 20px;
+                        border-radius: 6px;
+                        font-size: 14px;
                         border: none;
-                        background: #42b983;
-                        color: white;
+                        background: #ffffff;
+                        color: #42b983;
                         font-weight: 500;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
                         transition: all 0.3s ease;
+                        margin-left: 30px;
 
                         &:hover {
-                            background: darken(#42b983, 5%);
                             transform: translateY(-1px);
-                            box-shadow: 0 4px 12px rgba(66, 185, 131, 0.3);
+                            box-shadow: 0 4px 12px rgba(87, 87, 87, 0.5);
                         }
 
                         i {
-                            margin-right: 6px;
-                            font-size: 18px;
+                            margin-right: 4px;
+                            font-size: 14px;
                         }
                     }
                 }
@@ -1357,6 +1382,254 @@
             background: #f0f9eb;
             padding: 2px 6px;
             border-radius: 4px;
+        }
+    }
+}
+
+// 响应式布局样式
+@media screen and (max-width: 1600px) {
+    .origin-banner {
+        padding: 30px 30px 60px;
+        
+        .banner-content {
+            .banner-subtitle {
+                font-size: 32px;
+            }
+        }
+        
+        .banner-right {
+            .quality-circle {
+                width: 180px;
+                height: 180px;
+            }
+        }
+    }
+    
+    .trace-modules {
+        .module-item {
+            min-width: 200px;
+            padding: 15px 25px;
+        }
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .origin-banner {
+        padding: 25px 25px 50px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        
+        .banner-content {
+            margin-bottom: 30px;
+            
+            .banner-subtitle {
+                font-size: 28px;
+            }
+            
+            .banner-desc {
+                font-size: 16px;
+            }
+        }
+    }
+    
+    .trace-modules {
+        flex-wrap: wrap;
+        margin-top: -20px;
+        
+        .module-item {
+            margin: 10px;
+            min-width: calc(50% - 30px);
+        }
+    }
+    
+    .search-container {
+        .search-box {
+            .el-input {
+                width: 100%;
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .origin-banner {
+        padding: 20px 20px 40px;
+        
+        .banner-content {
+            margin-bottom: 0;
+            width: 100%;
+            
+            .banner-title {
+                padding: 6px 12px;
+                justify-content: center;
+                
+                i {
+                    font-size: 18px;
+                }
+                
+                span {
+                    font-size: 16px;
+                }
+            }
+            
+            .banner-subtitle {
+                font-size: 24px;
+            }
+        }
+        
+        .banner-right {
+            display: none;
+        }
+    }
+    
+    .trace-modules {
+        padding: 0 10px;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: nowrap;
+        gap: 8px;
+        
+        .module-item {
+            min-width: auto;
+            flex: 1;
+            margin: 0;
+            padding: 10px;
+            border-radius: 16px;
+            
+            .module-content {
+                .module-title {
+                    font-size: 12px;
+                    margin-bottom: 5px;
+                }
+                
+                .module-status {
+                    font-size: 12px;
+                    
+                    i {
+                        font-size: 10px;
+                        padding: 3px;
+                    }
+                    
+                    span {
+                        font-size: 12px;
+                    }
+                }
+            }
+        }
+    }
+    
+    .trace-code {
+        padding: 30px 0;
+        
+        .search-container {
+            .search-title {
+                i {
+                    font-size: 20px;
+                }
+                
+                span {
+                    font-size: 20px;
+                }
+            }
+            
+            .search-desc {
+                font-size: 14px;
+            }
+
+            .search-box {
+                ::v-deep .el-input {
+                    .el-input__inner {
+                        padding-right: 15px;
+                        border-radius: 8px;
+                    }
+
+                    .el-input-group__append {
+                        display: none;
+                    }
+                }
+            }
+        }
+
+        .code-content {
+            margin-top: 25px;
+            
+            .result-text {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                
+                &::before {
+                   
+                    display: block;
+                    color: #606266;
+                    font-size: 14px;
+                }
+                
+                .code-number {
+                    display: block;
+                    font-size: 16px;
+                    color: #67c23a;
+                    margin: 5px 0;
+                }
+                
+                .verify-tag {
+                    margin-top: 5px;
+                }
+            }
+        }
+    }
+
+    .info-cards-container {
+        .el-row {
+            margin: 0 !important;
+        }
+
+        .el-col {
+            width: 100% !important;
+            padding: 0 !important;
+            margin-bottom: 20px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            .info-card {
+                height: auto;
+                margin: 0;
+
+                .card-content {
+                    padding: 15px;
+                }
+            }
+        }
+    }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1200px) {
+    .info-cards-container {
+        .el-row {
+            margin: 0 -10px !important;
+        }
+
+        .el-col {
+            width: 50% !important;
+            padding: 0 10px !important;
+            margin-bottom: 20px;
+
+            &:last-child {
+                width: 100% !important;
+            }
+
+            .info-card {
+                height: auto;
+                margin: 0;
+
+                .card-content {
+                    padding: 15px;
+                }
+            }
         }
     }
 }

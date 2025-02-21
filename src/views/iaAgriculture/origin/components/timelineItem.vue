@@ -23,6 +23,13 @@
                     <span>{{ task.planStart }} ~ {{ task.planFinish }}</span>
                 </div>
             </div>
+            <div class="date-group">
+                <div class="date-label">实际时间</div>
+                <div class="date-item">
+                    <i class="el-icon-date"></i>
+                    <span>{{ task.actualStart }} ~ {{ task.actualFinish }}</span>
+                </div>
+            </div>
         </div>
         <div class="task-info">
             <div class="info-item">
@@ -242,31 +249,57 @@ export default {
 // 响应式布局
 @media screen and (max-width: 1600px) {
     .timeline-item {
-        width: calc((100% - 200px) / 5);
-    }
-}
-
-@media screen and (max-width: 1400px) {
-    .timeline-item {
-        width: calc((100% - 150px) / 4);
+        width: calc((100% - 160px) / 4);
+        
+        .task-card {
+            .task-title {
+                font-size: 13px;
+            }
+        }
     }
 }
 
 @media screen and (max-width: 1200px) {
     .timeline-item {
-        width: calc((100% - 100px) / 3);
+        width: calc((100% - 120px) / 3);
+    }
+    
+    .horizontal-timeline {
+        gap: 15px 30px;
     }
 }
 
 @media screen and (max-width: 992px) {
     .timeline-item {
-        width: calc((100% - 50px) / 2);
+        width: calc((100% - 60px) / 2);
+        
+        .timeline-node {
+            .node-corner {
+                display: none;
+            }
+        }
     }
 }
 
 @media screen and (max-width: 768px) {
     .timeline-item {
         width: 100%;
+        margin-bottom: 30px;
+        
+        .timeline-node {
+            .node-line {
+                display: none;
+            }
+        }
+        
+        .task-card {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+    }
+    
+    .horizontal-timeline {
+        padding: 0 15px;
     }
 }
 </style>
