@@ -91,7 +91,7 @@
                     <div v-if="form.fishSpeciesImg">
                         <!-- 已有图片时显示图片和删除按钮 -->
                         <div class="image-preview">
-                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + form.fishSpeciesImg}`" />
+                            <img style="width:148px;height:148px;" :src="`${image.baseUrl + form.fishSpeciesImg}`" />
                             <!-- 点击时将图片值设为 null，从而清除图片 -->
                             <i class="el-icon-close delete-icon" @click="form.fishSpeciesImg = null"></i>
                         </div>
