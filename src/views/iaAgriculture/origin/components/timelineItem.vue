@@ -8,35 +8,34 @@
         'line-middle': index % 6 !== 0 && (index + 1) % 6 !== 0
     }">
     <div class="timeline-node"
-        :class="{'is-complete': task.actualFinish}">
+        :class="{'is-complete': task.status === '3'}">
         <div class="node-content"></div>
         <div class="node-line" v-if="index !== tasks.length - 1"></div>
         <div class="node-corner" v-if="(index + 1) % 6 === 0 && index !== tasks.length - 1"></div>
     </div>
-    <el-card class="task-card" :body-style="{ padding: '10px' }">
+    <el-card class="task-card" :body-style="{ padding: '10px' }" shadow="hover">
         <div class="task-title">{{ task.taskName }}</div>
         <div class="task-dates">
-            <div class="date-group" v-if="task.actualStart || task.actualFinish">
-                <div class="date-label">实际时间</div>
-                <div class="date-item" v-if="task.actualStart">
+            <div class="date-group">
+                <div class="date-label">计划时间</div>
+                <div class="date-item">
                     <i class="el-icon-date"></i>
-                    <span>开始：{{ task.actualStart }}</span>
-                </div>
-                <div class="date-item" v-if="task.actualFinish">
-                    <i class="el-icon-date"></i>
-                    <span>结束：{{ task.actualFinish }}</span>
+                    <span>{{ task.planStart }} ~ {{ task.planFinish }}</span>
                 </div>
             </div>
         </div>
         <div class="task-info">
-            <span class="info-item">
-                <i class="el-icon-user"></i>
-                {{ task.taskHeadName || '未指定' }}
-            </span>
-            <span class="info-item">
-                <i class="el-icon-tickets"></i>
-                {{ task.batchName }}
-            </span>
+            <div class="info-item">
+                <i class="el-icon-info"></i>
+                <el-tag size="small" :type="getStatusType(task.status)">
+                    {{ getStatusText(task.status) }}
+                </el-tag>
+            </div>
+            <el-button 
+                type="primary" 
+                size="mini" 
+                @click="handleTrace"
+            >追溯</el-button>
         </div>
     </el-card>
 </div>
@@ -57,6 +56,27 @@ export default {
         tasks: {
             type: Array,
             default: () => []
+        }
+    },
+    methods: {
+        getStatusText(status) {
+            switch (status) {
+                case "1": return "未开始";
+                case "2": return "进行中";
+                case "3": return "已完成";
+                default: return "未知状态";
+            }
+        },
+        getStatusType(status) {
+            switch (status) {
+                case "1": return "info";
+                case "2": return "warning";
+                case "3": return "success";
+                default: return "info";
+            }
+        },
+        handleTrace() {
+            this.$emit('trace', this.task);
         }
     }
 }

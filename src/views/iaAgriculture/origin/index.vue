@@ -1,31 +1,93 @@
 <template>
     <div>
-        <!-- 顶部导航 -->
-        <header-top></header-top>
-        <el-card class="card-margin-bottom">
-            <el-form :inline="true" class="origin-form">
-                <el-form-item label="合约地址/溯源码">
-                    <el-input v-model="originName" placeholder="请输入合约地址/溯源码进行查询"></el-input>
-                </el-form-item>
-                <el-button type="success" @click="originSearch">查询</el-button>
-            </el-form>
-        </el-card>
-        <div class="app-container-gray">
-            <!-- 横向任务时间轴 -->
-            <el-card class="timeline-card">
-                <div slot="header" class="clearfix">
-                    <span>任务列表</span>
+        <!-- 顶部 Banner -->
+        <div class="origin-banner">
+            <div class="decoration-circles">
+                <div class="circle-1"></div>
+                <div class="circle-2"></div>
+                <div class="circle-3"></div>
+                <div class="circle-4"></div>
+            </div>
+            <div class="banner-content">
+                <div class="banner-title">
+                    <i class="el-icon-shopping-bag-1"></i>
+                    <span>鱼菜共生</span>
                 </div>
-                <div class="horizontal-timeline-wrapper">
-                    <div v-if="taskList.length" class="horizontal-timeline">
-                        <TimelineItem v-for="(item,index) in taskList" :tasks="taskList" :index="index" :task="item" key="index"/>
+                <div class="banner-subtitle">好食材不怕公开</div>
+                <div class="banner-desc">看得见溯源匠心，吃得出健康安心</div>
+            </div>
+            <div class="banner-right">
+                <div class="quality-circle">
+                    <div class="center-icon">
+                        <i class="el-icon-check"></i>
                     </div>
-                    <el-empty v-else description="暂无任务数据"></el-empty>
+                    <div class="orbit-container">
+                        <div class="orbit-item top"><span>绿色</span></div>
+                        <div class="orbit-item right"><span>健康</span></div>
+                        <div class="orbit-item bottom"><span>安全</span></div>
+                        <div class="orbit-item left"><span>品质</span></div>
+                    </div>
                 </div>
-            </el-card>
+            </div>
+        </div>
 
-            <!-- 信息卡片组 -->
+        <!-- 追溯模块 -->
+        <div class="trace-modules">
+            <div class="module-item" v-for="(item, index) in traceModules" :key="index">
+                <div class="module-content">
+                    <div class="module-title">{{ item.title }}</div>
+                    <div class="module-status">
+                        <i class="el-icon-check"></i>
+                        <span>可追溯</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 溯源码验证 -->
+        <div class="trace-code">
+            <div class="search-container">
+                <div class="search-title">
+                    <i class="el-icon-search"></i>
+                    <span>溯源查询</span>
+                </div>
+                <div class="search-desc">输入溯源码，即可查询产品全程追溯信息</div>
+                <div class="search-box">
+                    <el-input
+                        v-model="originName"
+                        placeholder="请输入溯源码"
+                        class="search-input"
+                        @keyup.enter.native="originSearch"
+                    >
+                        <el-button 
+                            slot="append" 
+                            type="primary"
+                            icon="el-icon-search"
+                            @click="originSearch"
+                        >查询</el-button>
+                    </el-input>
+                </div>
+                <div class="code-content" v-if="showResult">
+                    <div class="result-text">
+                        您查询的溯源码编号为：
+                        <span class="code-number">{{ originName }}</span>
+                        <el-tag type="success" class="verify-tag">
+                            <i class="el-icon-check"></i>
+                            核验通过
+                        </el-tag>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 原有的内容 -->
+        <div class="app-container-gray" v-if="showResult">
+            <!-- 产地信息卡片组 -->
             <el-card class="info-cards-container">
+                <div slot="header" class="clearfix">
+                    <span>产地信息</span>
+                    <span class="trace-tag">可追溯</span>
+                </div>
                 <el-row :gutter="20">
                     <el-col :span="8">
                         <el-card class="info-card" shadow="hover">
@@ -79,7 +141,7 @@
                         <el-card class="info-card" shadow="hover">
                             <div class="card-header">
                                 <i class="el-icon-goods"></i>
-                                <span>商品信息</span>
+                                <span>食品信息</span>
                             </div>
                             <el-empty v-if="!shopInfo" description="暂无商品信息"></el-empty>
                             <div v-else class="card-content">
@@ -107,6 +169,20 @@
                         </el-card>
                     </el-col>
                 </el-row>
+            </el-card>
+
+            <!-- 种植环节卡片 -->
+            <el-card class="timeline-card">
+                <div slot="header" class="clearfix">
+                    <span>种植环节</span>
+                    <span class="trace-tag">可追溯</span>
+                </div>
+                <div class="horizontal-timeline-wrapper">
+                    <div v-if="taskList.length" class="horizontal-timeline">
+                        <TimelineItem v-for="(item,index) in taskList" :tasks="taskList" :index="index" :task="item" key="index"/>
+                    </div>
+                    <el-empty v-else description="暂无任务数据"></el-empty>
+                </div>
             </el-card>
 
             <!-- 环境信息表格 -->
@@ -137,7 +213,6 @@
                 </div>
             </el-card>
         </div>
-
     </div>
 </template>
 
@@ -152,7 +227,6 @@
     } from "@/api/agriculture/batchTask";
     import {
         listBatchTask,
-        
     } from "@/api/agriculture/batchTask";
     import { getBatch } from "@/api/agriculture/batch";
     import { getGermplasm } from "@/api/agriculture/germplasm";
@@ -161,6 +235,7 @@
         data() {
             return {
                 originName: '',
+                showResult: false,
                 tabStatus: 1,
                 ivPastureInfo: {},
                 iaPartitionInfo: {
@@ -180,7 +255,12 @@
                 tableHeaderStyle: {
                     background: 'rgba(239, 249, 243, 1)',
                     color: '#000'
-                }
+                },
+                traceModules: [
+                    { title: '产地信息' },
+                    { title: '种植环节' },
+                    { title: '环境信息' }
+                ]
             };
         },
         components: {
@@ -190,80 +270,76 @@
         },
         methods: {
             originSearch() {
-                // 清理并设置新的溯源码
+                if (!this.originName) {
+                    this.$message.warning('请输入溯源码');
+                    return;
+                }
+                
+                this.showResult = false;
                 localStorage.setItem("syInfo", this.originName);
-
-                // 重置数据
                 this.ivPastureInfo = {};
                 this.iaPartitionInfo = { variety: '' };
                 this.shopInfo = {};
-                this.iaPartitionFood
-                // 发送请求获取追溯信息
+                
                 this.$http.get("/dev-api/iaPartitionFoodSensorValue/getTraceability", {
-                        params: {
-                            id: this.originName
-                        },
-                    })
-                    .then((res) => {
-                        if (res.data.code === 0) {
-                            // 使用响应中的 contractAddr 作为大棚的合约地址
-                            this.ivPastureInfo = this.mapInfo(res.data.data.ivPastureInfo, {
-                                _greenhouseName: "name",
-                                _greenhouseArea: "area",
-                                _greenhousePosition: "position",
-                            });
-                            // 添加合约地址
-                            this.ivPastureInfo.area = res.data.data.contractAddr;
+                    params: {
+                        id: this.originName
+                    },
+                })
+                .then((res) => {
+                    if (res.data.code === 0) {
+                        this.showResult = true;
+                        this.ivPastureInfo = this.mapInfo(res.data.data.ivPastureInfo, {
+                            _greenhouseName: "name",
+                            _greenhouseArea: "area",
+                            _greenhousePosition: "position",
+                        });
+                        this.ivPastureInfo.area = res.data.data.contractAddr;
 
-                            this.iaPartitionInfo = this.mapInfo(res.data.data.iaPartitionInfo, {
-                                _partitionsName: "name",
-                                _plantingVarieties: "variety",
-                                _plantingDate: "dateT",
-                                _id: "id",
-                                _ofGreenhouse: "greenhouseAddress", // 如果需要分区的大棚地址
-                            });
-                            this.getStepsList(this.originName)
+                        this.iaPartitionInfo = this.mapInfo(res.data.data.iaPartitionInfo, {
+                            _partitionsName: "name",
+                            _plantingVarieties: "variety",
+                            _plantingDate: "dateT",
+                            _id: "id",
+                            _ofGreenhouse: "greenhouseAddress",
+                        });
+                        this.getStepsList(this.originName)
 
-                            this.tableData=res.data.data.map
-                            // 处理 shopInfo 数据
-                            const sensorValueInfo = res.data.data.iaPartitionFoodSensorValueInfo[0]?.listValues ||
-                            [];
-                            this.shopInfo = this.mapInfo(sensorValueInfo, {
-                                foodName: "name",
-                                processingTimestamp: "datet",
-                                quality: "quality",
-                                weight: "weight",
-                            });
+                        this.tableData=res.data.data.map
+                        const sensorValueInfo = res.data.data.iaPartitionFoodSensorValueInfo[0]?.listValues || [];
+                        this.shopInfo = this.mapInfo(sensorValueInfo, {
+                            foodName: "name",
+                            processingTimestamp: "datet",
+                            quality: "quality",
+                            weight: "weight",
+                        });
 
-                            // 格式化日期和质量
-                            if (this.shopInfo.datet) {
-                                this.shopInfo.datet = new Date(parseInt(this.shopInfo.datet)).toLocaleString();
-                            }
-
-                            this.shopInfo.quality = this.shopInfo.quality === "2" ? "优秀" :
-                                this.shopInfo.quality === "1" ? "及格" : "不合格";
-
-                            // this.fetchData()
-                        } else {
-                            this.$message.error(res.data.msg);
+                        if (this.shopInfo.datet) {
+                            this.shopInfo.datet = new Date(parseInt(this.shopInfo.datet)).toLocaleString();
                         }
-                    })
-                    .catch((error) => {
-                        console.error("请求失败:", error);
-                        this.$message.error("数据加载失败，请稍后再试");
-                    });
+
+                        this.shopInfo.quality = this.shopInfo.quality === "2" ? "优秀" :
+                            this.shopInfo.quality === "1" ? "及格" : "不合格";
+                    } else {
+                        this.showResult = false;
+                        this.$message.error(res.data.msg);
+                    }
+                })
+                .catch((error) => {
+                    this.showResult = false;
+                    console.error("请求失败:", error);
+                    this.$message.error("数据加载失败，请稍后再试");
+                });
             },
             async getProcessList(id) {
                 try {
-                    const {
-                        data
-                    } = await http.post('/iaPartitionFood/detail', {}, {
+                    const { data } = await http.post('/iaPartitionFood/detail', {}, {
                         params: { id }
                     });
                     return data.iaPartitionId;
                 } catch (e) {
                     this.$message.error('网络错误请重试！');
-                    throw e; // 抛出异常，便于调用方捕获
+                    throw e;
                 }
             },
 
@@ -277,13 +353,10 @@
                         batchId,
                     });
 
-                    // 获取批次详细信息
                     const batchDetails = await getBatch(batchId);
 
-                    // 批次详细信息中有种质ID，通过种质ID 获取种质详细信息
                     if (batchDetails.data.germplasmId) {
                         const germplasmDetails = await getGermplasm(batchDetails.data.germplasmId);
-                        // 更新种植品种显示
                         this.iaPartitionInfo.variety = germplasmDetails.data.cropName;
                     }
 
@@ -291,7 +364,6 @@
                     this.taskList = rows;
                     this.total = total;
                     this.loading = false;
-                    // 映射任务数据用于显示
                     this.tasks.data = this.taskList.map((item) => ({
                         text: item.taskName,
                         id: item.taskId,
@@ -307,14 +379,10 @@
 
             getStatusText(status) {
                 switch (status) {
-                    case "1":
-                        return "未开始";
-                    case "2":
-                        return "进行中";
-                    case "3":
-                        return "已完成";
-                    default:
-                        return "未知状态";
+                    case "1": return "未开始";
+                    case "2": return "进行中";
+                    case "3": return "已完成";
+                    default: return "未知状态";
                 }
             },
             mapInfo(data, fields) {
@@ -337,7 +405,7 @@
             },
             async fetchData(startTime = this.formatDate(new Date()), endTime = this.formatDate(new Date())) {
                 const res = await this.$http.post("/dev-api/iaPartitionFoodSensorValue/getEnvironmentPage", {
-                    iaPartitionFoodId: this.originName, // 使用搜索框中的溯源码
+                    iaPartitionFoodId: this.originName,
                     currentPage: this.currentPage,
                     pageSize: this.pSize,
                     startTime,
@@ -390,7 +458,6 @@
                 this.envTime = "";
                 this.fetchData();
             }
-
         },
     };
 </script>
@@ -399,6 +466,7 @@
 .app-container-gray {
     padding: 20px;
     background-color: #f0f2f5;
+    transition: all 0.3s ease-in-out;
 }
 
 .timeline-card {
@@ -418,12 +486,30 @@
 }
 
 .info-cards-container {
-    margin: 20px 0;
-    background: transparent;
-    border: none;
+    margin-bottom: 20px;
+    
+    .el-card__header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #ebeef5;
+        
+        .clearfix {
+            display: flex;
+            align-items: center;
+            gap: 10px;
 
-    .el-card__body {
-        padding: 0;
+            span {
+                font-size: 16px;
+                font-weight: 500;
+            }
+
+            .trace-tag {
+                font-size: 12px;
+                color: #67c23a;
+                background: #f0f9eb;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+        }
     }
 }
 
@@ -724,6 +810,554 @@
 @media screen and (max-width: 768px) {
     .timeline-item {
         width: 100%;
+    }
+}
+
+.origin-banner {
+    background: linear-gradient(135deg, #42b983 0%, #2f9 100%);
+    padding: 40px 40px 80px;
+    display: flex;
+    justify-content: space-between;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.1);
+
+    // 左上大圆
+    &::before {
+        content: '';
+        position: absolute;
+        left: -10%;
+        top: -40%;
+        width: 500px;
+        height: 500px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    // 右下大圆
+    &::after {
+        content: '';
+        position: absolute;
+        right: -15%;
+        bottom: -30%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 50%;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    // 添加更多装饰圆形
+    .decoration-circles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+
+        // 右上小圆
+        &::before {
+            content: '';
+            position: absolute;
+            right: 25%;
+            top: 10%;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        // 左下小圆
+        &::after {
+            content: '';
+            position: absolute;
+            left: 20%;
+            bottom: 15%;
+            width: 150px;
+            height: 150px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        // 额外的装饰圆形
+        .circle-1 {
+            position: absolute;
+            left: 40%;
+            top: 20%;
+            width: 80px;
+            height: 80px;
+            background: rgba(57, 205, 129, 0.15);
+            border-radius: 50%;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            box-shadow: 0 4px 16px rgba(57, 205, 129, 0.08);
+        }
+
+        .circle-2 {
+            position: absolute;
+            right: 35%;
+            bottom: 30%;
+            width: 100px;
+            height: 100px;
+            background: rgba(57, 205, 129, 0.12);
+            border-radius: 50%;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 4px 16px rgba(57, 205, 129, 0.06);
+        }
+
+        .circle-3 {
+            position: absolute;
+            left: 30%;
+            top: 40%;
+            width: 60px;
+            height: 60px;
+            background: rgba(57, 205, 129, 0.1);
+            border-radius: 50%;
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            box-shadow: 0 4px 16px rgba(57, 205, 129, 0.05);
+        }
+
+        .circle-4 {
+            position: absolute;
+            right: 15%;
+            top: 35%;
+            width: 90px;
+            height: 90px;
+            background: rgba(57, 205, 129, 0.08);
+            border-radius: 50%;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            box-shadow: 0 4px 16px rgba(57, 205, 129, 0.04);
+        }
+    }
+
+    .banner-content {
+        position: relative;
+        z-index: 2;
+
+        .banner-title {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            
+            i {
+                margin-right: 8px;
+                font-size: 20px;
+            }
+
+            span {
+                font-size: 18px;
+                font-weight: 500;
+            }
+        }
+
+        .banner-subtitle {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .banner-desc {
+            font-size: 16px;
+            opacity: 0.9;
+            max-width: 400px;
+        }
+    }
+
+    .banner-right {
+        position: relative;
+        z-index: 2;
+
+        .quality-circle {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .center-icon {
+                position: relative;
+                width: 80px;
+                height: 80px;
+                background: rgba(255, 255, 255, 0.9);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                z-index: 2;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: -5px;
+                    left: -5px;
+                    right: -5px;
+                    bottom: -5px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    z-index: -1;
+                }
+
+                i {
+                    font-size: 36px;
+                    color: #42b983;
+                }
+            }
+
+            .orbit-container {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                animation: rotate 20s linear infinite;
+
+                .orbit-item {
+                    position: absolute;
+                    width: 60px;
+                    height: 60px;
+                    background: rgba(255, 255, 255, 0.9);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+                    animation: counter-rotate 20s linear infinite;
+
+                    span {
+                        color: #42b983;
+                        font-size: 14px;
+                        font-weight: 500;
+                    }
+
+                    &.top {
+                        top: 0;
+                        left: 50%;
+                        transform: translateX(-50%);
+                    }
+
+                    &.right {
+                        top: 50%;
+                        right: 0;
+                        transform: translateY(-50%);
+                    }
+
+                    &.bottom {
+                        bottom: 0;
+                        left: 50%;
+                        transform: translateX(-50%);
+                    }
+
+                    &.left {
+                        top: 50%;
+                        left: 0;
+                        transform: translateY(-50%);
+                    }
+
+                    &::before {
+                        content: '';
+                        position: absolute;
+                        top: -3px;
+                        left: -3px;
+                        right: -3px;
+                        bottom: -3px;
+                        border: 2px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 50%;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes counter-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+// 恢复其他装饰圆形的颜色
+.decoration-circles {
+    .circle-1, .circle-2, .circle-3, .circle-4 {
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: none;
+    }
+
+    &::before, &::after {
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: none;
+    }
+}
+
+.trace-modules {
+    display: flex;
+    justify-content: center;
+    padding: 0 40px;
+    margin-top: -40px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease-in-out;
+
+    .module-item {
+        flex: 0 1 auto;
+        min-width: 220px;
+        text-align: center;
+        padding: 20px 30px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 35px;
+        margin: 0 15px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            // background: linear-gradient(90deg, #42b983, #2f9);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.25);
+
+            &::before {
+                opacity: 1;
+            }
+        }
+
+        .module-content {
+            .module-title {
+                font-size: 16px;
+                font-weight: 500;
+                margin-bottom: 10px;
+                color: #303133;
+            }
+
+            .module-status {
+                color: #67c23a;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                
+                i {
+                    margin-right: 5px;
+                    font-size: 12px;
+                    background: #f0f9eb;
+                    padding: 4px;
+                    border-radius: 50%;
+                }
+
+                span {
+                    color: #67c23a;
+                }
+            }
+        }
+    }
+}
+
+.trace-code {
+    background: #ffffff;
+    padding: 40px 0;
+
+    .search-container {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 0 20px;
+
+        .search-title {
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #303133;
+            
+            i {
+                font-size: 24px;
+                margin-right: 10px;
+                color: #42b983;
+            }
+            
+            span {
+                font-size: 24px;
+                font-weight: 600;
+            }
+        }
+
+        .search-desc {
+            color: #909399;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+
+            .search-input {
+                :deep(.el-input__inner) {
+                    height: 56px;
+                    line-height: 56px;
+                    font-size: 16px;
+                    border-radius: 28px;
+                    padding: 0 140px 0 30px;
+                    border: none;
+                    background: rgba(255, 255, 255, 0.9);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    transition: all 0.3s ease;
+
+                    &:focus {
+                        background: white;
+                        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+                    }
+
+                    &::placeholder {
+                        color: #909399;
+                    }
+                }
+
+                :deep(.el-input-group__append) {
+                    position: absolute;
+                    right: 6px;
+                    top: 6px;
+                    padding: 0;
+                    border: none;
+                    background: none;
+
+                    .el-button {
+                        height: 44px;
+                        padding: 0 30px;
+                        border-radius: 22px;
+                        font-size: 16px;
+                        border: none;
+                        background: #42b983;
+                        color: white;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+
+                        &:hover {
+                            background: darken(#42b983, 5%);
+                            transform: translateY(-1px);
+                            box-shadow: 0 4px 12px rgba(66, 185, 131, 0.3);
+                        }
+
+                        i {
+                            margin-right: 6px;
+                            font-size: 18px;
+                        }
+                    }
+                }
+            }
+        }
+
+        .code-content {
+            margin-top: 30px;
+            padding: 0 20px;
+
+            .result-text {
+                color: #606266;
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+
+                .code-number {
+                    color: #42b983;
+                    font-weight: 600;
+                    font-size: 18px;
+                }
+
+                .verify-tag {
+                    background: #67c23a;
+                    color: white;
+                    border: none;
+                    border-radius: 20px;
+                    padding: 0 15px;
+                    height: 32px;
+                    line-height: 32px;
+                    font-size: 14px;
+
+                    i {
+                        margin-right: 4px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.timeline-card {
+    .clearfix {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .trace-tag {
+            font-size: 12px;
+            color: #67c23a;
+            background: #f0f9eb;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
     }
 }
 </style>
