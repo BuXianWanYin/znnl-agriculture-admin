@@ -299,7 +299,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const machineIds = row.machineId || this.ids;
-                this.$modal.confirm('是否确认删除农机信息编号为"' + machineIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除农机"' + row.machineName + '"？').then(function() {
                     return delMachineInfo(machineIds);
                 }).then(() => {
                     this.getList();

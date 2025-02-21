@@ -224,7 +224,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const machineTypeIds = row.machineTypeId || this.ids;
-      this.$modal.confirm('是否确认删除农机类别编号为"' + machineTypeIds + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除农机类别"' + row.machineTypeName + '"？').then(function() {
         return delMachineType(machineTypeIds);
       }).then(() => {
         this.getList();
