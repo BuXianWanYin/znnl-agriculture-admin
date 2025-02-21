@@ -15,7 +15,7 @@
             <el-card
               v-for="(item,index) in list"
               :key="item[keyName]"
-              :class="['batch-card', { 'is-active': defaultActive === index.toString() }]"
+              :class="['batch-card', { 'is-active': selectedIndex === index }]"
               shadow="hover"
             >
               <div class="batch-content">
@@ -46,8 +46,8 @@
             <el-card
               v-for="(item, index) in list"
               :key="item[keyName]"
-              :class="['batch-card', customClass, { 'is-active': defaultActive === index.toString() }]"
-              @click.native="handleSelect(index.toString())"
+              :class="['batch-card', customClass, { 'is-active': selectedIndex === index }]"
+              @click.native="handleSelect(index)"
               shadow="hover"
             >
               <div class="batch-content">
@@ -124,6 +124,7 @@
         loading: false,
         list: [],
         total: null,
+        selectedIndex: null,
         queryParams: {
           pageNum: 1,
           pageSize: 16,
@@ -158,42 +159,46 @@
     },
     async created() {
       await this.getList();
-      const { isActive,name,value } = this.activeMenu;
-      const { list } = this;
-      if(isActive){
-          if(name && value){
-              let item =list.find((i)=>i[name]==value);
-              this.$emit('select',item ?item:this.list[0])
-          }else{
-              this.$emit('select',this.list[0])
-          }
+      // 获取列表后，如果有数据则选中第一项
+      if (this.list && this.list.length > 0) {
+        this.selectedIndex = 0;
+        this.$emit('select', this.list[0]);
       }
     },
     methods: {
       /** 查询列表 */
       async getList() {
         this.loading = true;
-        if (
-          this.fun !== null &&
-          typeof this.fun !== 'undefined' &&
-          typeof this.fun === 'function'
-        ) {
-          const { rows, total } = await this.fun(this.queryParams);
-          this.list = rows;
-          this.total = total;
+        try {
+          if (typeof this.fun === 'function') {
+            const { rows, total } = await this.fun(this.queryParams);
+            this.list = rows;
+            this.total = total;
+            
+            // 当列表更新时，如果有数据则选中第一项
+            if (this.list && this.list.length > 0) {
+              this.selectedIndex = 0;
+              // 如果是搜索或翻页导致的列表更新，也需要触发选择事件
+              this.$emit('select', this.list[0]);
+            } else {
+              this.selectedIndex = null;
+            }
+          }
+        } finally {
           this.loading = false;
         }
       },
       handleSelect(index) {
-          if(this.isSub){
-              let childrenList=[];
-              this.list.forEach(item => {
-                  childrenList = childrenList.concat(item.children);
-              });
-              this.$emit('select', childrenList.filter(item=>item.channelSipId==index)[0]);
-          }else{
-              this.$emit('select', this.list[Number(index)]);
-          }
+        this.selectedIndex = index;
+        if (this.isSub) {
+          let childrenList = [];
+          this.list.forEach(item => {
+            childrenList = childrenList.concat(item.children);
+          });
+          this.$emit('select', childrenList.filter(item => item.channelSipId == index)[0]);
+        } else {
+          this.$emit('select', this.list[Number(index)]);
+        }
       },
       handleInput(value) {
         this.queryParams[this.searchParma] = value;
@@ -210,21 +215,29 @@
   <style lang="scss" scoped>
   .search-menu {
     &-header {
-      height: 70px;
+      height: 56px;
       display: flex;
       align-items: center;
-      padding-left: 15px;
+      padding: 0 20px;
       font-size: 16px;
       font-weight: 500;
+      border-bottom: 1px solid #ebeef5;
     }
     &-body {
-      height: calc(100vh - 84px - 70px - 50px - 30px);
-      padding: 0 15px;
+      height: calc(100vh - 84px - 56px - 50px - 30px);
+      padding: 15px 20px;
       display: flex;
       flex-direction: column;
 
       .search-input {
-        margin-bottom: 15px;
+        margin-bottom: 20px;
+        
+        ::v-deep .el-input__inner {
+          border-radius: 4px;
+          &:focus {
+            border-color: #409EFF;
+          }
+        }
       }
 
       .batch-list {
@@ -242,18 +255,32 @@
         }
 
         .batch-card {
-          margin-bottom: 10px;
+          margin-bottom: 12px;
           cursor: pointer;
-          transition: all 0.3s;
+          transition: all 0.2s;
+          border-radius: 4px;
+          border: 1px solid transparent;
 
           &:hover {
             transform: translateY(-2px);
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
           }
 
           &.is-active {
-            border-color: #409EFF;
+            background-color: #f0f7ff !important;
+            border: 1px solid transparent !important;
+            box-shadow: none !important;
+            
+            ::v-deep .el-card__body {
+              border: none;
+            }
             
             .batch-name {
+              color: #409EFF;
+              font-weight: 500;
+            }
+
+            .batch-icon {
               color: #409EFF;
             }
           }
@@ -264,13 +291,15 @@
               align-items: center;
               
               .batch-icon {
-                margin-right: 8px;
-                font-size: 16px;
+                margin-right: 10px;
+                font-size: 18px;
+                color: #606266;
               }
 
               .batch-name {
                 flex: 1;
                 font-size: 14px;
+                color: #303133;
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
@@ -322,18 +351,40 @@
       justify-content: center;
       align-items: center;
       padding: 10px 0;
+      border-top: 1px solid #ebeef5;
     }
   }
   ::v-deep {
     .el-card__body {
-      padding: 12px 15px;
+      padding: 14px 16px;
+      border: none;
     }
 
     .el-pagination {
-      .el-pager li.active {
-        background-color: #409EFF;
-        color: #fff;
+      .el-pager li {
+        background: transparent;
+        &.active {
+          background-color: #409EFF;
+          color: #fff;
+        }
+        &:hover {
+          color: #409EFF;
+        }
       }
+    }
+
+    .el-card {
+      border: 1px solid transparent;
+      box-shadow: none !important;
+      
+      &:hover, &:focus {
+        border-color: transparent;
+      }
+    }
+    
+    .el-card.is-active {
+      border: none !important;
+      box-shadow: none !important;
     }
   }
   </style>

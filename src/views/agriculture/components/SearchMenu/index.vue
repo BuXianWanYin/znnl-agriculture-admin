@@ -124,41 +124,44 @@ export default {
   },
   async created() {
     await this.getList();
-    const { isActive,name,value } = this.activeMenu;
-    const { list } = this;
-    if(isActive){
-        if(name && value){
-            let item =list.find((i)=>i[name]==value);
-            this.$emit('select',item ?item:this.list[0])
-        }else{
-            this.$emit('select',this.list[0])
-        }
+    // 获取列表后，如果有数据则选中第一项
+    if (this.list && this.list.length > 0) {
+      this.selectedIndex = 0;
+      this.$emit('select', this.list[0]);
     }
   },
   methods: {
     /** 查询列表 */
     async getList() {
       this.loading = true;
-      if (
-        this.fun !== null &&
-        typeof this.fun !== 'undefined' &&
-        typeof this.fun === 'function'
-      ) {
-        const { rows, total } = await this.fun(this.queryParams);
-        this.list = rows;
-        this.total = total;
+      try {
+        if (typeof this.fun === 'function') {
+          const { rows, total } = await this.fun(this.queryParams);
+          this.list = rows;
+          this.total = total;
+          
+          // 当列表更新时，如果有数据则选中第一项
+          if (this.list && this.list.length > 0) {
+            this.selectedIndex = 0;
+            // 如果是搜索或翻页导致的列表更新，也需要触发选择事件
+            this.$emit('select', this.list[0]);
+          } else {
+            this.selectedIndex = null;
+          }
+        }
+      } finally {
         this.loading = false;
       }
     },
     handleSelect(index) {
       this.selectedIndex = index;
-      if(this.isSub){
-        let childrenList=[];
+      if (this.isSub) {
+        let childrenList = [];
         this.list.forEach(item => {
-            childrenList = childrenList.concat(item.children);
+          childrenList = childrenList.concat(item.children);
         });
-        this.$emit('select', childrenList.filter(item=>item.channelSipId==index)[0]);
-      }else{
+        this.$emit('select', childrenList.filter(item => item.channelSipId == index)[0]);
+      } else {
         this.$emit('select', this.list[Number(index)]);
       }
     },
@@ -220,8 +223,9 @@ export default {
       .batch-card {
         margin-bottom: 12px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.2s;
         border-radius: 4px;
+        border: 1px solid transparent;
 
         &:hover {
           transform: translateY(-2px);
@@ -230,8 +234,12 @@ export default {
 
         &.is-active {
           background-color: #f0f7ff !important;
-          border-color: #ebeef5;
-          box-shadow: 0 2px 12px 0 rgba(0,0,0,.1);
+          border: 1px solid transparent !important;
+          box-shadow: none !important;
+          
+          ::v-deep .el-card__body {
+            border: none;
+          }
           
           .batch-name {
             color: #409EFF;
@@ -281,6 +289,21 @@ export default {
 ::v-deep {
   .el-card__body {
     padding: 14px 16px;
+    border: none;
+  }
+
+  .el-card {
+    border: 1px solid transparent;
+    box-shadow: none !important;
+    
+    &:hover, &:focus {
+      border-color: transparent;
+    }
+  }
+  
+  .el-card.is-active {
+    border: none !important;
+    box-shadow: none !important;
   }
 
   .el-pagination {

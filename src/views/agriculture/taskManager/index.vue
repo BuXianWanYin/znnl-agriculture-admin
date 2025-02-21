@@ -2,35 +2,61 @@
   <div class="app-container-gray">
     <el-row class="box">
       <el-col :span="4" class="left">
-        <search-menu title="种植分区" :fun="listBatch" search-parma="batchName" search-placeholder="请输入批次名称" key-name="batchId" label-name="batchName" @select="handleSelect" />
+        <search-menu 
+          title="种植分区" 
+          :fun="listBatch" 
+          search-parma="batchName" 
+          search-placeholder="请输入批次名称" 
+          key-name="batchId" 
+          label-name="batchName"
+          :active-menu="{
+            isActive: true,
+            name: 'batchId',
+            value: ''
+          }"
+          @select="handleSelect" 
+        />
       </el-col>
       <el-col :span="20" class="right">
-        <task :batch-id="batchId"></task>
+        <template v-if="batchId">
+          <task :batch-id="batchId"></task>
+        </template>
+        <el-empty v-else description="暂无批次任务"></el-empty>
       </el-col>
     </el-row>
   </div>
 </template>
+
 <script>
-//Take用来展示任务列表
+//Task用来展示任务列表
 //SearchMenu用来展示搜索菜单
 import Task from "../components/Task";
 import SearchMenu from "../components/SearchMenu";
-import { listLand } from "@/api/agriculture/land";
-import { listBatch} from "@/api/agriculture/batch";
+import { listBatch } from "@/api/agriculture/batch";
+
 export default {
-  components: { Task,SearchMenu },
+  name: 'TaskManager',
+  components: { Task, SearchMenu },
   data() {
     return {
       listBatch,
-      batchId:null
+      batchId: null
     };
   },
-  created(){
+  created() {
+    this.initDefaultSelection();
   },
-  methods:{
+  methods: {
+    /** 初始化默认选择第一个批次 */
+    async initDefaultSelection() {
+      const res = await this.listBatch({ pageNum: 1, pageSize: 16 });
+      if (res.rows && res.rows.length > 0) {
+        this.batchId = Number(res.rows[0].batchId);
+      }
+    },
 
     /** 处理菜单的点击 */
-    handleSelect(e){
+    handleSelect(e) {
       // 格式化输出选中的批次数据
       console.log('选中的批次数据:', {
         批次ID: e.batchId,
@@ -44,49 +70,34 @@ export default {
         备注: e.remark || '无'
       });
 
-      // 如果想要更漂亮的控制台输出，可以使用 table
-      console.table({
-        '批次基本信息': {
-          'ID': e.batchId,
-          '名称': e.batchName,
-          '负责人': e.batchHead,
-          '面积': e.cropArea,
-          '开始时间': e.startTime
-        },
-        '系统信息': {
-          '创建人': e.createBy,
-          '创建时间': e.createTime,
-          '更新人': e.updateBy,
-          '更新时间': e.updateTime,
-          '状态': e.status
-        },
-        '其他信息': {
-          '合约地址': e.contractAddress,
-          '种质ID': e.germplasmId,
-          '种质图片': e.germplasmImg,
-          '备注': e.remark || '无'
-        }
-      });
-
       this.batchId = Number(e.batchId);
     }
-  },
+  }
 };
 </script>
+
 <style lang="scss" scoped>
 .box {
   padding: 15px;
+  height: calc(100vh - 84px);
 }
+
 .left {
   background: #fff;
   border-radius: 10px 0 0 10px;
+  height: 100%;
 }
+
 .right {
   background: #fff;
-  height:calc(100vh - 84px - 30px);
+  height: 100%;
   border-radius: 0 10px 10px 0;
   border-left: 1px solid #eee;
   padding: 0 15px;
   overflow: auto;
+
+  .el-empty {
+    margin-top: 200px;
+  }
 }
 </style>
