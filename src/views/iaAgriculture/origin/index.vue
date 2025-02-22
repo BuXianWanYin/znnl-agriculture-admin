@@ -86,7 +86,7 @@
             <!-- 产地信息卡片组 -->
             <el-card class="info-cards-container">
                 <div slot="header" class="clearfix">
-                    <span>{{ isAquaculture ? '养殖信息' : '产地信息' }}</span>
+                    <span>{{ type === 1 ? '养殖信息' : '产地信息' }}</span>
                     <span class="trace-tag">可追溯</span>
                 </div>
                 <el-row :gutter="20">
@@ -94,12 +94,12 @@
                         <el-card class="info-card" shadow="hover">
                             <div class="card-header">
                                 <i class="el-icon-house"></i>
-                                <span>{{ isAquaculture ? '鱼棚信息' : '大棚信息' }}</span>
+                                <span>{{ type === 1 ? '鱼棚信息' : '大棚信息' }}</span>
                             </div>
-                            <el-empty v-if="!ivPastureInfo" :description="isAquaculture ? '暂无鱼棚信息' : '暂无大棚信息'"></el-empty>
+                            <el-empty v-if="!ivPastureInfo" :description="type === 1 ? '暂无鱼棚信息' : '暂无大棚信息'"></el-empty>
                             <div v-else class="card-content">
                                 <div class="info-item">
-                                    <div class="label">{{ isAquaculture ? '鱼棚名称' : '大棚名称' }}</div>
+                                    <div class="label">{{ type === 1 ? '鱼棚名称' : '大棚名称' }}</div>
                                     <div class="value">{{ ivPastureInfo.name }}</div>
                                 </div>
                                 <div class="info-item">
@@ -107,7 +107,7 @@
                                     <div class="value address">{{ ivPastureInfo.area }}</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="label">{{ isAquaculture ? '鱼棚位置' : '大棚位置' }}</div>
+                                    <div class="label">{{ type === 1 ? '鱼棚位置' : '大棚位置' }}</div>
                                     <div class="value">{{ ivPastureInfo.position }}</div>
                                 </div>
                             </div>
@@ -118,22 +118,26 @@
                         <el-card class="info-card" shadow="hover">
                             <div class="card-header">
                                 <i class="el-icon-menu"></i>
-                                <span>{{ isAquaculture ? '养殖信息' : '分区信息' }}</span>
+                                <span>{{ type === 1 ? '养殖信息' : '分区信息' }}</span>
                             </div>
-                            <el-empty v-if="!iaPartitionInfo" :description="isAquaculture ? '暂无养殖信息' : '暂无分区信息'"></el-empty>
+                            <el-empty v-if="!iaPartitionInfo" :description="type === 1 ? '暂无养殖信息' : '暂无分区信息'"></el-empty>
                             <div v-else class="card-content">
                                 <div class="info-item">
-                                    <div class="label">{{ isAquaculture ? '养殖品种' : '分区名称' }}</div>
-                                    <div class="value">{{ isAquaculture ? iaPartitionInfo.variety : iaPartitionInfo.name }}</div>
-                                </div>
-                                <div class="info-item" v-if="!isAquaculture">
-                                    <div class="label">种植品种</div>
-                                    <div class="value">{{ iaPartitionInfo.variety }}</div>
+                                    <div class="label">分区名称</div>
+                                    <div class="value">{{ type === 1 ? iaPartitionInfo.name : iaPartitionInfo.name }}</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="label">{{ isAquaculture ? '养殖日期' : '种植日期' }}</div>
+                                    <div class="label">{{ type === 1 ? '养殖品种' : '种植品种' }}</div>
+                                    <div class="value">{{ iaPartitionInfo.variety  }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="label">{{ type === 1 ? '养殖日期' : '种植日期' }}</div>
                                     <div class="value">{{ iaPartitionInfo.dateT }}</div>
                                 </div>
+                                <!-- <div class="info-item">
+                                    <div class="label">{{ type === 1 ? '养殖面积' : '种植面积' }}</div>
+                                    <div class="value">{{ iaPartitionInfo.cropArea }}平方米</div>
+                                </div> -->
                             </div>
                         </el-card>
                     </el-col>
@@ -152,7 +156,7 @@
                                 </div>
                              
                                 <div class="info-item">
-                                    <div class="label">{{ isAquaculture ? '捕捞日期' : '采摘日期' }}</div>
+                                    <div class="label">{{ type === 1 ? '捕捞日期' : '采摘日期' }}</div>
                                     <div class="value">{{ shopInfo.datet }}</div>
                                 </div>
 
@@ -177,7 +181,7 @@
             <!-- 种植/养殖环节卡片 -->
             <el-card class="timeline-card">
                 <div slot="header" class="clearfix">
-                    <span>{{ isAquaculture ? '养殖环节' : '种植环节' }}</span>
+                    <span>{{ type === 1 ? '养殖环节' : '种植环节' }}</span>
                     <span class="trace-tag">可追溯</span>
                 </div>
                 <div class="horizontal-timeline-wrapper">
@@ -226,13 +230,14 @@
     import sf from "@/components/origin/sf";
     import environment from "@/components/origin/environment";
     import {
-        allBatchTask
-    } from "@/api/agriculture/batchTask";
-    import {
         listBatchTask,
     } from "@/api/agriculture/batchTask";
     import { getBatch } from "@/api/agriculture/batch";
     import { getGermplasm } from "@/api/agriculture/germplasm";
+    //鱼的接口
+    import { listBatchTask as listFishBatchTask } from "@/api/fishingGround/batchTask";
+    import { getBatch as getFishBatch } from "@/api/fishingGround/batch";
+    import { getGermplasm as getFishGermplasm } from "@/api/fishingGround/species";
     import http from "@/utils/request";
     export default {
         data() {
@@ -264,124 +269,7 @@
                     { title: '种植环节' },
                     { title: '环境信息' }
                 ],
-                // 测试数据开关，true 时强制显示鱼棚数据 falsh恢复正常
-                testAquaculture: false,
-                
-                // 测试用的鱼棚数据
-                testData: {
-                    ivPastureInfo: {
-                        name: "鱼棚A01",
-                        area: "0x1234...5678",
-                        position: "水产养殖区块1号"
-                    },
-                    iaPartitionInfo: {
-                        variety: "加州鲈鱼",
-                        dateT: "2024-03-20",
-                    },
-                    shopInfo: {
-                        name: "精选加州鲈鱼",
-                        datet: "2024-03-25",
-                        quality: "优秀",
-                        weight: "2.5"
-                    },
-                    environmentData: [
-                        {
-                            day: new Date().getTime(),
-                            water_quality: "优",
-                            avg_water_temp: "23℃",
-                            oxygen_content: "7.5mg/L",
-                            ph_value: "7.2",
-                            nitrite_content: "0.02mg/L"
-                        },
-                        // 可以添加更多测试数据...
-                    ],
-                    taskList: [
-                        {
-                            taskId: "T001",
-                            taskName: "投放鱼苗",
-                            taskHeadName: "张三",
-                            status: "3", // 已完成
-                            planStart: "2024-03-20",
-                            planFinish: "2024-03-20",
-                            actualStart: "2024-03-20",
-                            actualFinish: "2024-03-20",
-                            greenhouseName: "鱼棚A01",
-                            environmentData: [
-                                {
-                                    day: new Date().getTime(),
-                                    water_quality: "优",
-                                    avg_water_temp: "22℃",
-                                    oxygen_content: "7.8mg/L",
-                                    ph_value: "7.0",
-                                    nitrite_content: "0.01mg/L"
-                                }
-                            ]
-                        },
-                        {
-                            taskId: "T002",
-                            taskName: "日常投喂",
-                            taskHeadName: "李四",
-                            status: "3", // 已完成
-                            planStart: "2024-03-21",
-                            planFinish: "2024-03-21",
-                            actualStart: "2024-03-21",
-                            actualFinish: "2024-03-21",
-                            greenhouseName: "鱼棚A01",
-                            environmentData: [
-                                {
-                                    day: new Date().getTime(),
-                                    water_quality: "优",
-                                    avg_water_temp: "23℃",
-                                    oxygen_content: "7.5mg/L",
-                                    ph_value: "7.2",
-                                    nitrite_content: "0.02mg/L"
-                                }
-                            ]
-                        },
-                        {
-                            taskId: "T003",
-                            taskName: "水质检测",
-                            taskHeadName: "王五",
-                            status: "3", // 已完成
-                            planStart: "2024-03-22",
-                            planFinish: "2024-03-22",
-                            actualStart: "2024-03-22",
-                            actualFinish: "2024-03-22",
-                            greenhouseName: "鱼棚A01",
-                            environmentData: [
-                                {
-                                    day: new Date().getTime(),
-                                    water_quality: "优",
-                                    avg_water_temp: "23.5℃",
-                                    oxygen_content: "7.6mg/L",
-                                    ph_value: "7.1",
-                                    nitrite_content: "0.015mg/L"
-                                }
-                            ]
-                        },
-                        {
-                            taskId: "T004",
-                            taskName: "疾病防控",
-                            taskHeadName: "赵六",
-                            status: "2", // 进行中
-                            planStart: "2024-03-23",
-                            planFinish: "2024-03-25",
-                            actualStart: "2024-03-23",
-                            actualFinish: null,
-                            greenhouseName: "鱼棚A01",
-                            environmentData: [
-                                {
-                                    day: new Date().getTime(),
-                                    water_quality: "良",
-                                    avg_water_temp: "23℃",
-                                    oxygen_content: "7.4mg/L",
-                                    ph_value: "7.3",
-                                    nitrite_content: "0.025mg/L"
-                                }
-                            ]
-                        }
-                    ]
-                }
+                type: 0, // 添加type字段，默认为0（菜）
             };
         },
         components: {
@@ -396,21 +284,6 @@
                     return;
                 }
                 
-                // 测试模式下使用测试数据
-                if (this.testAquaculture) {
-                    this.showResult = true;
-                    this.ivPastureInfo = this.testData.ivPastureInfo;
-                    this.iaPartitionInfo = this.testData.iaPartitionInfo;
-                    this.shopInfo = this.testData.shopInfo;
-                    this.tableData = this.testData.environmentData;
-                    this.taskList = this.testData.taskList;
-                    return;
-                }
-
-
-                //分割
-
-
                 this.showResult = false;
                 localStorage.setItem("syInfo", this.originName);
                 this.ivPastureInfo = {};
@@ -425,6 +298,10 @@
                 .then((res) => {
                     if (res.data.code === 0) {
                         this.showResult = true;
+                        this.type = res.data.data.type;
+                        console.log('Type value:', this.type);
+
+                        // 处理鱼棚/大棚信息
                         this.ivPastureInfo = this.mapInfo(res.data.data.ivPastureInfo, {
                             _greenhouseName: "name",
                             _greenhouseArea: "area",
@@ -432,30 +309,72 @@
                         });
                         this.ivPastureInfo.area = res.data.data.contractAddr;
 
-                        this.iaPartitionInfo = this.mapInfo(res.data.data.iaPartitionInfo, {
-                            _partitionsName: "name",
-                            _plantingVarieties: "variety",
-                            _plantingDate: "dateT",
-                            _id: "id",
-                            _ofGreenhouse: "greenhouseAddress",
-                        });
-                        this.getStepsList(this.originName)
+                        // 处理分区信息
+                        if (this.type === 1) {
+                            // 鱼的数据结构处理
+                            const partitionInfo = res.data.data.iaPartitionInfo;
+                            if (typeof partitionInfo === 'string') {
+                                try {
+                                    // 提取Tuple中的值
+                                    const matches = partitionInfo.match(/value\d+=([^,}]+)/g);
+                                    if (matches) {
+                                        this.iaPartitionInfo = {
+                                            name: matches[2]?.split('=')[1] || '', // value3 (暂时设置，后续会被batchName覆盖)
+                                            variety: '', // 这个会在getStepsList中通过品种接口获取
+                                            dateT: matches[5]?.split('=')[1] || '', // value6
+                                            id: matches[0]?.split('=')[1] || '', // value1
+                                            greenhouseAddress: matches[6]?.split('=')[1] || '' // value7
+                                        };
+                                    }
+                                } catch (error) {
+                                    console.error('解析分区信息失败:', error);
+                                }
+                            }
+                        } else {
+                            // 菜的数据结构处理（保持原有逻辑）
+                            this.iaPartitionInfo = this.mapInfo(res.data.data.iaPartitionInfo, {
+                                _partitionsName: "name",
+                                _plantingVarieties: "variety",
+                                _plantingDate: "dateT",
+                                _id: "id",
+                                _ofGreenhouse: "greenhouseAddress",
+                            });
+                        }
 
-                        this.tableData=res.data.data.map
-                        const sensorValueInfo = res.data.data.iaPartitionFoodSensorValueInfo[0]?.listValues || [];
-                        this.shopInfo = this.mapInfo(sensorValueInfo, {
-                            foodName: "name",
-                            processingTimestamp: "datet",
-                            quality: "quality",
-                            weight: "weight",
-                        });
+                        // 处理食品信息
+                        if (this.type === 1) {
+                            // 鱼的数据结构处理
+                            const foodInfo = res.data.data.iaPartitionFoodSensorValueInfo;
+                            if (foodInfo) {
+                                this.shopInfo = {
+                                    name: foodInfo.productName,
+                                    datet: foodInfo.processingTimestamp,
+                                    quality: foodInfo.quality,
+                                    weight: foodInfo.weight
+                                };
+                            }
+                        } else {
+                            // 菜的数据结构处理（保持原有逻辑）
+                            const sensorValueInfo = res.data.data.iaPartitionFoodSensorValueInfo[0]?.listValues || [];
+                            this.shopInfo = this.mapInfo(sensorValueInfo, {
+                                foodName: "name",
+                                processingTimestamp: "datet",
+                                quality: "quality",
+                                weight: "weight",
+                            });
+                        }
 
+                        // 处理日期格式
                         if (this.shopInfo.datet) {
                             this.shopInfo.datet = new Date(parseInt(this.shopInfo.datet)).toLocaleString();
                         }
 
+                        // 处理质量等级
                         this.shopInfo.quality = this.shopInfo.quality === "2" ? "优秀" :
                             this.shopInfo.quality === "1" ? "及格" : "不合格";
+
+                        this.tableData = res.data.data.map;
+                        this.getStepsList(this.originName);
                     } else {
                         this.showResult = false;
                         this.$message.error(res.data.msg);
@@ -469,11 +388,21 @@
             },
             async getProcessList(id) {
                 try {
-                    const { data } = await http.post('/iaPartitionFood/detail', {}, {
-                        params: { id }
-                    });
-                    return data.iaPartitionId;
+                    if (this.type === 1) {
+                        // 鱼的处理逻辑
+                        console.log('Requesting fish partition food detail for id:', id);
+                        const response = await http.post('/fishPasture/fishPartitionFood/detail', {}, { params: { id } });
+                        console.log('Fish Partition Food Detail response:', response);
+                        
+                        // 直接从响应对象中获取 fishPartitionId
+                        return response.data.fishPartitionId;
+                    } else {
+                        // 菜的处理逻辑保持不变
+                        const { data } = await http.post('/iaPartitionFood/detail', {}, { params: { id } });
+                        return data.iaPartitionId;
+                    }
                 } catch (e) {
+                    console.error('getProcessList error:', e);
                     this.$message.error('网络错误请重试！');
                     throw e;
                 }
@@ -482,18 +411,44 @@
             async getStepsList(id) {
                 try {
                     const batchId = await this.getProcessList(id);
+                    console.log('Got batchId:', batchId);
 
-                    const response = await listBatchTask({
+                    // 根据type选择不同的接口
+                    console.log('Requesting batch tasks for batchId:', batchId);
+                    const response = await (this.type === 1 ? listFishBatchTask : listBatchTask)({
                         pageNum: 1,
                         pageSize: 100,
                         batchId,
                     });
+                    console.log('Batch tasks response:', response);
 
-                    const batchDetails = await getBatch(batchId);
+                    if (this.type === 1) {
+                        if (response.rows && response.rows.length > 0) {
+                            console.log('Requesting fish batch details for batchId:', batchId);
+                            const batchDetails = await getFishBatch(batchId);
+                            console.log('Fish batch details response:', batchDetails);
+                            
+                            // 更新养殖信息
+                            this.iaPartitionInfo = {
+                                ...this.iaPartitionInfo,
+                                name: batchDetails.data.batchName,
+                                dateT: batchDetails.data.startTime,
+                                cropArea: batchDetails.data.cropArea,
+                            };
 
-                    if (batchDetails.data.germplasmId) {
-                        const germplasmDetails = await getGermplasm(batchDetails.data.germplasmId);
-                        this.iaPartitionInfo.variety = germplasmDetails.data.cropName;
+                            if (batchDetails.data.speciesId) {
+                                console.log('Requesting fish species for speciesId:', batchDetails.data.speciesId);
+                                const germplasmDetails = await getFishGermplasm(batchDetails.data.speciesId);
+                                this.iaPartitionInfo.variety = germplasmDetails.data.fishName;
+                            }
+                        }
+                    } else {
+                        // 菜的处理逻辑保持不变
+                        const batchDetails = await getBatch(batchId);
+                        if (batchDetails.data.germplasmId) {
+                            const germplasmDetails = await getGermplasm(batchDetails.data.germplasmId);
+                            this.iaPartitionInfo.variety = germplasmDetails.data.cropName;
+                        }
                     }
 
                     const { rows, total } = response;
@@ -508,7 +463,7 @@
                         color: "#2b7",
                     }));
                 } catch (error) {
-                    console.error("获取任务列表失败:", error);
+                    console.error("getStepsList error details:", error);
                     this.$message.error("任务列表加载失败，请稍后再试");
                 }
             },
@@ -599,13 +554,7 @@
             }
         },
         computed: {
-            isAquaculture() {
-                // 使用测试开关
-                if (this.testAquaculture) {
-                    return true;
-                }
-                return this.ivPastureInfo?.name?.substring(0, 2) === '鱼棚';
-            }
+            // 删除原有的isAquaculture计算属性，因为现在直接使用type
         },
     };
 </script>
