@@ -14,23 +14,6 @@
         <div class="node-corner" v-if="(index + 1) % 6 === 0 && index !== tasks.length - 1"></div>
     </div>
     <el-card class="task-card" :body-style="{ padding: '10px' }" shadow="hover">
-        <div class="task-title">{{ task.taskName }}</div>
-        <div class="task-dates">
-            <div class="date-group">
-                <div class="date-label">计划时间</div>
-                <div class="date-item">
-                    <i class="el-icon-date"></i>
-                    <span>{{ task.planStart }} ~ {{ task.planFinish }}</span>
-                </div>
-            </div>
-            <div class="date-group">
-                <div class="date-label">实际时间</div>
-                <div class="date-item">
-                    <i class="el-icon-date"></i>
-                    <span>{{ task.actualStart }} ~ {{ task.actualFinish }}</span>
-                </div>
-            </div>
-        </div>
         <div class="task-info">
             <div class="info-item">
                 <i class="el-icon-info"></i>
@@ -45,6 +28,41 @@
             >追溯</el-button>
         </div>
     </el-card>
+    
+    <el-dialog
+        :title="task.taskName || '任务追溯'"
+        :visible.sync="dialogVisible"
+        width="600px"
+        :close-on-click-modal="false"
+        :append-to-body="true"
+    >
+        <div class="trace-info">
+            <div class="info-section">
+                <h3>基本信息</h3>
+                <div class="info-row">
+                    <i class="el-icon-user"></i>
+                    <span class="label">负责人：</span>
+                    <span class="value">{{ task.taskHeadName }}</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>计划开始时间</h3>
+                <div class="info-row time-row">
+                    <i class="el-icon-date"></i>
+                    <span class="value">{{ task.planStart }} ~ {{ task.planFinish }}</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <h3>实际开始时间</h3>
+                <div class="info-row time-row">
+                    <i class="el-icon-date"></i>
+                    <span class="value">{{ task.actualStart }} ~ {{ task.actualFinish }}</span>
+                </div>
+            </div>
+        </div>
+    </el-dialog>
 </div>
 </template>
 
@@ -58,11 +76,17 @@ export default {
         },
         task: {
             type: Object,
-            default: () => ({}) // 修正空对象的返回
+            required: true,
+            default: () => ({})
         },
         tasks: {
             type: Array,
             default: () => []
+        }
+    },
+    data() {
+        return {
+            dialogVisible: false
         }
     },
     methods: {
@@ -83,7 +107,8 @@ export default {
             }
         },
         handleTrace() {
-            this.$emit('trace', this.task);
+            console.log('Opening dialog...'); // 添加调试日志
+            this.dialogVisible = true;
         }
     }
 }
@@ -169,55 +194,6 @@ export default {
     width: 100%;
     margin-bottom: 10px;
 
-    .task-title {
-        font-size: 14px;
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: #303133;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #EBEEF5;
-    }
-
-    .task-dates {
-        font-size: 12px;
-        color: #606266;
-
-        .date-group {
-            margin-bottom: 8px;
-
-            &:last-child {
-                margin-bottom: 0;
-            }
-
-            .date-label {
-                color: #909399;
-                margin-bottom: 4px;
-                font-weight: 500;
-            }
-
-            .date-item {
-                display: flex;
-                align-items: center;
-                margin-bottom: 4px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-
-                i {
-                    margin-right: 4px;
-                    font-size: 12px;
-                    color: #909399;
-                }
-
-                span {
-                    flex: 1;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-            }
-        }
-    }
-
     .task-info {
         display: flex;
         justify-content: space-between;
@@ -300,6 +276,60 @@ export default {
     
     .horizontal-timeline {
         padding: 0 15px;
+    }
+}
+
+.trace-info {
+    padding: 20px;
+    
+    .info-section {
+        margin-bottom: 30px;
+        
+        &:last-child {
+            margin-bottom: 0;
+        }
+        
+        h3 {
+            font-size: 16px;
+            color: #303133;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #EBEEF5;
+        }
+    }
+    
+    .info-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        
+        &:last-child {
+            margin-bottom: 0;
+        }
+        
+        i {
+            color: #909399;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .label {
+            color: #909399;
+            margin-right: 10px;
+            min-width: 70px;
+        }
+        
+        .value {
+            color: #303133;
+        }
+        
+        &.time-row {
+            i {
+                color: #909399;
+                margin-right: 10px;
+                font-size: 16px;
+            }
+        }
     }
 }
 </style>
