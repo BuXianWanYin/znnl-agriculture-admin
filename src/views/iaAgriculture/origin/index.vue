@@ -91,7 +91,7 @@
             <!-- 产地信息卡片组 -->
             <el-card class="info-cards-container">
                 <div slot="header" class="clearfix">
-                    <span>产地信息</span>
+                    <span>{{ isAquaculture ? '养殖信息' : '产地信息' }}</span>
                     <span class="trace-tag">可追溯</span>
                 </div>
                 <el-row :gutter="20">
@@ -99,12 +99,12 @@
                         <el-card class="info-card" shadow="hover">
                             <div class="card-header">
                                 <i class="el-icon-house"></i>
-                                <span>大棚信息</span>
+                                <span>{{ isAquaculture ? '鱼棚信息' : '大棚信息' }}</span>
                             </div>
-                            <el-empty v-if="!ivPastureInfo" description="暂无大棚信息"></el-empty>
+                            <el-empty v-if="!ivPastureInfo" :description="isAquaculture ? '暂无鱼棚信息' : '暂无大棚信息'"></el-empty>
                             <div v-else class="card-content">
                                 <div class="info-item">
-                                    <div class="label">大棚名称</div>
+                                    <div class="label">{{ isAquaculture ? '鱼棚名称' : '大棚名称' }}</div>
                                     <div class="value">{{ ivPastureInfo.name }}</div>
                                 </div>
                                 <div class="info-item">
@@ -112,7 +112,7 @@
                                     <div class="value address">{{ ivPastureInfo.area }}</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="label">大棚位置</div>
+                                    <div class="label">{{ isAquaculture ? '鱼棚位置' : '大棚位置' }}</div>
                                     <div class="value">{{ ivPastureInfo.position }}</div>
                                 </div>
                             </div>
@@ -123,20 +123,20 @@
                         <el-card class="info-card" shadow="hover">
                             <div class="card-header">
                                 <i class="el-icon-menu"></i>
-                                <span>分区信息</span>
+                                <span>{{ isAquaculture ? '养殖信息' : '分区信息' }}</span>
                             </div>
-                            <el-empty v-if="!iaPartitionInfo" description="暂无分区信息"></el-empty>
+                            <el-empty v-if="!iaPartitionInfo" :description="isAquaculture ? '暂无养殖信息' : '暂无分区信息'"></el-empty>
                             <div v-else class="card-content">
                                 <div class="info-item">
-                                    <div class="label">分区名称</div>
-                                    <div class="value">{{ iaPartitionInfo.name }}</div>
+                                    <div class="label">{{ isAquaculture ? '养殖品种' : '分区名称' }}</div>
+                                    <div class="value">{{ isAquaculture ? iaPartitionInfo.variety : iaPartitionInfo.name }}</div>
                                 </div>
-                                <div class="info-item">
+                                <div class="info-item" v-if="!isAquaculture">
                                     <div class="label">种植品种</div>
                                     <div class="value">{{ iaPartitionInfo.variety }}</div>
                                 </div>
                                 <div class="info-item">
-                                    <div class="label">种植日期</div>
+                                    <div class="label">{{ isAquaculture ? '养殖日期' : '种植日期' }}</div>
                                     <div class="value">{{ iaPartitionInfo.dateT }}</div>
                                 </div>
                             </div>
@@ -177,10 +177,10 @@
                 </el-row>
             </el-card>
 
-            <!-- 种植环节卡片 -->
+            <!-- 种植/养殖环节卡片 -->
             <el-card class="timeline-card">
                 <div slot="header" class="clearfix">
-                    <span>种植环节</span>
+                    <span>{{ isAquaculture ? '养殖环节' : '种植环节' }}</span>
                     <span class="trace-tag">可追溯</span>
                 </div>
                 <div class="horizontal-timeline-wrapper">
@@ -266,7 +266,125 @@
                     { title: '产地信息' },
                     { title: '种植环节' },
                     { title: '环境信息' }
-                ]
+                ],
+                // 测试数据开关，true 时强制显示鱼棚数据 falsh恢复正常
+                testAquaculture: false,
+                
+                // 测试用的鱼棚数据
+                testData: {
+                    ivPastureInfo: {
+                        name: "鱼棚A01",
+                        area: "0x1234...5678",
+                        position: "水产养殖区块1号"
+                    },
+                    iaPartitionInfo: {
+                        variety: "加州鲈鱼",
+                        dateT: "2024-03-20",
+                    },
+                    shopInfo: {
+                        name: "精选加州鲈鱼",
+                        datet: "2024-03-25",
+                        quality: "优秀",
+                        weight: "2.5"
+                    },
+                    environmentData: [
+                        {
+                            day: new Date().getTime(),
+                            water_quality: "优",
+                            avg_water_temp: "23℃",
+                            oxygen_content: "7.5mg/L",
+                            ph_value: "7.2",
+                            nitrite_content: "0.02mg/L"
+                        },
+                        // 可以添加更多测试数据...
+                    ],
+                    taskList: [
+                        {
+                            taskId: "T001",
+                            taskName: "投放鱼苗",
+                            taskHeadName: "张三",
+                            status: "3", // 已完成
+                            planStart: "2024-03-20",
+                            planFinish: "2024-03-20",
+                            actualStart: "2024-03-20",
+                            actualFinish: "2024-03-20",
+                            greenhouseName: "鱼棚A01",
+                            environmentData: [
+                                {
+                                    day: new Date().getTime(),
+                                    water_quality: "优",
+                                    avg_water_temp: "22℃",
+                                    oxygen_content: "7.8mg/L",
+                                    ph_value: "7.0",
+                                    nitrite_content: "0.01mg/L"
+                                }
+                            ]
+                        },
+                        {
+                            taskId: "T002",
+                            taskName: "日常投喂",
+                            taskHeadName: "李四",
+                            status: "3", // 已完成
+                            planStart: "2024-03-21",
+                            planFinish: "2024-03-21",
+                            actualStart: "2024-03-21",
+                            actualFinish: "2024-03-21",
+                            greenhouseName: "鱼棚A01",
+                            environmentData: [
+                                {
+                                    day: new Date().getTime(),
+                                    water_quality: "优",
+                                    avg_water_temp: "23℃",
+                                    oxygen_content: "7.5mg/L",
+                                    ph_value: "7.2",
+                                    nitrite_content: "0.02mg/L"
+                                }
+                            ]
+                        },
+                        {
+                            taskId: "T003",
+                            taskName: "水质检测",
+                            taskHeadName: "王五",
+                            status: "3", // 已完成
+                            planStart: "2024-03-22",
+                            planFinish: "2024-03-22",
+                            actualStart: "2024-03-22",
+                            actualFinish: "2024-03-22",
+                            greenhouseName: "鱼棚A01",
+                            environmentData: [
+                                {
+                                    day: new Date().getTime(),
+                                    water_quality: "优",
+                                    avg_water_temp: "23.5℃",
+                                    oxygen_content: "7.6mg/L",
+                                    ph_value: "7.1",
+                                    nitrite_content: "0.015mg/L"
+                                }
+                            ]
+                        },
+                        {
+                            taskId: "T004",
+                            taskName: "疾病防控",
+                            taskHeadName: "赵六",
+                            status: "2", // 进行中
+                            planStart: "2024-03-23",
+                            planFinish: "2024-03-25",
+                            actualStart: "2024-03-23",
+                            actualFinish: null,
+                            greenhouseName: "鱼棚A01",
+                            environmentData: [
+                                {
+                                    day: new Date().getTime(),
+                                    water_quality: "良",
+                                    avg_water_temp: "23℃",
+                                    oxygen_content: "7.4mg/L",
+                                    ph_value: "7.3",
+                                    nitrite_content: "0.025mg/L"
+                                }
+                            ]
+                        }
+                    ]
+                }
             };
         },
         components: {
@@ -281,6 +399,21 @@
                     return;
                 }
                 
+                // 测试模式下使用测试数据
+                if (this.testAquaculture) {
+                    this.showResult = true;
+                    this.ivPastureInfo = this.testData.ivPastureInfo;
+                    this.iaPartitionInfo = this.testData.iaPartitionInfo;
+                    this.shopInfo = this.testData.shopInfo;
+                    this.tableData = this.testData.environmentData;
+                    this.taskList = this.testData.taskList;
+                    return;
+                }
+
+
+                //分割
+
+
                 this.showResult = false;
                 localStorage.setItem("syInfo", this.originName);
                 this.ivPastureInfo = {};
@@ -466,6 +599,15 @@
             },
             handleScan() {
                 this.$message.info('扫一扫功能开发中...');
+            }
+        },
+        computed: {
+            isAquaculture() {
+                // 使用测试开关
+                if (this.testAquaculture) {
+                    return true;
+                }
+                return this.ivPastureInfo?.name?.substring(0, 2) === '鱼棚';
             }
         },
     };

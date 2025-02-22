@@ -59,7 +59,7 @@
             <div class="info-section">
                 <h3>
                     <i class="el-icon-data-line"></i>
-                    环境信息统计
+                    {{ isAquaculture ? '水质信息统计' : '环境信息统计' }}
                 </h3>
                 <el-table 
                     :data="task.environmentData" 
@@ -73,12 +73,21 @@
                             <span>{{ parseTime(scope.row.day,"{y}-{m}-{d}") }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="avg_temperature" label="平均温度" width="100"></el-table-column>
-                    <el-table-column prop="avg_humidity" label="平均湿度" width="100"></el-table-column>
-                    <el-table-column prop="avg_airquality" label="空气质量" width="100"></el-table-column>
-                    <el-table-column prop="avg_pressure" label="大气压强" width="100"></el-table-column>
-                    <el-table-column prop="avg_lux" label="光照" width="100"></el-table-column>
-                    <el-table-column prop="avg_soil_temperature" label="土壤温度" width="100"></el-table-column>
+                    <template v-if="isAquaculture">
+                        <el-table-column prop="water_quality" label="水质" width="100"></el-table-column>
+                        <el-table-column prop="avg_water_temp" label="平均水温" width="100"></el-table-column>
+                        <el-table-column prop="oxygen_content" label="含氧量" width="100"></el-table-column>
+                        <el-table-column prop="ph_value" label="pH值" width="100"></el-table-column>
+                        <el-table-column prop="nitrite_content" label="亚硝酸盐含量" width="100"></el-table-column>
+                    </template>
+                    <template v-else>
+                        <el-table-column prop="avg_temperature" label="平均温度" width="100"></el-table-column>
+                        <el-table-column prop="avg_humidity" label="平均湿度" width="100"></el-table-column>
+                        <el-table-column prop="avg_airquality" label="空气质量" width="100"></el-table-column>
+                        <el-table-column prop="avg_pressure" label="大气压强" width="100"></el-table-column>
+                        <el-table-column prop="avg_lux" label="光照" width="100"></el-table-column>
+                        <el-table-column prop="avg_soil_temperature" label="土壤温度" width="100"></el-table-column>
+                    </template>
                 </el-table>
             </div>
         </div>
@@ -121,6 +130,11 @@ export default {
         },
         handleTrace() {
             this.dialogVisible = true;
+        }
+    },
+    computed: {
+        isAquaculture() {
+            return this.task?.greenhouseName?.substring(0, 2) === '鱼棚';
         }
     }
 }
