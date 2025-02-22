@@ -59,11 +59,17 @@
                         class="search-input"
                         @keyup.enter.native="originSearch"
                     >
+                        <i 
+                            slot="suffix" 
+                            class="el-icon-camera scan-icon mobile-only"
+                            @click="handleScan"
+                        ></i>
                         <el-button 
                             slot="append" 
                             type="primary"
                             icon="el-icon-search"
                             @click="originSearch"
+                            class="desktop-only"
                         >查询</el-button>
                     </el-input>
                 </div>
@@ -186,7 +192,7 @@
             </el-card>
 
             <!-- 环境信息表格 -->
-            <el-card class="environment-card">
+            <!-- <el-card class="environment-card">
                 <div slot="header">
                     <span>环境信息</span>
                 </div>
@@ -211,7 +217,7 @@
                         </el-pagination>
                     </div>
                 </div>
-            </el-card>
+            </el-card> -->
         </div>
     </div>
 </template>
@@ -457,6 +463,9 @@
             resetFields() {
                 this.envTime = "";
                 this.fetchData();
+            },
+            handleScan() {
+                this.$message.info('扫一扫功能开发中...');
             }
         },
     };
@@ -634,7 +643,7 @@
 .horizontal-timeline {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px 40px;
+    // gap: 20px 40px;
     padding: 0 20px;
 }
 
@@ -1631,6 +1640,54 @@
                 }
             }
         }
+    }
+}
+
+.search-box {
+    .scan-icon {
+        display: none;  // 默认隐藏
+        font-size: 20px;
+        color: #909399;
+        cursor: pointer;
+        padding: 0 8px;
+        
+        &:hover {
+            color: #409EFF;
+        }
+    }
+}
+
+// 移动端样式
+@media screen and (max-width: 768px) {
+    .mobile-only {
+        display: inline-block !important;
+    }
+    
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .search-box {
+        ::v-deep .el-input {
+            .el-input__inner {
+                padding-right: 40px;  // 为扫描图标留出空间
+            }
+            
+            .el-input__suffix {
+                right: 5px;
+            }
+        }
+    }
+}
+
+// 桌面端样式
+@media screen and (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
+    
+    .desktop-only {
+        display: inline-block !important;
     }
 }
 </style>
