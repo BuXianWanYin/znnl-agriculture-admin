@@ -222,7 +222,7 @@
             /** 删除按钮操作 */
             handleDelete(row) {
                 const materialTypeIds = row.materialTypeId || this.ids;
-                this.$modal.confirm('是否确认删除农资类别编号为"' + materialTypeIds + '"的数据项？').then(function() {
+                this.$modal.confirm('是否确认删除农资类别"' + row.materialTypeName + '"？').then(function() {
                     return delMaterialType(materialTypeIds);
                 }).then(() => {
                     this.getList();

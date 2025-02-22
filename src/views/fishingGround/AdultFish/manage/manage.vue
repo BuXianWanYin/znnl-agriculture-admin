@@ -27,39 +27,64 @@
             </el-form>
         </el-card>
         <el-card class="card-padding-bottom">
-            <el-row :gutter="20" v-loading="loading">
-                <el-col :span="8" v-for="(item, index) in speciesList" :key="index" class="mb-20">
-                    <el-card shadow="hover" class="species-card">
-                        <div class="card-header">
-                            <div class="image-container" @click="previewImage(`${image.baseUrl + item.fishSpeciesImg}`, item)">
-                                <img :src="`${image.baseUrl + item.fishSpeciesImg}`" class="species-image" />
+            <el-row :gutter="24">
+                <el-col :span="6" v-for="(item, index) in speciesList" :key="index">
+                    <el-card class="species-card" shadow="hover">
+                        <div class="species-card-header">
+                            <div class="header-content">
+                                <div class="section-name">鱼类信息</div>
+                                <div class="species-name">{{ item.fishName }}</div>
                             </div>
                         </div>
-                        <div class="card-content">
-                            <div class="content-row">
-                                <span class="label">鱼名称：</span>
-                                <span class="value">{{ item.fishName }}</span>
-                            </div>
-                            <div class="content-row">
-                                <span class="label">英文名称：</span>
-                                <span class="value">{{ item.fishEnName }}</span>
-                            </div>
-                            <div class="content-row">
-                                <span class="label">鱼类名称：</span>
-                                <span class="value">{{ item.fishSpeciesName }}</span>
-                            </div>
-                            <div class="content-row">
-                                <span class="label">鱼类英文：</span>
-                                <span class="value">{{ item.fishSpeciesEnName }}</span>
+
+                        <div class="species-image" @click="previewImage(`${image.baseUrl + item.fishSpeciesImg}`, item)">
+                            <img :src="`${image.baseUrl + item.fishSpeciesImg}`" alt="鱼类图片"/>
+                        </div>
+                        
+                        <div class="species-card-content">
+                            <div class="species-info">
+                                <div class="info-group">
+                                    <div class="info-row">
+                                        <div class="info-item">
+                                            <i class="el-icon-menu"></i>
+                                            <span class="label">鱼名称：</span>
+                                            <span class="value">{{ item.fishName }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="el-icon-edit-outline"></i>
+                                            <span class="label">英文名称：</span>
+                                            <span class="value">{{ item.fishEnName }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-group">
+                                    <div class="info-row">
+                                        <div class="info-item">
+                                            <i class="el-icon-document"></i>
+                                            <span class="label">鱼类名称：</span>
+                                            <span class="value">{{ item.fishSpeciesName }}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <i class="el-icon-tickets"></i>
+                                            <span class="label">鱼类英文：</span>
+                                            <span class="value">{{ item.fishSpeciesEnName }}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-footer">
-                            <el-button size="mini" type="primary" icon="el-icon-edit"
-                                @click="handleUpdate(item)" v-hasPermi="['fishPasture:species:edit']">修改</el-button>
-                            <el-button size="mini" type="danger" icon="el-icon-delete"
-                                @click="handleDelete(item)" v-hasPermi="['fishPasture:species:remove']">删除</el-button>
-                            <el-button size="mini" type="success" icon="el-icon-document"
-                                @click="showStandardJob(item)" v-hasPermi="['fishPasture:species:jobProcess']">作业流程</el-button>
+
+                        <div class="species-card-actions">
+                            <el-button size="small" type="primary" icon="el-icon-edit"
+                                @click="handleUpdate(item)" 
+                                v-hasPermi="['fishPasture:species:edit']">修改</el-button>
+                            <el-button size="small" type="danger" icon="el-icon-delete"
+                                @click="handleDelete(item)" 
+                                v-hasPermi="['fishPasture:species:remove']">删除</el-button>
+                            <el-button size="small" plain type="warning" icon="el-icon-s-claim"
+                                @click="showStandardJob(item)" 
+                                v-hasPermi="['fishPasture:species:jobProcess']">作业流程</el-button>
                         </div>
                     </el-card>
                 </el-col>
@@ -91,7 +116,7 @@
                     <div v-if="form.fishSpeciesImg">
                         <!-- 已有图片时显示图片和删除按钮 -->
                         <div class="image-preview">
-                            <img style="width:50px;height:50px;" :src="`${image.baseUrl + form.fishSpeciesImg}`" />
+                            <img style="width:148px;height:148px;" :src="`${image.baseUrl + form.fishSpeciesImg}`" />
                             <!-- 点击时将图片值设为 null，从而清除图片 -->
                             <i class="el-icon-close delete-icon" @click="form.fishSpeciesImg = null"></i>
                         </div>
@@ -330,103 +355,194 @@
     };
 </script>
 <!-- scoped 属性会为该样式添加一个特定的选择器，使得这些样式只应用于当前组件的元素 -->
-<style scoped>
-.mb-20 {
-    margin-bottom: 20px;
+<style lang="scss" scoped>
+.species-card-grid {
+    padding: 20px;
+}
+
+// 修改行和列的间距
+.el-row {
+    margin: 0 -12px;
+}
+
+.el-col {
+    padding: 0 12px;
+    margin-bottom: 24px;
 }
 
 .species-card {
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.3s;
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    
+    .species-card-header {
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        
+        .header-content {
+            .section-name {
+                font-size: 12px;
+                color: #909399;
+                margin-bottom: 4px;
+            }
+
+            .species-name {
+                font-size: 14px;
+                font-weight: 600;
+                color: #333;
+            }
+        }
+    }
+    
+    .species-image {
+        width: 100%;
+        height: 180px;
+        border-radius: 6px;
+        overflow: hidden;
+        cursor: pointer;
+        margin-bottom: 12px;
+        
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    .species-card-content {
+        padding: 0;
+        
+        .species-info {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+
+            .info-group {
+                padding-bottom: 12px;
+                
+                &:first-child {
+                    border-bottom: 1px dashed #ebeef5;
+                }
+
+                .info-row {
+                    display: flex;
+                    gap: 16px;
+                    
+                    .info-item {
+                        flex: 1;
+                        font-size: 12px;
+                        display: flex;
+                        align-items: center;
+                        white-space: nowrap;
+
+                        i {
+                            color: #67C23A;
+                            margin-right: 8px;
+                            font-size: 14px;
+                        }
+
+                        .label {
+                            color: #666;
+                            margin-right: 8px;
+                            min-width: 60px;
+                        }
+
+                        .value {
+                            color: #333;
+                            flex: 1;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .species-card-actions {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #ebeef5;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        
+        .el-button {
+            padding: 4px 8px;
+            height: 28px;
+            border-radius: 4px;
+            margin: 0;
+            transition: all 0.3s ease;
+            
+            &.el-button--primary {
+                background-color: #f2f6fc;
+                border-color: transparent;
+                color: #409eff;
+                
+                &:hover {
+                    background-color: #409eff;
+                    color: #ffffff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+                }
+            }
+            
+            &.el-button--danger {
+                background-color: #fef0f0;
+                border-color: transparent;
+                color: #f56c6c;
+                
+                &:hover {
+                    background-color: #f56c6c;
+                    color: #ffffff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(245, 108, 108, 0.2);
+                }
+            }
+            
+            &.el-button--warning {
+                background-color: #fdf6ec;
+                border-color: transparent;
+                color: #e6a23c;
+                
+                &:hover {
+                    background-color: #e6a23c;
+                    color: #ffffff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
+                }
+            }
+        }
+    }
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    }
 }
 
-.species-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+// 响应式布局
+@media screen and (max-width: 1600px) {
+    .el-col {
+        width: 33.33% !important;
+    }
 }
 
-.card-header {
-    text-align: center;
-    padding: 15px;
+@media screen and (max-width: 1200px) {
+    .el-col {
+        width: 50% !important;
+    }
 }
 
-.image-container {
-    cursor: pointer;
-    overflow: hidden;
-    margin: 0 auto;
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    position: relative;
-    background: linear-gradient(145deg, #f3f3f3, #ffffff);
-    box-shadow: 
-        -8px -8px 15px rgba(255, 255, 255, 0.7),
-        8px 8px 15px rgba(0, 0, 0, 0.05),
-        inset 0 0 0 2px rgba(255, 255, 255, 0.8);
-}
-
-.species-image {
-    width: 140px;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 50%;
-    padding: 5px;
-}
-
-.card-content {
-    padding: 10px;
-    flex-grow: 1;
-}
-   
-.content-row {
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-}
-
-.label {
-    color: #606266;
-    width: 80px;
-    font-size: 14px;
-}
-
-.value {
-    color: #303133;
-    flex: 1;
-    font-size: 14px;
-}
-
-.card-footer {
-    padding: 10px;
-    text-align: center;
-    border-top: 1px solid #EBEEF5;
-}
-
-.card-footer .el-button {
-    margin: 0 5px;
-}
-
-.image-preview {
-    position: relative;
-    display: inline-block;
-}
-
-.delete-icon {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background-color: #da212a;
-    color: white;
-    border-radius: 50%;
-    padding: 2px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 1;
-}
-
-.delete-icon:hover {
-    background-color: #f78989;
+@media screen and (max-width: 768px) {
+    .el-col {
+        width: 100% !important;
+    }
 }
 </style>

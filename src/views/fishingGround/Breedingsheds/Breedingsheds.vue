@@ -37,40 +37,49 @@
                         </div>
                         <div class="house-content">
                             <div class="info-item">
-                                <span class="label">合约地址：</span>
-                                <span class="value">{{ item.contractAddr }}</span>
+                                <i class="el-icon-link icon"></i>
+                                <span class="label">合约地址</span>
+                                <span class="value">{{ item.contractAddr || '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">面积：</span>
-                                <span class="value">{{ item.area }}</span>
+                                <i class="el-icon-full-screen icon"></i>
+                                <span class="label">面积</span>
+                                <span class="value">{{ item.area ? item.area: '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">温度：</span>
-                                <span class="value">{{ item.temperature || '/' }}</span>
+                                <i class="el-icon-sunny icon"></i>
+                                <span class="label">温度</span>
+                                <span class="value">{{ item.temperature ? item.temperature + '℃' : '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">PH值：</span>
-                                <span class="value">{{ item.PH }}</span>
+                                <svg-icon icon-class="PH值" class="icon" />
+                                <span class="label">PH值</span>
+                                <span class="value">{{ item.phValue ? item.phValue + ' pH' : '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">含氧量：</span>
-                                <span class="value">{{ item.OxygenContent }}</span>
+                                <svg-icon icon-class="含氧量" class="icon" />
+                                <span class="label">含氧量</span>
+                                <span class="value">{{ item.dissolvedOxygen ? item.dissolvedOxygen + ' mg/L' : '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">氮氨含量：</span>
-                                <span class="value">{{ item.NitrogenAmmoniaContent }}</span>
+                                <svg-icon icon-class="氨氮" class="icon" />
+                                <span class="label">氨氮含量</span>
+                                <span class="value">{{ item.nitrogen ? item.nitrogen + ' mg/L' : '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">亚硝酸盐：</span>
-                                <span class="value">{{ item.nitrite }}</span>
+                                <svg-icon icon-class="亚硝酸盐" class="icon" />
+                                <span class="label">亚硝酸盐</span>
+                                <span class="value">{{ item.nitriteNitrogen ? item.nitriteNitrogen + ' mg/L' : '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">最大区分数量：</span>
-                                <span class="value">{{ item.bigBreedingQuantity }}</span>
+                                <i class="el-icon-data-line icon"></i>
+                                <span class="label">最大区分数量</span>
+                                <span class="value">{{ item.bigBreedingQuantity || '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <span class="label">位置：</span>
-                                <span class="value">{{ item.address }}</span>
+                                <i class="el-icon-location icon"></i>
+                                <span class="label">位置</span>
+                                <span class="value">{{ item.address || '/' }}</span>
                             </div>
                         </div>
                         <div class="house-footer">
@@ -417,143 +426,326 @@
 </script>
 
 <style lang="scss" scoped>
-    .form-top {
-        margin: 10px 10px 0;
+.list-content {
+    padding: 20px;
+    background-color: #f0f2f5;
+}
+
+.card-margin-bottom {
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: none;
+}
+
+.house-card {
+    background: #f0f2f5;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 
+        8px 8px 15px rgba(163, 177, 198, 0.6),
+        -8px -8px 15px rgba(255, 255, 255, 0.9);
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+            12px 12px 20px rgba(163, 177, 198, 0.7),
+            -12px -12px 20px rgba(255, 255, 255, 1);
+    }
+    
+    .house-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-
-        .demo-form-inline {
-            height: 50px;
-        }
-
-        .inpname {
-            width: 240px;
-        }
-    }
-
-    .plant-do {
-        // height: 100px;
-        margin-left: 10px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .do-right {
-            width: 40%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            .desc-item {
-                display: flex;
-                align-items: center;
-                font-size: 14px;
-
-                p {
-                    margin-right: 10px;
-                }
-
-                ul {
-                    font-size: 12px;
-                    display: flex;
-
-                    .dot {
-                        width: 10px;
-                        height: 10px;
-                    }
-
-                    li {
-                        height: 20px;
-                        display: flex;
-                        align-items: center;
-                        margin-right: 8px;
-                        width: 50px;
-
-                        &:first-child {
-                            color: #FA7C01;
-
-                        }
-
-                        &:nth-child(2) {
-                            color: #0CBF5B;
-                        }
-
-                        &:nth-child(3) {
-                            color: #019FE8;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    .plant-table {
-        margin: 10px;
-    }
-
-    .table-content {
-
-        // height: 100%;
-        .dp-name {
-            color: #0CBF5B;
-        }
-
-        .do-text {
-            font-size: 12px;
-        }
-
-        .txt-btn {
-            font-size: 12px;
-            margin: 0 5px;
-        }
-    }
-
-    .page-block {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 10px;
-    }
-
-    .house-card {
         margin-bottom: 20px;
         
-        .house-header {
+        .house-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .house-actions {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            gap: 8px;
             
-            .house-title {
-                font-size: 16px;
-                font-weight: bold;
-                color: #303133;
-            }
-        }
-        
-        .house-content {
-            .info-item {
-                margin-bottom: 8px;
-                display: flex;
+            .el-button {
+                padding: 6px 12px;
+                height: 32px;
+                border-radius: 8px;
+                margin: 0;
+                transition: all 0.3s ease;
+                box-shadow: 
+                    5px 5px 10px rgba(163, 177, 198, 0.4),
+                    -5px -5px 10px rgba(255, 255, 255, 0.7);
                 
-                .label {
-                    color: #909399;
-                    width: 150px;
-                    flex-shrink: 0;
-                    white-space: nowrap;
+                &.el-button--primary {
+                    background-color: #f2f6fc;
+                    border-color: transparent;
+                    color: #409eff;
+                    
+                    &:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 
+                            8px 8px 15px rgba(163, 177, 198, 0.5),
+                            -8px -8px 15px rgba(255, 255, 255, 0.8);
+                    }
                 }
                 
-                .value {
-                    color: #606266;
-                    flex: 1;
-                    word-break: break-all;
+                &.el-button--danger {
+                    background-color: #fef0f0;
+                    border-color: transparent;
+                    color: #f56c6c;
+                    
+                    &:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 
+                            8px 8px 15px rgba(163, 177, 198, 0.5),
+                            -8px -8px 15px rgba(255, 255, 255, 0.8);
+                    }
                 }
             }
-        }
-        
-        .house-footer {
-            margin-top: 15px;
-            text-align: right;
         }
     }
+    
+    .house-content {
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            
+            .icon {
+                font-size: 16px;
+                color: #007AFF;
+                margin-right: 8px;
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
+                transition: all 0.3s ease;
+                
+                &:hover {
+                    transform: scale(1.1);
+                }
+            }
+            
+            .label {
+                color: #666;
+                width: 100px;
+                font-size: 14px;
+                margin-right: 8px;
+                flex-shrink: 0;
+            }
+            
+            .value {
+                color: #333;
+                flex: 1;
+                font-size: 14px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+    }
+    
+    .house-footer {
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+        
+        .el-button {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 
+                5px 5px 10px rgba(163, 177, 198, 0.4),
+                -5px -5px 10px rgba(255, 255, 255, 0.7);
+            
+            &.el-button--warning {
+                background-color: #fdf6ec;
+                border-color: transparent;
+                color: #e6a23c;
+                
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 
+                        8px 8px 15px rgba(163, 177, 198, 0.5),
+                        -8px -8px 15px rgba(255, 255, 255, 0.8);
+                }
+            }
+        }
+    }
+}
+
+.form-top {
+    margin: 10px 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .demo-form-inline {
+        height: 50px;
+    }
+
+    .inpname {
+        width: 240px;
+    }
+}
+
+.plant-do {
+    // height: 100px;
+    margin-left: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .do-right {
+        width: 40%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .desc-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+
+            p {
+                margin-right: 10px;
+            }
+
+            ul {
+                font-size: 12px;
+                display: flex;
+
+                .dot {
+                    width: 10px;
+                    height: 10px;
+                }
+
+                li {
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    margin-right: 8px;
+                    width: 50px;
+
+                    &:first-child {
+                        color: #FA7C01;
+
+                    }
+
+                    &:nth-child(2) {
+                        color: #0CBF5B;
+                    }
+
+                    &:nth-child(3) {
+                        color: #019FE8;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.plant-table {
+    margin: 10px;
+}
+
+.table-content {
+
+    // height: 100%;
+    .dp-name {
+        color: #0CBF5B;
+    }
+
+    .do-text {
+        font-size: 12px;
+    }
+
+    .txt-btn {
+        font-size: 12px;
+        margin: 0 5px;
+    }
+}
+
+.page-block {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.house-card {
+    margin-bottom: 20px;
+    
+    .house-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        
+        .house-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #303133;
+        }
+    }
+    
+    .house-content {
+        .info-item {
+            margin-bottom: 8px;
+            display: flex;
+            
+            .label {
+                color: #909399;
+                width: 150px;
+                flex-shrink: 0;
+                white-space: nowrap;
+            }
+            
+            .value {
+                color: #606266;
+                flex: 1;
+                word-break: break-all;
+            }
+        }
+    }
+    
+    .house-footer {
+        margin-top: 15px;
+        text-align: right;
+    }
+}
+
+// 更新图标样式，使用本地SVG文件
+.icon-ph {
+    background: url('~@/assets/icons/svg/PH值.svg') no-repeat center;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
+
+.icon-oxygen {
+    background: url('~@/assets/icons/svg/含氧量.svg') no-repeat center;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
+
+.icon-ammonia {
+    background: url('~@/assets/icons/svg/氨氮.svg') no-repeat center;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
+
+.icon-nitrite {
+    background: url('~@/assets/icons/svg/亚硝酸盐.svg') no-repeat center;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+}
 </style>

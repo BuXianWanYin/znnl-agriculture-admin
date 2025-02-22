@@ -17,26 +17,41 @@
 // 引入分区养殖批次任务页面
 import Task from "@/views/fishingGround/Task/task";
 import SearchMenu from "@/views/fishingGround/fishpond/PartitionTasks/SearchMenu.vue";
-  import { listLand } from "@/api/agriculture/land";
-  import { listBatch} from "@/api/fishingGround/batch";
-  export default {
-    components: { Task,SearchMenu },
-    data() {
-      return {
-        listBatch,
-        batchId:null
-      };
-    },
-    created(){
-    },
-    methods:{
-  
-      /** 处理菜单的点击 */
-      handleSelect(e){
-        this.batchId = Number(e.batchId);
+import { listLand } from "@/api/agriculture/land";
+import { listBatch } from "@/api/fishingGround/batch";
+
+export default {
+  components: { Task, SearchMenu },
+  data() {
+    return {
+      listBatch,
+      batchId: null,
+      activeMenu: {
+        isActive: true,  // Add this to enable default selection
+        name: 'batchId',
+        value: ''
+      }
+    };
+  },
+  created() {
+    // Initialize with default selection
+    this.initDefaultSelection();
+  },
+  methods: {
+    /** 初始化默认选择第一个批次 */
+    async initDefaultSelection() {
+      const res = await this.listBatch({ pageNum: 1, pageSize: 16 });
+      if (res.rows && res.rows.length > 0) {
+        this.batchId = Number(res.rows[0].batchId);
       }
     },
-  };
+
+    /** 处理菜单的点击 */
+    handleSelect(e) {
+      this.batchId = Number(e.batchId);
+    }
+  },
+};
   </script>
   <style lang="scss" scoped>
   .box {
