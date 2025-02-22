@@ -34,7 +34,7 @@ export default class WebSocketConnectMethod {
             return 1
         }
 
-        const Uri = `ws://10.0.28.47:8081/ws/asr/${this.userId}`
+        const Uri = `ws://192.168.1.128:8081/ws/asr/${this.userId}`
         console.log('WebSocket连接地址:', Uri)
 
         if (!Uri.match(/wss?:\S*/)) {
