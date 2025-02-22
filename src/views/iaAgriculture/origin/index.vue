@@ -59,11 +59,6 @@
                         class="search-input"
                         @keyup.enter.native="originSearch"
                     >
-                        <i 
-                            slot="suffix" 
-                            class="el-icon-camera scan-icon mobile-only"
-                            @click="handleScan"
-                        ></i>
                         <el-button 
                             slot="append" 
                             type="primary"
@@ -155,10 +150,12 @@
                                     <div class="label">食品名称</div>
                                     <div class="value">{{ shopInfo.name }}</div>
                                 </div>
+                             
                                 <div class="info-item">
-                                    <div class="label">加工日期</div>
+                                    <div class="label">{{ isAquaculture ? '捕捞日期' : '采摘日期' }}</div>
                                     <div class="value">{{ shopInfo.datet }}</div>
                                 </div>
+
                                 <div class="info-item">
                                     <div class="label">食品质量</div>
                                     <div class="value">
