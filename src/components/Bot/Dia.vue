@@ -518,7 +518,7 @@ export default {
       const processedText = text
         .replace(/<[^>]*>/g, '')  // 去除所有 HTML 标签
         .replace(/[*\-\s]/g, ''); // 去除*号、-号和空格
-      
+
       console.log('处理后的文本:', processedText)
       const formattedTimestamp = this.formatTimestampForBackend(timestamp)
 
@@ -526,10 +526,10 @@ export default {
         const formData = new FormData()
         formData.append('timestamp', formattedTimestamp)
 
-   
+
         formData.append('text', processedText) // 使用处理后的文本
 
-        const response = await fetch('http://10.0.28.47:8081/cosy/voicepath', {
+        const response = await fetch('http://192.168.1.128:8081/cosy/voicepath', {
           method: 'POST',
           body: formData
         })
@@ -560,29 +560,29 @@ export default {
 
       this.isLoadingHistory = true
       try {
-        const response = await fetch(`http://10.0.28.47:8081/ai/history?userId=${this.userId}`)
+        const response = await fetch(`http://192.168.1.128:8081/ai/history?userId=${this.userId}`)
         if (!response.ok) {
           throw new Error('Failed to load chat history')
         }
         const history = await response.json()
-        
+
         // 输出原始历史记录数据
         console.log('原始历史记录数据:', history)
-        
+
         // 转换历史记录格式，使用 createTime 作为时间戳
         this.messages = history.map(msg => {
           const convertedMsg = {
             type: msg.type,
             text: msg.content,
-            timestamp: msg.createTime ? new Date(msg.createTime).getTime() : 
+            timestamp: msg.createTime ? new Date(msg.createTime).getTime() :
                      (typeof msg.timestamp === 'number' ? msg.timestamp : new Date().getTime()),
             audioUrl: msg.audioUrl,
             ttsStatus: null
           }
-            
+
           return convertedMsg
         })
-        
+
 
       } catch (error) {
         console.error('加载聊天历史失败:', error)
@@ -602,7 +602,7 @@ export default {
           userId: this.userId
         }
 
-        const response = await fetch('http://10.0.28.47:8081/ai/message', {
+        const response = await fetch('http://192.168.1.128:8081/ai/message', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -670,7 +670,7 @@ export default {
         const formData = new FormData()
         formData.append('prompt', currentInput)
 
-        const response = await fetch('http://127.0.0.1:8081/ai/chatStream', {
+        const response = await fetch('http://192.168.1.128:8081/ai/generateStream', {
           method: 'POST',
           body: formData
         })
@@ -686,23 +686,23 @@ export default {
 
         while (true) {
           const { done, value } = await reader.read()
-          
+
           // 如果读取完成，开始获取语音URL
           if (done) {
             // 提前开始获取语音URL
             console.log('AI响应完成，开始获取语音URL...')
-            
+
             const audioUrlPromise = this.getVoiceUrl(fullMessage, botMessage.timestamp)
-            
+
             // 更新消息文本
             botMessage.text = fullMessage
-            
+
             // 等待语音URL获取完成
             const audioUrl = await audioUrlPromise
             botMessage.audioUrl = audioUrl
             botMessage.ttsStatus = null
             console.log('更新消息的音频URL:', audioUrl)
-            
+
             // 保存完整的机器人消息
             await this.saveChatMessage(botMessage)
             break
@@ -956,11 +956,11 @@ export default {
     // 修改判断是否显示时间戳的方法
     shouldShowTimestamp(currentMsg, index) {
       if (index === 0) return true;
-      
+
       const prevMsg = this.messagesWithTimestamp[index - 1];
       const currentTime = currentMsg.timestamp;
       const prevTime = prevMsg.timestamp;
-      
+
       // 如果消息间隔超过5分钟（300000毫秒），显示时间戳
       return currentTime - prevTime > 300000;
     },
@@ -1013,7 +1013,7 @@ export default {
     processMessageText(text) {
       // 首先去除特殊符号，但保留 think 标签
       const cleanText = text.replace(/[-#*]/g, '');
-      
+
       // 将文本按照 think 标签分割并处理
       const thinkMatches = cleanText.match(/<think>([\s\S]*?)<\/think>/g);
       if (thinkMatches) {
@@ -1021,10 +1021,10 @@ export default {
           const content = match.replace(/<think>|<\/think>/g, '');
         });
       }
-      
+
       const parts = cleanText.split(/(<think>[\s\S]*?<\/think>)/g);
-      
-      return parts.map(part => {     
+
+      return parts.map(part => {
         if (part.includes('<think>')) {
           // 提取并打印 think 标签中的内容
           const thinkContent = part.replace(/<think>|<\/think>/g, '');
@@ -1426,7 +1426,7 @@ export default {
   :deep(.thinkDiv) {
     color: #c20000;
     display: block;
-    
+
     .think {
       color: inherit;  // 继承父元素的颜色
       display: block;
@@ -1466,7 +1466,7 @@ export default {
 
     &.user {
       flex-direction: row-reverse;
-      
+
       .bubble-content {
         align-items: flex-end;
       }

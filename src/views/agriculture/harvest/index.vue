@@ -89,7 +89,7 @@
                             <div class="batch-card-actions">
                                 <el-button size="small" type="primary" icon="el-icon-edit"
                                     @click="handleProcess(item.batchId, '采摘')">
-                                    {{item.status==1?"采摘":"采摘详情"}}
+                                    {{item.hasHarvestRecord ? "采摘详情" : "采摘"}}
                                 </el-button>
                                 <el-button size="small" plain type="warning" icon="el-icon-s-claim"
                                     @click="handleBatchTask(item)"
@@ -192,7 +192,7 @@
                         <img :src="scope.row.barcode" style="width: 100%">
                     </template>
                 </el-table-column>
-                <el-table-column prop="date" label="加工日期"></el-table-column>
+                <el-table-column prop="date" label="采摘日期"></el-table-column>
                 <el-table-column prop="weight" label="重量" width="60" align="center"></el-table-column>
                 <el-table-column prop="status" label="食品质量" width="100" align="center">
                     <template slot-scope="scope">
@@ -458,7 +458,8 @@
                     '1': '及格',
                     '2': '优秀',
                 },
-                batchId: null
+                batchId: null,
+                hasHarvestRecord: false
             };
         },
         created() {
@@ -481,6 +482,8 @@
                         ...this.processSearchForm
                     })
                     this.processData = data.records
+                    // 添加判断标记 - 检查是否有采摘日期
+                    this.hasHarvestRecord = data.records.some(record => record.date);
                     this.processPager = {
                         currentPage: data.current,
                         pageSize: data.size,
@@ -491,7 +494,6 @@
                 }
             },
             async handleProcess(id, title) {
-                console.log(id, '11111111111111');
                 this.processSearchForm.id = id
                 this.batchId = id
                 this.processSearchForm.partitionId = id
@@ -794,8 +796,27 @@
             },
             getList() {
                 this.loading = true;
-                listBatch(this.queryParams).then(response => {
-                    this.batchList = response.rows;
+                listBatch(this.queryParams).then(async response => {
+                    // 获取批次列表
+                    const batchList = response.rows;
+                    
+                    // 为每个批次获取采摘记录状态
+                    for (let batch of batchList) {
+                        try {
+                            const { data } = await http.post('/iaPartitionFood/page', {
+                                pageSize: 1,  // 只需要查询是否存在记录，所以限制为1条
+                                pageNum: 1,
+                                partitionId: batch.batchId
+                            });
+                            // 设置hasHarvestRecord标记
+                            batch.hasHarvestRecord = data.records.some(record => record.date);
+                        } catch (e) {
+                            console.error('获取采摘记录失败:', e);
+                            batch.hasHarvestRecord = false;
+                        }
+                    }
+                    
+                    this.batchList = batchList;
                     this.total = response.total;
                     this.loading = false;
                 });
