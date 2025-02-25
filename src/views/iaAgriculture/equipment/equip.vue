@@ -48,12 +48,12 @@
                                 <div class="info-item">
                                     <i class="el-icon-monitor"></i>
                                     <span class="label">传感器序号</span>
-                                    <span class="value">{{ item.sensorCommand || '-' }}</span>
+                                    <span class="value">{{ item.sensorType || '-' }}</span>
                                 </div>
                                 <div class="info-item">
                                     <i class="el-icon-set-up"></i>
                                     <span class="label">传感器指令</span>
-                                    <span class="value">{{ item.sensorType || '-' }}</span>
+                                    <span class="value">{{ item.sensorCommand || '-' }}</span>
                                 </div>
                                 <div class="info-item">
                                     <i class="el-icon-link"></i>
@@ -102,9 +102,6 @@
         <!-- 弹窗样式改造 -->
         <el-dialog :title="dialogTitle" :visible.sync="equipmentEditDialog" width="460px" custom-class="custom-dialog">
             <el-form :model="equipmentForm" ref="equipmentForm" :rules="rules" label-width="100px">
-                <el-form-item label="设备ID" prop="deviceId">
-                    <el-input v-model="equipmentForm.deviceId" placeholder="请输入设备ID"></el-input>
-                </el-form-item>
                 <el-form-item label="设备名称" prop="deviceName">
                     <el-input v-model="equipmentForm.deviceName" placeholder="请输入设备名称"></el-input>
                 </el-form-item>
@@ -118,11 +115,11 @@
                         @change="handleAreaChange">
                     </el-cascader>
                 </el-form-item>
-                <el-form-item label="传感器序号" prop="sensorCommand">
-                    <el-input v-model="equipmentForm.sensorCommand" placeholder="请输入传感器序号"></el-input>
+                <el-form-item label="传感器序号" prop="sensorType">
+                    <el-input v-model="equipmentForm.sensorType" placeholder="请输入传感器序号"></el-input>
                 </el-form-item>
-                <el-form-item label="传感器指令" prop="sensorType">
-                    <el-input v-model="equipmentForm.sensorType" placeholder="请输入传感器指令"></el-input>
+                <el-form-item label="传感器指令" prop="sensorCommand">
+                    <el-input v-model="equipmentForm.sensorCommand" placeholder="请输入传感器指令"></el-input>
                 </el-form-item>
                 <el-form-item label="备注">
                     <el-input type="textarea" v-model="equipmentForm.remark" :rows="3" placeholder="请输入备注信息"></el-input>
@@ -145,7 +142,6 @@ export default {
     data() {
         return {
             equipmentForm: {
-                deviceId: "",
                 deviceName: "",
                 areaIds: [],
                 remark: "",
@@ -154,11 +150,6 @@ export default {
                 sensorType: ""
             },
             rules: {
-                deviceId: [{
-                    required: true,
-                    message: '设备id不能为空',
-                    trigger: 'blur'
-                }],
                 deviceName: [{
                     required: true,
                     message: '设备名称不能为空',
@@ -171,12 +162,12 @@ export default {
                 }],
                 sensorCommand: [{
                     required: true,
-                    message: '传感器序号不能为空',
+                    message: '传感器指令不能为空',
                     trigger: 'blur'
                 }],
                 sensorType: [{
                     required: true,
-                    message: '传感器指令不能为空', 
+                    message: '传感器序号不能为空', 
                     trigger: 'blur'
                 }]
             },
@@ -222,28 +213,34 @@ export default {
                 // 获取所有设备的场区和分区信息
                 const devices = data.records;
                 
+                // 分别获取大棚和鱼塘的ID
+                const pastureIds = [...new Set(devices.filter(d => d.pastureId).map(d => d.pastureId))];
+                const fishPastureIds = [...new Set(devices.filter(d => d.fishPastureId).map(d => d.fishPastureId))];
+
                 // 获取场区信息
-                const pastureIds = [...new Set(devices.map(device => device.pastureId))];
                 const [iaPastureRes, fishPastureRes] = await Promise.all([
                     this.$http.get("/dev-api/iaPasture/list"),
                     this.$http.get("/dev-api/fishPasture/list")
                 ]);
-                const allPastures = [...iaPastureRes.data.data, ...fishPastureRes.data.data];
-                const pastureMap = new Map(allPastures.map(p => [p.id, p.name]));
+
+                // 创建场区映射
+                const pastureMap = new Map([
+                    ...iaPastureRes.data.data.map(p => [p.id, p.name]),
+                    ...fishPastureRes.data.data.map(p => [p.id, p.name])
+                ]);
 
                 // 获取分区信息
-                const batchIds = [...new Set(devices.map(device => device.batchId))];
-                const batchPromises = pastureIds.map(landId => 
-                    Promise.all([
-                        iaBatch({ landId }),
-                        fishBatch({ landId })
-                    ])
-                );
+                const batchPromises = [
+                    // 大棚分区
+                    ...pastureIds.map(landId => iaBatch({ landId })),
+                    // 鱼塘分区
+                    ...fishPastureIds.map(landId => fishBatch({ landId }))
+                ];
+                
                 const batchResults = await Promise.all(batchPromises);
                 const batchMap = new Map();
-                batchResults.forEach(([iaRes, fishRes]) => {
-                    const batches = [...(iaRes.rows || []), ...(fishRes.rows || [])];
-                    batches.forEach(batch => {
+                batchResults.forEach(res => {
+                    (res.rows || []).forEach(batch => {
                         batchMap.set(batch.batchId, batch.batchName);
                     });
                 });
@@ -251,8 +248,14 @@ export default {
                 // 补充场区和分区名称
                 this.equipmentData = devices.map(device => ({
                     ...device,
-                    pastureName: pastureMap.get(device.pastureId) || '-',
-                    batchName: batchMap.get(device.batchId) || '-'
+                    // 如果是大棚设备，使用pastureId和batchId
+                    // 如果是鱼塘设备，使用fishPastureId和fishPastureBatchId
+                    pastureName: device.pastureId ? 
+                        pastureMap.get(device.pastureId) : 
+                        pastureMap.get(device.fishPastureId) || '-',
+                    batchName: device.batchId ? 
+                        batchMap.get(device.batchId) : 
+                        batchMap.get(device.fishPastureBatchId) || '-'
                 }));
 
                 this.pager = {
@@ -275,8 +278,8 @@ export default {
                 id: ''
             }
             this.equipmentForm = {
-                deviceId: '',
                 deviceName: "",
+                areaIds: [],
                 remark: "",
                 status: "",
                 sensorCommand: "",
@@ -293,8 +296,8 @@ export default {
             this.dialogTitle = title
             // 新增重置
             this.equipmentForm = {
-                deviceId: '',
                 deviceName: "",
+                areaIds: [],
                 remark: "",
                 status: "",
                 sensorCommand: "",
@@ -306,10 +309,16 @@ export default {
         equipmentDoBtn() {
             this.$refs.equipmentForm.validate((valid) => {
                 if (valid) {
+                    // 判断选择的是大棚还是鱼棚
+                    const isPasture = this.areaOptions.find(area => area.id === this.equipmentForm.areaIds[0])?.name.includes('大棚');
+                    
                     const submitData = {
                         ...this.equipmentForm,
-                        pastureId: this.equipmentForm.areaIds[0],
-                        batchId: this.equipmentForm.areaIds[1]
+                        // 设置deviceId与sensorType相同
+                        deviceId: this.equipmentForm.sensorType,
+                        // 根据类型设置不同的字段名
+                        [isPasture ? 'pastureId' : 'fishPastureId']: this.equipmentForm.areaIds[0],
+                        [isPasture ? 'batchId' : 'fish_pasture_batch_id']: this.equipmentForm.areaIds[1]
                     };
                     
                     // 根据是否有id判断是新增还是编辑
@@ -409,11 +418,15 @@ export default {
         },
         handleEdit(item) {
             this.dialogTitle = '编辑'
+            // 判断是大棚还是鱼塘的设备
+            const areaIds = item.pastureId ? 
+                [item.pastureId, item.batchId] : // 大棚设备
+                [item.fishPastureId, item.fishPastureBatchId]; // 鱼塘设备
+
             this.equipmentForm = {
                 id: item.id,
-                deviceId: item.deviceId,
                 deviceName: item.deviceName,
-                areaIds: [item.pastureId, item.batchId], // 场区和分区ID
+                areaIds: areaIds,
                 remark: item.remark,
                 status: item.status,
                 sensorCommand: item.sensorCommand,
