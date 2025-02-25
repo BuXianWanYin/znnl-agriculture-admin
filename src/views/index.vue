@@ -167,30 +167,14 @@
                         <el-table :data="statusData" height="400">
                             <el-table-column prop="pastureName" label="大棚名称" width="100"> </el-table-column>
                             <el-table-column prop="batchName" label="分区名称" width="100"> </el-table-column>
-                            <el-table-column prop="temperature" label="温度" width="80">
-                                <template slot-scope="scope">
-                                    {{ scope.row.temperature }}℃
-                                </template>
-                            </el-table-column>
-                            <el-table-column prop="humidity" label="湿度" width="80">
-                                <template slot-scope="scope">
-                                    {{ scope.row.humidity }}%
-                                </template>
-                            </el-table-column>
-                            <el-table-column prop="lightLux" label="光照" width="90">
-                                <template slot-scope="scope">
-                                    {{ scope.row.lightLux }}lux
-                                </template>
-                            </el-table-column>
+                            <el-table-column prop="temperature" label="温度(℃)" width="80"> </el-table-column>
+                            <el-table-column prop="humidity" label="湿度(%)" width="80"> </el-table-column>
+                            <el-table-column prop="lightLux" label="光照(lux)" width="90"> </el-table-column>
                             <el-table-column prop="direction" label="风向" width="70"> </el-table-column>
-                            <el-table-column prop="speed" label="风速" width="80">
-                                <template slot-scope="scope">
-                                    {{ scope.row.speed }}m/s
-                                </template>
-                            </el-table-column>
+                            <el-table-column prop="speed" label="风速(m/s)" width="90"> </el-table-column>
                             <el-table-column label="记录时间" min-width="150">
                                 <template slot-scope="scope">
-                                    {{ scope.row.date + ' ' +scope.row.time }}
+                                    {{ scope.row.date + ' ' + scope.row.time }}
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -211,13 +195,18 @@
                 <el-col :span="12">
                     <data-panel title="养殖池环境监测">
                         <el-table :data="fishStatusData" height="400">
-                            <el-table-column prop="id" label="ID" width="70"> </el-table-column>
-                            <el-table-column prop="waterQuality" label="水质" width="80"></el-table-column>
-                            <el-table-column prop="temperature" label="水温" width="80"></el-table-column>
-                            <el-table-column prop="oxygen" label="含氧量" width="90"></el-table-column>
-                            <el-table-column prop="ph" label="pH值" width="70"></el-table-column>
-                            <el-table-column prop="nitrite" label="亚硝酸盐" width="90"></el-table-column>
-                            <el-table-column prop="dateTime" label="记录日期" min-width="150"> </el-table-column>
+                            <el-table-column prop="fishPastureName" label="养殖棚" width="70"> </el-table-column>
+                            <el-table-column prop="fishPastureBatchName" label="鱼池" width="80"> </el-table-column>
+                            <el-table-column prop="waterTemperature" label="水温(℃)" width="70"> </el-table-column>
+                            <el-table-column prop="waterPhValue" label="ph值" width="80"></el-table-column>
+                            <el-table-column prop="waterOxygenContent" label="溶解氧(mg/L)" width="110"></el-table-column>
+                            <el-table-column prop="waterAmmoniaNitrogenContent" label="氨氮(mg/L)" width="100"></el-table-column>
+                            <el-table-column prop="waterNitriteContent" label="亚硝酸盐(mg/L)" width="120"></el-table-column>
+                            <el-table-column label="记录日期" min-width="150">
+                                <template slot-scope="scope">
+                                    <span>{{ scope.row.date }} {{ scope.row.time }}</span>
+                                </template>
+                            </el-table-column>
                         </el-table>
                         <div class="page-block">
                             <el-pagination
@@ -225,7 +214,7 @@
                                 @current-change="fishCurrentChange"
                                 :current-page="fishCurrentPage"
                                 :page-size="fishPageSize"
-                                layout="jumper, prev, pager, next, total"
+                                layout="total, sizes, prev, pager, next, jumper"
                                 :total="fishTotal">
                             </el-pagination>
                         </div>
@@ -265,6 +254,7 @@
     import { getHouse } from "@/api/iaAgriculture/greenHouse";
     import { getBatch } from "@/api/agriculture/batch";
     import { listSoilSensorValueVO } from '@/api/agriculture/soilsensorvaluevo'
+    import { listQuality } from "@/api/agriculture/quality";
     
 
     export default {
@@ -399,6 +389,9 @@
             setTimeout(() => {
                 this.logTableData();
             }, 1000);
+
+            // Add this line to get fish environment data on component mount
+            this.getFishEnvironmentData();
         },
         methods: {
             // 处理每页显示数量变化
@@ -580,21 +573,21 @@
 
             // 获取养殖池环境数据
             getFishEnvironmentData() {
-                this.$http.post("/dev-api/fishPond/sensorData", {
-                    currentPage: this.fishCurrentPage,
+                const params = {
+                    pageNum: this.fishCurrentPage,
                     pageSize: this.fishPageSize,
-                    orderBy: 'dateTime',
-                    orderType: 'desc'
-                }).then(res => {
-                    if (res.data) {
-                        // 对数据进行排序
-                        this.fishStatusData = res.data.records.sort((a, b) => {
-                            return new Date(b.dateTime) - new Date(a.dateTime);
-                        });
-                        this.fishTotal = res.data.total;
+                    orderByColumn: 'date,time',  // 按日期和时间排序
+                    isAsc: 'desc'                // 降序排序
+                };
+
+                listQuality(params).then(response => {
+                    if (response.rows) {
+                        this.fishStatusData = response.rows;
+                        this.fishTotal = response.total;
                     }
                 }).catch(error => {
                     console.error('获取养殖池数据失败:', error);
+                    this.$message.error('获取养殖池数据失败');
                 });
             },
             initCombinedChart() {

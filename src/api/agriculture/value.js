@@ -17,6 +17,14 @@ export function getValue(id) {
   })
 }
 
+// 查询大棚数据列表
+export function getValueByPastureId(pastureId) {
+  return request({
+    url: '/agriculture/value/pasture/' + pastureId,
+    method: 'get'
+  })
+}
+
 // 新增土壤环境数据
 export function addValue(data) {
   return request({

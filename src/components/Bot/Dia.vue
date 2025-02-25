@@ -529,7 +529,7 @@ export default {
 
         formData.append('text', processedText) // 使用处理后的文本
 
-        const response = await fetch('http://192.168.1.128:8081/cosy/voicepath', {
+        const response = await fetch('http://localhost:8081/cosy/voicepath', {
           method: 'POST',
           body: formData
         })
@@ -560,7 +560,7 @@ export default {
 
       this.isLoadingHistory = true
       try {
-        const response = await fetch(`http://192.168.1.128:8081/ai/history?userId=${this.userId}`)
+        const response = await fetch(`http://localhost:8081/ai/history?userId=${this.userId}`)
         if (!response.ok) {
           throw new Error('Failed to load chat history')
         }
@@ -602,7 +602,7 @@ export default {
           userId: this.userId
         }
 
-        const response = await fetch('http://192.168.1.128:8081/ai/message', {
+        const response = await fetch('http://localhost:8081/ai/message', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -670,7 +670,7 @@ export default {
         const formData = new FormData()
         formData.append('prompt', currentInput)
 
-        const response = await fetch('http://192.168.1.128:8081/ai/generateStream', {
+        const response = await fetch('http://localhost:8081/ai/chatStream', {
           method: 'POST',
           body: formData
         })

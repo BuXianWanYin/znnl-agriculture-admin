@@ -50,13 +50,13 @@
                                 </div>
                                 <div class="info-item">
                                     <i class="el-icon-sunny"></i>
-                                    <span class="label">温度</span>
-                                    <span class="value">{{ item.temperature || '/' }}</span>
+                                    <span class="label">平均温度</span>
+                                    <span class="value">{{ getTodayAverage(item.id).temperature }}{{ getTodayAverage(item.id).temperature !== '/' ? '℃' : '' }}</span>
                                 </div>
                                 <div class="info-item">
                                     <i class="el-icon-umbrella"></i>
-                                    <span class="label">湿度</span>
-                                    <span class="value">{{ item.humidity || '/' }}</span>
+                                    <span class="label">平均湿度</span>
+                                    <span class="value">{{ getTodayAverage(item.id).humidity }}{{ getTodayAverage(item.id).humidity !== '/' ? '%' : '' }}</span>
                                 </div>
                                 <div class="info-item">
                                     <i class="el-icon-location"></i>
@@ -121,30 +121,39 @@
             </div>
         </el-dialog>
         <!-- 大棚状态抽屉页面 -->
-        <el-dialog title="大棚状态抽屉" :visible.sync="houseStatusDialog" width="50%">
+        <el-dialog title="大棚环境状态" :visible.sync="houseStatusDialog" width="50%">
             <div class="status-content">
-                <el-form :inline="true" class="demo-form-inline">
-                    <el-form-item label="请搜索">
-                        <el-input v-model="stateContent" placeholder="请搜索">
-                        </el-input>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="success" size="mini" @click="statusSearch">&nbsp;查询&nbsp;</el-button>
-                    </el-form-item>
-                </el-form>
-                <el-table :data="statusData" :stripe="true" tooltip-effect="dark" border size="mini" style="width: 100%"
+                <el-table 
+                    :data="statusData" 
+                    :stripe="true" 
+                    tooltip-effect="dark" 
+                    border 
+                    size="mini" 
+                    style="width: 100%"
                     :header-cell-style="{ background: 'rgba(239, 249, 243, 1)', color: '#000' }">
-                    <el-table-column prop="id" label="ID"> </el-table-column>
-                    <el-table-column prop="airquality" label="空气质量"> </el-table-column>
-                    <el-table-column prop="temperature" label="温度"> </el-table-column>
-                    <el-table-column prop="humidity" label="湿度"> </el-table-column>
-                    <el-table-column prop="pressure" label="气压"> </el-table-column>
-                    <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
+                    <el-table-column prop="id" label="ID" width="80"> </el-table-column>
+                    <el-table-column prop="temperature" label="空气温度(℃)"> </el-table-column>
+                    <el-table-column prop="humidity" label="空气湿度(%)"> </el-table-column>
+                    <el-table-column prop="lightLux" label="光照(lux)"> </el-table-column>
+                    <el-table-column prop="direction" label="风向"> </el-table-column>
+                    <el-table-column prop="speed" label="风速(m/s)"> </el-table-column>
+                    <el-table-column label="记录时间" width="160">
+                        <template slot-scope="scope">
+                            {{ scope.row.date }} {{ scope.row.time }}
+                        </template>
+                    </el-table-column>
                 </el-table>
-                <div class="page-block">
-                    <el-pagination @size-change="sSizeChange" @current-change="sCurrentChange"
-                        :current-page="scurrentPage" :page-size="spSize" layout="total, prev, pager, next, jumper"
-                        :total="stotal">
+                
+                <!-- 分页组件 -->
+                <div class="pagination-container">
+                    <el-pagination
+                        @size-change="handleStatusSizeChange"
+                        @current-change="handleStatusCurrentChange"
+                        :current-page="statusPagination.currentPage"
+                        :page-sizes="[10, 20, 50, 100]"
+                        :page-size="statusPagination.pageSize"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="statusPagination.total">
                     </el-pagination>
                 </div>
             </div>
@@ -157,210 +166,353 @@
 </template>
 
 <script>
-    export default {
-        data() {
-            return {
-                btnTxt: 0,
-                houseStatusDialog: false,
-                houseEditDialog: false,
-                mcName: '',
-                currentPage: 1,
-                totalPage: 0,
-                pSize: 10,
-                houseData: [],
-                // 设备选择
-                deviceOptions: [],
-                typeVal: '',
-                statusData: [],
-                // 状态弹框列表
-                stotal: 0,
-                scurrentPage: 1,
-                spSize: 10,
-                checkId: 0,
-                stateContent: '',
-                houseDoForm: {
+import { getValueByPastureId } from "@/api/agriculture/value";
+
+export default {
+    data() {
+        return {
+            btnTxt: 0,                    // 按钮文本标识：0-新增，1-编辑，2-详情
+            houseStatusDialog: false,      // 大棚状态弹窗显示标志
+            houseEditDialog: false,        // 大棚编辑弹窗显示标志
+            mcName: '',                    // 搜索框中的大棚名称
+            currentPage: 1,                // 当前页码
+            totalPage: 0,                  // 总页数
+            pSize: 10,                     // 每页显示条数
+            houseData: [],                 // 大棚数据列表
+            deviceOptions: [],             // 设备选项列表
+            typeVal: '',                   // 类型值
+            statusData: [],                // 状态数据列表
+            stotal: 0,                     // 状态数据总数
+            scurrentPage: 1,               // 状态数据当前页
+            spSize: 10,                    // 状态数据每页条数
+            checkId: 0,                    // 当前查看的大棚ID
+            stateContent: '',              // 状态搜索内容
+            houseDoForm: {                 // 大棚表单对象
+                deviceId: '',              // 设备ID
+                name: '',                  // 大棚名称
+                address: '',               // 大棚地址
+                bigBreedingQuantity: '',   // 最大分区数量
+                area: '',                  // 面积
+                description: ''            // 描述
+            },
+            sbId: '',                      // 设备ID临时存储
+            sensorData: {},                // 存储所有大棚的传感器数据
+            sensorDataMap: new Map(),      // 使用Map存储每个大棚的传感器数据
+            todayAverages: {},             // 存储每个大棚的今日平均值
+            loading: false,                // 加载状态
+            queryParams: {                 // 查询参数
+                pageNum: 1,                // 页码
+                pageSize: 10,              // 每页大小
+                keyword: undefined         // 搜索关键词
+            },
+            statusPagination: {      // 环境数据表格分页
+                currentPage: 1,      // 当前页码
+                pageSize: 10,        // 每页显示条数
+                total: 0             // 总条数
+            },
+            originalStatusData: [],   // 保存原始数据用于分页
+        }
+    },
+    mounted() {
+        this.getHouseData()               // 页面加载时获取大棚数据
+        this.devideData()                 // 获取设备数据
+    },
+    methods: {
+        // 获取设备列表数据
+        devideData() {
+            this.$http.get("/dev-api/device/listAll").then(res => {
+                this.deviceOptions = res.data.data
+            })
+        },
+
+        // 计算今日平均温度和湿度
+        calculateTodayAverages(pastureId, sensorData) {
+            // 如果没有传感器数据，设置默认值
+            if (!sensorData || !Array.isArray(sensorData) || sensorData.length === 0) {
+                this.$set(this.todayAverages, pastureId, {
+                    temperature: '/',
+                    humidity: '/'
+                });
+                return;
+            }
+            
+            // 获取今天的日期字符串
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            // 过滤出今天的数据
+            const todayData = sensorData.filter(item => item.date === todayStr);
+            
+            // 如果有今天的数据，计算平均值
+            if (todayData.length > 0) {
+                const avgTemp = todayData.reduce((sum, item) => sum + parseFloat(item.temperature || 0), 0) / todayData.length;
+                const avgHumidity = todayData.reduce((sum, item) => sum + parseFloat(item.humidity || 0), 0) / todayData.length;
+                
+                // 更新平均值
+                this.$set(this.todayAverages, pastureId, {
+                    temperature: avgTemp.toFixed(1),
+                    humidity: avgHumidity.toFixed(1)
+                });
+            } else {
+                // 如果没有今天的数据，设置默认值
+                this.$set(this.todayAverages, pastureId, {
+                    temperature: '/',
+                    humidity: '/'
+                });
+            }
+        },
+
+        // 获取大棚列表数据
+        getHouseData(val) {
+            this.$http.post("/dev-api/iaPasture/page", {
+                currentPage: this.currentPage,
+                pageSize: this.pSize,
+                keyword: val
+            }).then(res => {
+                this.houseData = res.data.data.records;
+                this.totalPage = res.data.data.total;
+                
+                // 遍历每个大棚获取传感器数据
+                this.houseData.forEach(house => {
+                    getValueByPastureId(house.id).then(res => {
+                        this.sensorData[house.id] = res || [];
+                        this.calculateTodayAverages(house.id, res || []);
+                        if (house === this.houseData[0]) {
+                            this.statusData = res || [];
+                        }
+                    }).catch(() => {
+                        this.calculateTodayAverages(house.id, []);
+                    });
+                });
+            });
+        },
+
+        // 搜索大棚
+        houseSearch() {
+            this.getHouseData(this.mcName)
+        },
+
+        // 重置搜索条件
+        resetName() {
+            this.mcName = ""              // 清空搜索框
+            this.getHouseData()           // 重新获取数据
+        },
+
+        // 处理每页显示数量变化
+        handleSizeChange(val) {
+            this.pSize = val
+        },
+
+        // 处理页码变化
+        handleCurrentChange(val) {
+            this.currentPage = val
+            this.getHouseData()           // 重新获取数据
+        },
+
+        // 新增或编辑大棚
+        addHouse(n) {
+            if (n) {
+                // 编辑模式
+                this.btnTxt = 1
+                // 获取大棚详情
+                this.$http.post("/dev-api/iaPasture/detail?id=" + n).then(res => {
+                    this.houseDoForm = res.data.data
+                    // 获取该大棚的传感器数据
+                    getValueByPastureId(n).then(response => {
+                        this.sensorData = response.data;
+                    }).catch(error => {
+                        console.error('获取传感器数据失败:', error);
+                    });
+                })
+                this.plantDetail(n)
+            } else {
+                // 新增模式
+                this.houseDoForm = {
                     deviceId: '',
                     name: '',
                     address: '',
-                    // breedingQuantity:0,
                     bigBreedingQuantity: '',
                     area: '',
                     description: ''
                 },
-                sbId: '',
+                this.btnTxt = 0
+            }
+            this.houseEditDialog = true    // 显示弹窗
+        },
+
+        // 查看大棚详情
+        houseDetail(id) {
+            this.houseEditDialog = true;   // 显示弹窗
+            this.btnTxt = 2;              // 设置为详情模式
+            this.plantDetail(id)          // 获取详情数据
+        },
+
+        // 获取大棚详细信息
+        plantDetail(n) {
+            this.$http.post("/dev-api/iaPasture/detail?id=" + n).then(res => {
+                this.houseDoForm = res.data.data;
+                const dvId = res.data.data.devices;
+                // 如果有绑定设备，设置设备名称
+                if (dvId.length) {
+                    this.sbId = dvId[0].id
+                    this.deviceOptions.forEach(item => {
+                        if (item.id == dvId[0].id) {
+                            this.houseDoForm.deviceId = item.deviceName
+                        }
+                    })
+                }
+            })
+        },
+
+        // 状态列表每页数量变化处理
+        sSizeChange(n) {
+            this.spSize = n
+        },
+
+        // 状态列表页码变化处理
+        sCurrentChange(n) {
+            this.scurrentPage = n
+            this.houseCheck(this.checkId)
+        },
+
+        // 处理环境数据，添加排序和分页
+        handleStatusData(data) {
+            // 深拷贝数据防止影响原数据
+            this.originalStatusData = JSON.parse(JSON.stringify(data || []));
+            
+            // 按日期时间排序（升序）
+            this.originalStatusData.sort((a, b) => {
+                const timeA = `${a.date} ${a.time}`;
+                const timeB = `${b.date} ${b.time}`;
+                return new Date(timeA) - new Date(timeB);
+            });
+            
+            // 更新总条数
+            this.statusPagination.total = this.originalStatusData.length;
+            
+            // 更新当前页数据
+            this.updateStatusPageData();
+        },
+        
+        // 更新当前页数据
+        updateStatusPageData() {
+            const start = (this.statusPagination.currentPage - 1) * this.statusPagination.pageSize;
+            const end = start + this.statusPagination.pageSize;
+            this.statusData = this.originalStatusData.slice(start, end);
+        },
+        
+        // 处理页码改变
+        handleStatusCurrentChange(currentPage) {
+            this.statusPagination.currentPage = currentPage;
+            this.updateStatusPageData();
+        },
+        
+        // 处理每页条数改变
+        handleStatusSizeChange(pageSize) {
+            this.statusPagination.pageSize = pageSize;
+            this.statusPagination.currentPage = 1; // 重置到第一页
+            this.updateStatusPageData();
+        },
+        
+        // 修改查看大棚环境状态的方法
+        houseCheck(n) {
+            this.checkId = n;
+            this.houseStatusDialog = true;
+            // 使用已缓存的传感器数据并处理
+            this.handleStatusData(this.sensorData[n]);
+        },
+
+        // 删除大棚
+        deleteData(id) {
+            this.$confirm('确定要删除该条数据吗?', '删除', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                // 发送删除请求
+                this.$http.post("/dev-api/iaPasture/delete?id=" + id).then(res => {
+                    if (res.data.code == 0) {
+                        this.getHouseData()    // 重新获取列表数据
+                        this.$message({
+                            type: 'success',
+                            message: '删除成功!'
+                        });
+                    }
+                })
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                });
+            });
+        },
+
+        // 弹框确定按钮处理
+        houseDoBtn() {
+            if (this.btnTxt == 0) {
+                // 新增大棚
+                this.$http.post("/dev-api/iaPasture/create", this.houseDoForm).then(res => {
+                    if (res.data.code == 0) {
+                        this.$message.success("数据新增成功");
+                        this.houseEditDialog = false;
+                        this.getHouseData()
+                    } else {
+                        this.$message.error(res.data.msg);
+                    }
+                })
+            } else if (this.btnTxt == 1) {
+                // 编辑大棚
+                this.deviceOptions.forEach(item => {
+                    if (item.id == this.sbId) {
+                        this.houseDoForm.deviceId = item.id
+                    }
+                })
+                this.$http.post("/dev-api/iaPasture/update", this.houseDoForm).then(res => {
+                    if (res.data.code == 0) {
+                        this.$message.success("数据修改成功");
+                        this.houseEditDialog = false;
+                        this.getHouseData()
+                    }
+                })
+            } else {
+                // 详情模式直接关闭
+                this.houseEditDialog = false;
             }
         },
-        mounted() {
-            this.getHouseData()
-            this.devideData()
+
+        // 状态页面搜索
+        statusSearch() {
+            this.houseCheck(this.checkId, this.stateContent)
         },
-        methods: {
-            devideData() {
-                this.$http.get("/dev-api/device/listAll").then(res => {
-                    console.log(res)
-                    this.deviceOptions = res.data.data
-                })
-            },
-            getHouseData(val) {
-                this.$http.post("/dev-api/iaPasture/page", {
-                    currentPage: this.currentPage,
-                    pageSize: this.pSize,
-                    keyword: val
-                }).then(res => {
-                    console.log(res)
-                    this.houseData = res.data.data.records
-                    this.totalPage = res.data.data.total
-                })
-            },
-            houseSearch() {
-                this.getHouseData(this.mcName)
-            },
-            resetName() {
-                this.mcName = ""
-                this.getHouseData()
-            },
-            handleSizeChange(val) {
-                this.pSize = val
-                console.log(`每页 ${val} 条`);
-            },
-            handleCurrentChange(val) {
-                this.currentPage = val
-                console.log(`当前页: ${val}`);
-                this.getHouseData()
-            },
-            // 新增按钮显示弹框
-            addHouse(n) {
-                if (n) {
-                    console.log("编辑")
-                    this.btnTxt = 1
-                    this.$http.post("/dev-api/iaPasture/detail?id=" + n).then(res => {
-                        console.log(res)
-                        this.houseDoForm = res.data.data
-                    })
-                    this.plantDetail(n)
-                } else {
-                    this.houseDoForm = {
-                            deviceId: '',
-                            name: '',
-                            address: '',
-                            bigBreedingQuantity: '',
-                            area: '',
-                            description: ''
-                        },
-                        this.btnTxt = 0
-                }
-                this.houseEditDialog = true
-            },
-            //   详情
-            houseDetail(id) {
-                this.houseEditDialog = true;
-                this.btnTxt = 2;
-                this.plantDetail(id)
-            },
-            plantDetail(n) {
-                this.$http.post("/dev-api/iaPasture/detail?id=" + n).then(res => {
-                    console.log(res)
-                    this.houseDoForm = res.data.data;
-                    const dvId = res.data.data.devices;
-                    if (dvId.length) {
-                        this.sbId = dvId[0].id
-                        this.deviceOptions.forEach(item => {
-                            if (item.id == dvId[0].id) {
-                                console.log("详情id", res.data.data.id)
-                                this.houseDoForm.deviceId = item.deviceName
-                            }
-                        })
-                    }
 
-                })
-            },
-            // 查看列表分页
-            sSizeChange(n) {
-                this.spSize = n
-            },
-            sCurrentChange(n) {
-                this.scurrentPage = n
-                this.houseCheck(this.checkId)
-            },
-            houseCheck(n, val) {
-                this.checkId = n
-                this.houseStatusDialog = true
-                this.$http.post("/dev-api/iaPasture/ivPastureSensorValuePage", {
-                    currentPage: this.scurrentPage,
-                    keyword: this.mcName,
-                    pageSize: this.spSize,
-                    pastureId: n,
-                    keyword: val
-                }).then(res => {
-                    console.log(res)
-                    this.statusData = res.data.data.records;
-                    this.stotal = res.data.data.total
-                })
-            },
-            deleteData(id) {
-                this.$confirm('确定要删除该条数据吗?', '删除', {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }).then(() => {
-                    this.$http.post("/dev-api/iaPasture/delete?id=" + id).then(res => {
-                        // console.log(res)
-                        if (res.data.code == 0) {
-                            this.getHouseData()
-                            this.$message({
-                                type: 'success',
-                                message: '删除成功!'
-                            });
-                        }
-                    })
+        // 获取指定大棚的今日平均值
+        getTodayAverage(pastureId) {
+            return this.todayAverages[pastureId] || { temperature: '/', humidity: '/' };
+        },
 
-                }).catch(() => {
-                    this.$message({
-                        type: 'info',
-                        message: '已取消删除'
-                    });
-                });
-            },
-            //   弹框确定按钮
-            houseDoBtn() {
-                if (this.btnTxt == 0) {
-                    this.$http.post("/dev-api/iaPasture/create", this.houseDoForm).then(res => {
-                        console.log(res)
-                        if (res.data.code == 0) {
-                            this.$message.success("数据新增成功");
-                            this.houseEditDialog = false;
-                            this.getHouseData()
-                        } else {
-                            this.$message.error(res.data.msg);
-                        }
-                    })
-                } else if (this.btnTxt == 1) {
-                    console.log("确认编辑")
-                    this.deviceOptions.forEach(item => {
-                        if (item.id == this.sbId) {
-                            this.houseDoForm.deviceId = item.id
-                        }
-                    })
-                    this.$http.post("/dev-api/iaPasture/update", this.houseDoForm).then(res => {
-                        console.log(res)
-                        if (res.data.code == 0) {
-                            this.$message.success("数据修改成功");
-                            this.houseEditDialog = false;
-                            this.getHouseData()
-                        }
-                    })
-                } else {
-                    this.houseEditDialog = false;
-                }
+        // 搜索按钮操作
+        handleQuery() {
+            this.queryParams.pageNum = 1;  // 重置页码
+            this.getHouseData();           // 重新获取数据
+        },
+        
+        // 重置按钮操作
+        resetQuery() {
+            this.resetForm("queryForm");    // 重置表单
+            this.handleQuery();            // 重新查询
+        },
 
-
-            },
-            // 抽屉页面搜索
-            statusSearch() {
-                this.houseCheck(this.checkId, this.stateContent)
-            },
+        // 查看大棚详情
+        viewHouseDetail(houseId) {
+            // 获取大棚传感器数据
+            getValueByPastureId(houseId).then(res => {
+                this.statusData = res || [];
+            }).catch(() => {
+                this.statusData = [];
+            });
         }
     }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -408,7 +560,6 @@
     border-radius: 12px;
     box-shadow: none;
     background: #ffffff;
-    backdrop-filter: blur(10px);
     border: none;
     
     .greenhouse-grid {
@@ -417,21 +568,17 @@
     }
     
     .greenhouse-card {
-        background: #f0f2f5;
+        background: #ffffff;
         border-radius: 16px;
         padding: 20px;
         margin-bottom: 24px;
         transition: all 0.3s ease;
-        border: none;
-        box-shadow: 
-            8px 8px 15px rgba(163, 177, 198, 0.6),
-            -8px -8px 15px rgba(255, 255, 255, 0.9);
+        border: 1px solid #ebeef5;
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
         
         &:hover {
             transform: translateY(-2px);
-            box-shadow: 
-                12px 12px 20px rgba(163, 177, 198, 0.7),
-                -12px -12px 20px rgba(255, 255, 255, 1);
+            box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
         }
         
         .card-header {
@@ -567,145 +714,12 @@
 }
 
 .pagination-container {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-}
-
-.form-top {
-    margin: 10px 10px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .demo-form-inline {
-        height: 50px;
-    }
-
-    .inpname {
-        width: 240px;
-    }
-}
-
-.plant-do {
-    margin-left: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .do-right {
-        width: 40%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .desc-item {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-
-            p {
-                margin-right: 10px;
-            }
-
-            ul {
-                font-size: 12px;
-                display: flex;
-
-                .dot {
-                    width: 10px;
-                    height: 10px;
-                }
-
-                li {
-                    height: 20px;
-                    display: flex;
-                    align-items: center;
-                    margin-right: 8px;
-                    width: 50px;
-
-                    &:first-child {
-                        color: #FA7C01;
-
-                    }
-
-                    &:nth-child(2) {
-                        color: #0CBF5B;
-                    }
-
-                    &:nth-child(3) {
-                        color: #019FE8;
-                    }
-                }
-            }
-        }
-    }
-}
-
-.plant-table {
-    margin: 10px;
-}
-
-.table-content {
-    .dp-name {
-        color: #0CBF5B;
-    }
-
-    .do-text {
-        font-size: 12px;
-    }
-
-    .txt-btn {
-        font-size: 12px;
-        margin: 0 5px;
-    }
-}
-
-.page-block {
+    margin-top: 15px;
     display: flex;
     justify-content: flex-end;
-    margin-top: 10px;
 }
 
-.house-card {
-    margin-bottom: 20px;
-    
-    .house-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        
-        .house-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #303133;
-        }
-    }
-    
-    .house-content {
-        .info-item {
-            margin-bottom: 8px;
-            display: flex;
-            
-            .label {
-                color: #909399;
-                width: 150px;
-                flex-shrink: 0;
-                white-space: nowrap;
-            }
-            
-            .value {
-                color: #606266;
-                flex: 1;
-                word-break: break-all;
-            }
-        }
-    }
-    
-    .house-footer {
-        margin-top: 15px;
-        text-align: right;
-    }
+.status-content {
+    padding: 10px;
 }
 </style>
