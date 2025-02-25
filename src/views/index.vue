@@ -164,25 +164,35 @@
             <el-row :gutter="10" class="margin-top-10">
                 <el-col :span="12">
                     <data-panel title="蔬菜大棚环境监测">
-                        <div class="env-cards-wrapper vegetable-cards">
-                            <el-row :gutter="20">
-                                <el-col :span="6" v-for="(item, index) in latestEnvItems" :key="index">
-                                    <div class="env-card" :class="getStatusColor(item)">
-                                        <div class="env-title">{{item.label}}</div>
-                                        <div class="env-value">{{item.value}}</div>
-                                        <div class="env-unit">{{item.unit}}</div>
-                                    </div>
-                                </el-col>
-                            </el-row>
-                            <div class="env-time">更新时间：{{latestUpdateTime}}</div>
-                        </div>
-                        <el-table :data="statusData" height="400" style="margin-top: 20px;">
-                            <el-table-column prop="id" label="ID"> </el-table-column>
-                            <el-table-column prop="airquality" label="空气质量"> </el-table-column>
-                            <el-table-column prop="temperature" label="温度"> </el-table-column>
-                            <el-table-column prop="humidity" label="湿度"> </el-table-column>
-                            <el-table-column prop="pressure" label="气压"> </el-table-column>
-                            <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
+                        <el-table :data="statusData" height="400">
+                            <el-table-column prop="pastureName" label="大棚名称" width="100"> </el-table-column>
+                            <el-table-column prop="batchName" label="分区名称" width="100"> </el-table-column>
+                            <el-table-column prop="temperature" label="温度" width="80">
+                                <template slot-scope="scope">
+                                    {{ scope.row.temperature }}℃
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="humidity" label="湿度" width="80">
+                                <template slot-scope="scope">
+                                    {{ scope.row.humidity }}%
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="lightLux" label="光照" width="90">
+                                <template slot-scope="scope">
+                                    {{ scope.row.lightLux }}lux
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="direction" label="风向" width="70"> </el-table-column>
+                            <el-table-column prop="speed" label="风速" width="80">
+                                <template slot-scope="scope">
+                                    {{ scope.row.speed }}m/s
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="记录时间" min-width="150">
+                                <template slot-scope="scope">
+                                    {{ scope.row.date + ' ' +scope.row.time }}
+                                </template>
+                            </el-table-column>
                         </el-table>
                         <div class="page-block">
                             <el-pagination
@@ -200,26 +210,14 @@
 
                 <el-col :span="12">
                     <data-panel title="养殖池环境监测">
-                        <div class="env-cards-wrapper fish-cards">
-                            <el-row :gutter="20">
-                                <el-col :span="4.8" v-for="(item, index) in fishEnvItems" :key="index">
-                                    <div class="env-card" :class="getStatusColor(item)">
-                                        <div class="env-title">{{item.label}}</div>
-                                        <div class="env-value">{{item.value}}</div>
-                                        <div class="env-unit">{{item.unit}}</div>
-                                    </div>
-                                </el-col>
-                            </el-row>
-                            <div class="env-time">更新时间：{{fishLatestUpdateTime}}</div>
-                        </div>
                         <el-table :data="fishStatusData" height="400">
-                            <el-table-column prop="id" label="ID"> </el-table-column>
-                            <el-table-column prop="waterQuality" label="水质"></el-table-column>
-                            <el-table-column prop="temperature" label="水温"></el-table-column>
-                            <el-table-column prop="oxygen" label="含氧量"></el-table-column>
-                            <el-table-column prop="ph" label="pH值"></el-table-column>
-                            <el-table-column prop="nitrite" label="亚硝酸盐含量"></el-table-column>
-                            <el-table-column prop="dateTime" label="记录日期"> </el-table-column>
+                            <el-table-column prop="id" label="ID" width="70"> </el-table-column>
+                            <el-table-column prop="waterQuality" label="水质" width="80"></el-table-column>
+                            <el-table-column prop="temperature" label="水温" width="80"></el-table-column>
+                            <el-table-column prop="oxygen" label="含氧量" width="90"></el-table-column>
+                            <el-table-column prop="ph" label="pH值" width="70"></el-table-column>
+                            <el-table-column prop="nitrite" label="亚硝酸盐" width="90"></el-table-column>
+                            <el-table-column prop="dateTime" label="记录日期" min-width="150"> </el-table-column>
                         </el-table>
                         <div class="page-block">
                             <el-pagination
@@ -263,6 +261,11 @@
     import {
         getBaseinfoLimitOne
     } from "@/api/agriculture/baseinfo";
+    import { listValue } from "@/api/agriculture/value";
+    import { getHouse } from "@/api/iaAgriculture/greenHouse";
+    import { getBatch } from "@/api/agriculture/batch";
+    import { listSoilSensorValueVO } from '@/api/agriculture/soilsensorvaluevo'
+    
 
     export default {
         name: "",
@@ -313,16 +316,6 @@
                 ],
                 latestEnvItems: [
                     {
-                        label: '空气质量',
-                        value: '2976.19',
-                        unit: 'ppm',
-                        thresholds: {
-                            good: { min: 0, max: 1000 },
-                            warning: { min: 1000, max: 2000 },
-                            // 超过2000为危险
-                        }
-                    },
-                    {
                         label: '温度',
                         value: '27',
                         unit: '℃',
@@ -343,69 +336,27 @@
                         }
                     },
                     {
-                        label: '气压',
+                        label: '光照',
                         value: '100.24',
-                        unit: 'kPa',
+                        unit: 'lux',
                         thresholds: {
-                            good: { min: 98, max: 102 },
-                            warning: { min: 95, max: 105 },
-                            // 低于95或超过105为危险
+                            good: { min: 50, max: 200 },
+                            warning: { min: 20, max: 300 },
+                            // 低于20或超过300为危险
+                        }
+                    },
+                    {
+                        label: '土壤湿度',
+                        value: '35',
+                        unit: '%',
+                        thresholds: {
+                            good: { min: 40, max: 70 },
+                            warning: { min: 30, max: 80 },
+                            // 低于30或超过80为危险
                         }
                     }
                 ],
                 activeTab: 'vegetables',
-                fishEnvItems: [
-                    {
-                        label: '水质',
-                        value: '优',
-                        unit: '',
-                        thresholds: {
-                            good: ['优'],
-                            warning: ['良'],
-                            // 其他为危险
-                        }
-                    },
-                    {
-                        label: '水温',
-                        value: '25',
-                        unit: '℃',
-                        thresholds: {
-                            good: { min: 22, max: 28 },
-                            warning: { min: 18, max: 32 },
-                            // 低于18或超过32为危险
-                        }
-                    },
-                    {
-                        label: '含氧量',
-                        value: '7.5',
-                        unit: 'mg/L',
-                        thresholds: {
-                            good: { min: 6, max: 9 },
-                            warning: { min: 4, max: 11 },
-                            // 低于4或超过11为危险
-                        }
-                    },
-                    {
-                        label: 'pH值',
-                        value: '7.2',
-                        unit: '',
-                        thresholds: {
-                            good: { min: 6.5, max: 8.5 },
-                            warning: { min: 6, max: 9 },
-                            // 低于6或超过9为危险
-                        }
-                    },
-                    {
-                        label: '亚硝酸盐含量',
-                        value: '0.05',
-                        unit: 'mg/L',
-                        thresholds: {
-                            good: { min: 0, max: 0.1 },
-                            warning: { min: 0.1, max: 0.3 },
-                            // 超过0.3为危险
-                        }
-                    }
-                ],
                 fishStatusData: [],
                 fishCurrentPage: 1,
                 fishPageSize: 10,
@@ -444,80 +395,62 @@
                 { deep: true }
             );
             this.houseCheck();
+            // 添加数据检查
+            setTimeout(() => {
+                this.logTableData();
+            }, 1000);
         },
         methods: {
             // 处理每页显示数量变化
-            sSizeChange(n) {
-                this.spSize = n;
+            sSizeChange(val) {
+                this.spSize = val;
+                this.scurrentPage = 1;  // 重置到第一页
                 this.houseCheck();
             },
 
             // 处理页码变化
-            sCurrentChange(n) {
-                this.scurrentPage = n;
+            sCurrentChange(val) {
+                this.scurrentPage = val;
                 this.houseCheck();
             },
 
-            // 获取蔬菜大棚环境数据
+            // 获取大棚环境数据
             houseCheck() {
-                this.$http.post("/dev-api/iaPasture/selectSensorValuePage", {
-                    currentPage: this.scurrentPage,
+                const params = {
+                    pageNum: this.scurrentPage,
                     pageSize: this.spSize,
-                    orderBy: 'dateTime',
-                    orderType: 'desc'
-                }).then(res => {
-                    if (res.data && res.data.data) {
-                        this.statusData = res.data.data.records.sort((a, b) => {
-                            return new Date(b.dateTime) - new Date(a.dateTime);
-                        });
-                        this.stotal = res.data.data.total;
-
-                        if (this.statusData && this.statusData.length > 0) {
-                            const latest = this.statusData[0];
-                            this.latestEnvItems = [
-                                {
-                                    label: '空气质量',
-                                    value: latest.airquality,
-                                    unit: 'ppm',
-                                    thresholds: {
-                                        good: { min: 0, max: 1000 },
-                                        warning: { min: 1000, max: 2000 }
-                                    }
-                                },
-                                {
-                                    label: '温度',
-                                    value: latest.temperature,
-                                    unit: '℃',
-                                    thresholds: {
-                                        good: { min: 20, max: 30 },
-                                        warning: { min: 15, max: 35 }
-                                    }
-                                },
-                                {
-                                    label: '湿度',
-                                    value: latest.humidity,
-                                    unit: '%',
-                                    thresholds: {
-                                        good: { min: 40, max: 70 },
-                                        warning: { min: 30, max: 80 }
-                                    }
-                                },
-                                {
-                                    label: '气压',
-                                    value: latest.pressure,
-                                    unit: 'kPa',
-                                    thresholds: {
-                                        good: { min: 98, max: 102 },
-                                        warning: { min: 95, max: 105 }
-                                    }
-                                }
-                            ];
+                    orderByColumn: 'date,time',  // 按日期和时间排序
+                    isAsc: 'desc'                 // 升序排序
+                };
+                
+                listSoilSensorValueVO(params).then(response => {
+                    let data;
+                    if (Array.isArray(response)) {
+                        data = response;
+                        this.stotal = response.length;
+                    } 
+                    else if (response.rows) {
+                        data = response.rows;
+                        this.stotal = response.total;
+                    }
+                    else if (response.data) {
+                        if (Array.isArray(response.data)) {
+                            data = response.data;
+                            this.stotal = response.data.length;
+                        } else {
+                            data = response.data.rows || [];
+                            this.stotal = response.data.total || 0;
                         }
                     }
+
+                    // 直接使用后端排序好的数据
+                    this.statusData = data;
                 }).catch(error => {
-                    console.error('获取蔬菜大棚数据失败:', error);
+                    console.error('获取传感器数据失败:', error);
+                    this.$message.error('获取传感器数据失败');
                 });
             },
+
             /** 初始化map */
 
             async getBaseInfo() {
@@ -567,16 +500,13 @@
                 //蔬菜基地信息
                 const res = await selectBaseInfo()
                 this.baseInfo = res.rows[0]
-                console.log('蔬菜基地信息:', this.baseInfo)
 
                 // 获取养殖基地信息
                 const fishRes = await selectFishBaseInfo()
                 this.fishInfo = fishRes.rows[0]
-                console.log('养殖基地信息:', this.fishInfo)
 
                 // 获取养殖任务状态信息
                 const fishTaskRes = await selectFishTaskInfo()
-                console.log('养殖任务状态:', fishTaskRes)
 
 
                     //未分配
@@ -650,99 +580,22 @@
 
             // 获取养殖池环境数据
             getFishEnvironmentData() {
-                // 发送请求获取养殖池数据   假数据 等待真数据
                 this.$http.post("/dev-api/fishPond/sensorData", {
-                    currentPage: this.fishCurrentPage, // 当前页码
-                    pageSize: this.fishPageSize, // 每页数量
-                    orderBy: 'dateTime', // 按日期排序
-                    orderType: 'desc' // 降序排列（最新的在前）
+                    currentPage: this.fishCurrentPage,
+                    pageSize: this.fishPageSize,
+                    orderBy: 'dateTime',
+                    orderType: 'desc'
                 }).then(res => {
-                    console.log('养殖池数据响应:', res); // 调试日志
                     if (res.data) {
-                        // 更新表格数据
+                        // 对数据进行排序
                         this.fishStatusData = res.data.records.sort((a, b) => {
-                            return new Date(b.dateTime) - new Date(a.dateTime); // 按时间降序排序
+                            return new Date(b.dateTime) - new Date(a.dateTime);
                         });
-                        this.fishTotal = res.data.total; // 更新总记录数
-
-                        // 如果有数据，更新环境监测卡片
-                        if (this.fishStatusData && this.fishStatusData.length > 0) {
-                            const latest = this.fishStatusData[0]; // 获取最新一条记录
-                            // 更新养殖池环境监测卡片数据
-                            this.fishEnvItems = [
-                                {
-                                    label: '水质',
-                                    value: latest.waterQuality,
-                                    unit: '',
-                                    thresholds: {
-                                        good: ['优'], // 最佳水质
-                                        warning: ['良'] // 可接受水质
-                                    }
-                                },
-                                {
-                                    label: '水温',
-                                    value: latest.temperature,
-                                    unit: '℃',
-                                    thresholds: {
-                                        good: { min: 22, max: 28 }, // 适宜水温范围
-                                        warning: { min: 18, max: 32 } // 可接受水温范围
-                                    }
-                                },
-                                {
-                                    label: '含氧量',
-                                    value: latest.oxygen,
-                                    unit: 'mg/L',
-                                    thresholds: {
-                                        good: { min: 6, max: 9 }, // 适宜含氧量范围
-                                        warning: { min: 4, max: 11 } // 可接受含氧量范围
-                                    }
-                                },
-                                {
-                                    label: 'pH值',
-                                    value: latest.ph,
-                                    unit: '',
-                                    thresholds: {
-                                        good: { min: 6.5, max: 8.5 }, // 适宜pH值范围
-                                        warning: { min: 6, max: 9 } // 可接受pH值范围
-                                    }
-                                },
-                                {
-                                    label: '亚硝酸盐含量',
-                                    value: latest.nitrite,
-                                    unit: 'mg/L',
-                                    thresholds: {
-                                        good: { min: 0, max: 0.1 }, // 安全亚硝酸盐范围
-                                        warning: { min: 0.1, max: 0.3 } // 警戒亚硝酸盐范围
-                                    }
-                                }
-                            ];
-                        }
+                        this.fishTotal = res.data.total;
                     }
                 }).catch(error => {
-                    console.error('获取养殖池数据失败:', error); // 错误日志
+                    console.error('获取养殖池数据失败:', error);
                 });
-            },
-            // 根据监测值确定状态颜色
-            getStatusColor(item) {
-                console.log('获取状态颜色，项目:', item.label, '值:', item.value); // 调试日志
-
-                // 水质特殊处理（因为是文字值）
-                if (item.label === '水质') {
-                    return item.thresholds.good.includes(item.value) ? 'success' : // 如果是优，显示绿色
-                           item.thresholds.warning.includes(item.value) ? 'warning' : 'danger'; // 如果是良，显示黄色，否则红色
-                }
-
-                // 其他数值类型的处理
-                const value = parseFloat(item.value);
-                console.log('解析后的数值:', value); // 调试日志
-
-                // 判断数值是否在不同范围内
-                if (item.thresholds.good.min <= value && value <= item.thresholds.good.max) {
-                    return 'success'; // 在最佳范围内，显示绿色
-                } else if (item.thresholds.warning.min <= value && value <= item.thresholds.warning.max) {
-                    return 'warning'; // 在警告范围内，显示黄色
-                }
-                return 'danger'; // 超出范围，显示红色
             },
             initCombinedChart() {
                 const chartDom = this.$refs.combinedStatsChart;
@@ -863,6 +716,46 @@
                 window.addEventListener('resize', () => {
                     this.combinedChart && this.combinedChart.resize();
                 });
+            },
+            updateLatestEnvItems(latest) {
+                this.latestEnvItems = [
+                    {
+                        label: '温度',
+                        value: latest.temperature,
+                        unit: '℃',
+                        thresholds: {
+                            good: { min: 20, max: 30 },
+                            warning: { min: 15, max: 35 }
+                        }
+                    },
+                    {
+                        label: '湿度',
+                        value: latest.humidity,
+                        unit: '%',
+                        thresholds: {
+                            good: { min: 40, max: 70 },
+                            warning: { min: 30, max: 80 }
+                        }
+                    },
+                    {
+                        label: '光照',
+                        value: latest.lightLux,
+                        unit: 'lux',
+                        thresholds: {
+                            good: { min: 50, max: 200 },
+                            warning: { min: 20, max: 300 }
+                        }
+                    },
+                    {
+                        label: '土壤湿度',
+                        value: latest.soilMoisture,
+                        unit: '%',
+                        thresholds: {
+                            good: { min: 40, max: 70 },
+                            warning: { min: 30, max: 80 }
+                        }
+                    }
+                ];
             }
         },
     };
