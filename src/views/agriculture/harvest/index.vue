@@ -66,7 +66,7 @@
                                         <i class="el-icon-user"></i>
                                         <span class="label">负责人：</span>
                                         <data-tag :options="userList" :value="item.batchHead" 
-                                            labelName="userName" valueName="userId" type="notag" />
+                                            labelName="nickName" valueName="userId" type="notag" />
                                     </div>
                                     <div class="info-item">
                                         <i class="el-icon-office-building"></i>

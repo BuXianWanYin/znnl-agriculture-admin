@@ -71,7 +71,7 @@
                                         <span class="label">负责人：</span>
                                         <data-tag :options="userList" 
                                                  :value="item.batchHead" 
-                                                 labelName="userName"
+                                                 labelName="nickName"
                                                  valueName="userId" 
                                                  type="notag" />
                                     </div>
