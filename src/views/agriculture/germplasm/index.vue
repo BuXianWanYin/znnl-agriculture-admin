@@ -89,7 +89,7 @@
 
             <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body
                 @close="closeStandardJob">
-                <standard-job :germplasmId="currentGermplasmId" v-if="showStandardJobComponent" />
+                <standard-job :germplasmId="currentGermplasmId" :name="cropName" :typeName="germplasmName" v-if="showStandardJobComponent" />
             </el-dialog>
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
@@ -227,7 +227,9 @@
                         message: "种质图片不能为空",
                         trigger: ["blur","change"]
                     }],
-                }
+                },
+                cropName: '', // 作物名称
+                germplasmName: '' // 种质名称
             };
         },
         created() {
@@ -236,6 +238,8 @@
         methods: {
             showStandardJob(row) {
                 this.currentGermplasmId = row.germplasmId; // 获取当前行的种质ID
+                this.cropName = row.cropName; // 获取当前行的作物名称   
+                this.germplasmName = row.germplasmName; // 获取当前行的种质名称
                 this.showStandardJobComponent = true; // 显示组件
             },
             closeStandardJob() {

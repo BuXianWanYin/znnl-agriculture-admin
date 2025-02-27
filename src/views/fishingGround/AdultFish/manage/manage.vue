@@ -92,7 +92,7 @@
 
             <el-dialog title="作业流程" :visible.sync="showStandardJobComponent" width="40%" append-to-body
                 @close="closeStandardJob">
-                <standard-job :germplasm-id="currentspeciesId" v-if="showStandardJobComponent" />
+                <standard-job :germplasm-id="currentspeciesId" :name="fishName" :typeName="fishSpeciesName" v-if="showStandardJobComponent" />
             </el-dialog>
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
@@ -230,7 +230,9 @@
                         message: "鱼类图片不能为空",
                         trigger: ["blur", "change"]
                     }],
-                }
+                },
+                fishName: '', // 鱼名称
+                fishSpeciesName: '' // 鱼类名称 
             };
         },
         created() {
@@ -239,6 +241,8 @@
         methods: {
             showStandardJob(row) {
                 this.currentspeciesId = row.speciesId; // 获取当前行的鱼类ID
+                this.fishName = row.fishName; // 获取当前行的鱼名称
+                this.fishSpeciesName = row.fishSpeciesName; // 获取当前行的鱼类名称
                 this.showStandardJobComponent = true; // 显示组件
             },
             closeStandardJob() {

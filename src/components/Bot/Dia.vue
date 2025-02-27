@@ -1,14 +1,30 @@
 <template>
   <transition name="fade-bounce-y" mode="out-in">
     <!-- 聊天窗口 -->
-    <div v-show="showDia && !isLoginPage" id="bot-container">
+    <div v-show="showDia && !isLoginPage" id="bot-container" :class="{ 'left-side': isLeftSide }">
       <div class="chat-window" v-show="showChat">
         <div class="chat-header">
           <div class="status-wrapper">
             <span class="status-indicator"></span>
             <span>小农机器人</span>
           </div>
-          <button class="close-btn" @click="toggleChat">×</button>
+          <div class="header-actions">
+            <!-- 添加左右切换按钮 -->
+            <button class="action-btn switch-side-btn" @click="toggleSide" :title="isLeftSide ? '切换到右侧' : '切换到左侧'">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" :d="isLeftSide ? 
+                  'M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z' : 
+                  'M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z'"/>
+              </svg>
+            </button>
+            <!-- 添加隐藏小人按钮 -->
+            <button class="action-btn toggle-bot-btn" @click="toggleBot" :title="showBot ? '隐藏小人' : '显示小人'">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" :d="showBot ? 'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z' : 'M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z'"/>
+              </svg>
+            </button>
+            <button class="close-btn" @click="toggleChat">×</button>
+          </div>
         </div>
 
         <div class="chat-messages" ref="messagesContainer">
@@ -34,38 +50,14 @@
                 </svg>
               </div>
               <div class="bubble-content">
-                <div class="message-text" v-html="processMessageText(msg.text)"></div>
-                <div v-if="msg.type === 'bot' && (msg.ttsStatus === 'loading' || msg.audioUrl)"
-                     class="text-to-speech-btn"
-                     @click="handleTextToSpeech(msg)"
-                     :class="{
-                       'loading': msg.ttsStatus === 'loading',
-                       'playing': msg.ttsStatus === 'playing'
-                     }">
-                  <svg v-if="!msg.ttsStatus" class="tts-icon" viewBox="0 0 24 24" width="16" height="16">
-                    <path fill="currentColor" d="M14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.84 14,18.7V20.77C18,19.86 21,16.28 21,12C21,7.72 18,4.14 14,3.23M16.5,12C16.5,10.23 15.5,8.71 14,7.97V16C15.5,15.29 16.5,13.76 16.5,12M3,9V15H7L12,20V4L7,9H3Z"/>
-                  </svg>
-                  <svg v-else-if="msg.ttsStatus === 'loading'" class="loading-icon" viewBox="0 0 24 24" width="16" height="16">
-                    <path fill="currentColor" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z">
-                      <animateTransform attributeName="transform"
-                        attributeType="XML"
-                        type="rotate"
-                        dur="1s"
-                        from="0 12 12"
-                        to="360 12 12"
-                        repeatCount="indefinite"/>
-                    </path>
-                  </svg>
-                  <svg v-else class="playing-icon" viewBox="0 0 24 24" width="16" height="16">
-                    <path fill="currentColor" d="M14,19H18V5H14M6,19H10V5H6V19Z"/>
-                  </svg>
-                </div>
+                <div class="message-text" v-html="msg.text"></div>
               </div>
             </div>
           </template>
         </div>
 
         <div class="chat-input">
+          <!-- 移除图片预览区域 -->
           <textarea
             v-model="userInput"
             @keydown.enter.prevent="handleEnterPress"
@@ -82,6 +74,26 @@
                  @click="handleChatVoiceClick">
               <div class="microphone-icon" :class="{ 'stop-icon': isChatListening }"></div>
             </div>
+            <div class="upload-btn" :class="{ 'has-image': previewImage }">
+              <div class="preview-thumbnail" v-if="previewImage" @click="$refs.fileInput.click()">
+                <img :src="previewImage" alt="预览缩略图">
+                <div class="image-actions">
+                  <span class="delete-btn" @click.stop="cancelImageUpload">×</span>
+                </div>
+              </div>
+              <template v-else>
+                <input
+                  type="file"
+                  ref="fileInput"
+                  accept="image/*"
+                  class="file-input"
+                  @change="handleImageUpload"
+                >
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                  <path fill="currentColor" d="M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19M8.5,13.5L11,16.5L14.5,12L19,18H5M5,5H19V19H5V5Z"/>
+                </svg>
+              </template>
+            </div>
             <button class="send-btn" @click="sendMessage">
               <svg viewBox="0 0 24 24" width="16" height="16">
                 <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
@@ -90,16 +102,39 @@
           </div>
         </div>
       </div>
-      <div id="Aurora-Dia--body" :style="cssVariables">
+      <div id="Aurora-Dia--body" :style="cssVariables" v-show="showBot">
         <div id="Aurora-Dia--tips-wrapper">
           <div id="Aurora-Dia--tips" class="Aurora-Dia--tips">你好呀～</div>
         </div>
+        <!-- 修改按钮布局 -->
         <div class="voice-btn"
              :class="{ 'listening': isListening, 'show': isHovering || isListening }"
              @click="handleVoiceClick"
              @mouseenter="handleVoiceBtnHover(true)"
              @mouseleave="handleVoiceBtnHover(false)">
           <div class="microphone-icon" :class="{ 'stop-icon': isListening }"></div>
+        </div>
+        <div class="action-btn switch-side-btn"
+             :class="{ 'show': isHovering }"
+             @click="toggleSide"
+             @mouseenter="handleVoiceBtnHover(true)"
+             @mouseleave="handleVoiceBtnHover(false)"
+             :title="isLeftSide ? '切换到右侧' : '切换到左侧'">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path fill="currentColor" :d="isLeftSide ? 
+              'M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z' : 
+              'M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z'"/>
+          </svg>
+        </div>
+        <div class="action-btn toggle-bot-btn"
+             :class="{ 'show': isHovering }"
+             @click="toggleBot"
+             @mouseenter="handleVoiceBtnHover(true)"
+             @mouseleave="handleVoiceBtnHover(false)"
+             :title="showBot ? '隐藏小人' : '显示小人'">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path fill="currentColor" :d="showBot ? 'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z' : 'M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z'"/>
+          </svg>
         </div>
         <div id="Aurora-Dia" class="Aurora-Dia"
              @mouseenter="handleDiaHover(true)"
@@ -118,6 +153,9 @@
 
 <script>
 import { AuroraDia } from '@/utils/aurora-dia'
+import {
+    getToken
+} from "@/utils/auth";
 export default {
   name: 'AUDia',
   data() {
@@ -142,6 +180,10 @@ export default {
       messages: [],
       userId: '',
       isLoadingHistory: false,
+      previewImage: null, // 添加预览图片数据
+      imageBlob: null, // 添加图片 Blob 数据
+      showBot: true, // 控制小人显示/隐藏
+      isLeftSide: false, // 控制左右侧显示
     }
   },
 
@@ -179,25 +221,17 @@ export default {
           const welcomeMessage = {
             type: 'bot',
             text: '你好！我是你的智能助手，有什么可以帮你的吗？',
-            timestamp: new Date().getTime(),
-            audioUrl: null,
-            ttsStatus: 'loading'
+            timestamp: new Date().getTime()
           }
 
           // 添加消息
           this.messages.push(welcomeMessage)
 
           try {
-            // 请求语音URL
-            const audioUrl = await this.getVoiceUrl(welcomeMessage.text, welcomeMessage.timestamp)
-            welcomeMessage.audioUrl = audioUrl
-            welcomeMessage.ttsStatus = null
-
             // 保存欢迎消息到数据库
             await this.saveChatMessage(welcomeMessage)
           } catch (error) {
             console.error('处理欢迎消息失败:', error)
-            welcomeMessage.ttsStatus = null
           }
         }
       },
@@ -575,9 +609,7 @@ export default {
             type: msg.type,
             text: msg.content,
             timestamp: msg.createTime ? new Date(msg.createTime).getTime() :
-                     (typeof msg.timestamp === 'number' ? msg.timestamp : new Date().getTime()),
-            audioUrl: msg.audioUrl,
-            ttsStatus: null
+                     (typeof msg.timestamp === 'number' ? msg.timestamp : new Date().getTime())
           }
 
           return convertedMsg
@@ -597,7 +629,6 @@ export default {
         const messageData = {
           type: message.type,
           content: message.text,
-          audioUrl: message.audioUrl || null,
           timestamp: typeof message.timestamp === 'number' ? message.timestamp : new Date().getTime(),
           userId: this.userId
         }
@@ -624,61 +655,75 @@ export default {
       }
     },
 
+    // 添加将 URL 转换为 Blob 的方法
+    async urlToBlob(url) {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return blob;
+    },
+
     // 修改发送消息方法
     async sendMessage() {
-      if (!this.userInput.trim()) return
+      if (!this.userInput.trim() && !this.previewImage) return;
 
-      const currentInput = this.userInput.trim()
-      const timestamp = new Date().getTime()
-
-      // 创建用户消息对象
-      const userMessage = {
-        type: 'user',
-        text: currentInput,
-        timestamp: timestamp,
-        audioUrl: null
-      }
-
-      // 添加到消息列表并保存
-      this.messages.push(userMessage)
-      await this.saveChatMessage(userMessage)
-
-      this.userInput = ''
-
-      const textarea = document.querySelector('.input-area')
-      if (textarea) {
-        textarea.style.height = '24px'
-      }
-
-      this.$nextTick(() => {
-        if (this.$refs.messagesContainer) {
-          this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
-        }
-      })
-
-      // 添加机器人思考中的消息
-      const botMessage = {
-        type: 'bot',
-        text: '正在思考...',
-        timestamp: new Date().getTime(),
-        audioUrl: null,
-        ttsStatus: 'loading'
-      }
-      this.messages.push(botMessage)
+      const timestamp = new Date().getTime();
+      let messageText = this.userInput.trim();
+      let botMessage = null;
+      const formData = new FormData()
+      formData.append('prompt', messageText)
 
       try {
-        const formData = new FormData()
-        formData.append('prompt', currentInput)
+        // 如果有图片，直接使用已上传的URL
+        if (this.previewImage) {
+          messageText = messageText ? 
+            `${messageText}\n<img src="${this.previewImage}" style="max-width: 150px; max-height: 150px;">` :
+            `<img src="${this.previewImage}" style="max-width: 150px; max-height: 150px;">`;
+        }
 
-        const response = await fetch('http://localhost:8081/ai/chatStream', {
+        // 创建用户消息对象
+        const userMessage = {
+          type: 'user',
+          text: messageText,
+          timestamp: timestamp
+        };
+
+        // 添加到消息列表并保存
+        this.messages.push(userMessage);
+        this.scrollToBottom();
+        await this.saveChatMessage(userMessage);
+
+        // 清空输入和图片数据
+        this.userInput = '';
+        const currentImageBlob = this.imageBlob; // 保存当前的图片数据用于发送
+        this.previewImage = null;
+        this.imageBlob = null;
+        
+        // 添加机器人思考中的消息
+        botMessage = {
+          type: 'bot',
+          text: '正在思考...',
+          timestamp: new Date().getTime()
+        }
+        this.messages.push(botMessage)
+        this.scrollToBottom();
+
+        // 如果有图片，添加到请求中
+        if (currentImageBlob) {
+          formData.append('file', currentImageBlob, 'image.jpg');
+        }
+
+        const response = await fetch('http://localhost:8081/ai/chatVLStream', {
           method: 'POST',
           body: formData
         })
 
         if (!response.ok) {
-          console.error('AI响应请求失败:', response.status)
-          throw new Error(`HTTP error! status: ${response.status}`)
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        // 清除预览图片和 Blob 数据
+        this.previewImage = null;
+        this.imageBlob = null;
 
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
@@ -687,23 +732,9 @@ export default {
         while (true) {
           const { done, value } = await reader.read()
 
-          // 如果读取完成，开始获取语音URL
           if (done) {
-            // 提前开始获取语音URL
-            console.log('AI响应完成，开始获取语音URL...')
-
-            const audioUrlPromise = this.getVoiceUrl(fullMessage, botMessage.timestamp)
-
-            // 更新消息文本
-            botMessage.text = fullMessage
-
-            // 等待语音URL获取完成
-            const audioUrl = await audioUrlPromise
-            botMessage.audioUrl = audioUrl
-            botMessage.ttsStatus = null
-            console.log('更新消息的音频URL:', audioUrl)
-
-            // 保存完整的机器人消息
+            // 更新最终消息
+            botMessage.text = this.formatMessageWithTypingEffect(fullMessage)
             await this.saveChatMessage(botMessage)
             break
           }
@@ -713,138 +744,50 @@ export default {
 
           for (const line of lines) {
             if (!line.trim()) continue
-            const jsonStr = line.replace(/^data:/, '').trim()
+            
+            const jsonStr = line.replace(/^data:\s*/, '').trim()
+            if (jsonStr === '[DONE]') continue
+
             try {
               const jsonData = JSON.parse(jsonStr)
-              if (jsonData.response) {
-                const newText = jsonData.response
-                // 对所有内容进行处理
-                if (newText.trim()) {
-                  // 检查是否包含完整的 think 标签内容
-                  if (newText.includes('<think>') && newText.includes('</think>')) {
-                    // 处理完整的 think 内容，修正嵌套顺序
-                    const textWithClass = newText.replace(
-                      '<think>',
-                      '<div class="thinkDiv">'
-                    ).replace(
-                      '</think>',
-                      '</div>'
-                    );
-                    fullMessage += textWithClass;
-                  }
-                  // 检查是否只有 think 开始标签
-                  else if (newText.includes('<think>')) {
-                    // 修正嵌套顺序
-                    const textWithClass = newText.replace(
-                      '<think>',
-                      '<div class="thinkDiv">'
-                    );
-                    fullMessage += textWithClass;
-                  }
-                  // 检查是否是 think 结束标签
-                  else if (newText.includes('</think>')) {
-                    // 分割结束标签后的内容
-                    const [, afterThink] = newText.split('</think>');
-                    if (afterThink?.trim()) {
-                      // 修正结束标签的顺序，并添加后续内容
-                      fullMessage += `</div><div class="aimessage">${afterThink}</div>`;
-                    } else {
-                      // 只添加结束标签
-                      fullMessage += '</div>';
-                    }
-                  } else {
-                    // 其他内容直接添加
-                    fullMessage += newText;
-                  }
-                  botMessage.text = fullMessage;
-                }
-
+              if (jsonData && typeof jsonData.response === 'string') {
+                fullMessage += jsonData.response
+                // 直接更新消息,不添加延迟
+                botMessage.text = this.formatMessageWithTypingEffect(fullMessage)
+                
+                // 滚动到底部
                 this.$nextTick(() => {
-                  if (this.$refs.messagesContainer) {
-                    this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight
-                  }
+                  this.scrollToBottom()
                 })
-
-                await new Promise(resolve => setTimeout(resolve, 50))
               }
             } catch (e) {
-              console.error('解析响应数据失败:', e)
+              console.log('处理数据时出错:', e)
+              continue
             }
           }
         }
 
       } catch (error) {
-        console.error('发送消息失败:', error)
-        botMessage.ttsStatus = null
-      }
-    },
-
-    // 修改音频播放方法
-    async handleTextToSpeech(message) {
-      if (message.ttsStatus === 'playing') {
-        console.log('暂停当前播放的音频')
-        if (this.currentAudio) {
-          this.currentAudio.pause()
-          this.currentAudio = null
+        console.error('发送消息失败:', error);
+        if (botMessage) {
+          botMessage.text = error.message || '发送失败，请重试';
+          this.scrollToBottom();
         }
-        this.$set(message, 'ttsStatus', null)
-        return
-      }
-
-      this.$set(message, 'ttsStatus', 'loading')
-
-      try {
-        if (!message.audioUrl) {
-          console.log('未找到音频URL，正在获取...')
-          message.audioUrl = await this.getVoiceUrl(message.text, message.timestamp)
-        }
-
-        if (message.audioUrl) {
-          console.log('开始播放音频:', message.audioUrl)
-
-          if (this.currentAudio) {
-            console.log('停止之前的音频播放')
-            this.currentAudio.pause()
-          }
-
-          const audio = new Audio(message.audioUrl)
-          this.currentAudio = audio
-
-          audio.onended = () => {
-            console.log('音频播放完成')
-            this.$set(message, 'ttsStatus', null)
-            this.currentAudio = null
-          }
-
-          audio.onerror = (e) => {
-            console.error('音频播放错误:', e)
-            this.$set(message, 'ttsStatus', null)
-            this.currentAudio = null
-          }
-
-          await audio.play()
-          this.$set(message, 'ttsStatus', 'playing')
-        } else {
-          console.error('无法获取音频URL')
-          throw new Error('获取音频URL失败')
-        }
-      } catch (error) {
-        console.error('播放音频失败:', error)
-        this.$set(message, 'ttsStatus', null)
+        this.$message.error(error.message || '发送失败，请重试');
       }
     },
 
     scrollToBottom() {
       this.$nextTick(() => {
         if (this.$refs.messagesContainer) {
-          const container = this.$refs.messagesContainer
+          const container = this.$refs.messagesContainer;
           const scrollOptions = {
             top: container.scrollHeight,
             behavior: 'smooth'
-          }
-          container.scrollTo(scrollOptions)
+          };
+          container.scrollTo(scrollOptions);
         }
-      })
+      });
     },
 
     adjustTextareaHeight(e) {
@@ -1034,7 +977,177 @@ export default {
         }
         return '';
       }).join('');
-    }
+    },
+
+    // 修改图片上传处理方法，立即上传并获取URL
+    async handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // 检查文件类型和大小
+      if (!file.type.startsWith('image/')) {
+        this.$message.error('请上传图片文件');
+        return;
+      }
+      
+      // 限制文件大小为 5MB
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        this.$message.error('图片大小不能超过 5MB');
+        return;
+      }
+
+      try {
+        // 压缩图片
+        const { blob, previewUrl } = await this.compressImage(file);
+
+        // 上传图片并获取URL
+        const formData = new FormData();
+        formData.append('file', blob, 'image.jpg');
+
+        const response = await fetch(process.env.VUE_APP_BASE_API + "/common/upload", {
+          method: 'POST',
+          body: formData,
+          headers: {
+        Authorization: "Bearer " + getToken(),
+      },
+        });
+
+        if (!response.ok) {
+          throw new Error('上传图片失败');
+        }
+
+        const result = await response.json();
+        if (!result.url) {
+          throw new Error('上传成功但未返回图片地址');
+        }
+
+        // 存储图片URL和Blob数据
+        this.previewImage = result.url; // 使用服务器返回的URL
+        this.imageBlob = blob;
+        
+        // 清空文件输入框，允许重复上传相同文件
+        this.$refs.fileInput.value = '';
+
+      } catch (error) {
+        console.error('上传图片失败:', error);
+      }
+    },
+
+    // 取消图片上传
+    cancelImageUpload() {
+      this.previewImage = null;
+      this.$refs.fileInput.value = '';
+    },
+
+    // 添加图片压缩方法
+    compressImage(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置正方形尺寸，取较短边
+            const size = 800; // 设置固定大小
+            
+            // 创建正方形画布
+            canvas.width = size;
+            canvas.height = size;
+            
+            // 计算裁剪区域
+            let sx = 0, sy = 0, sWidth = img.width, sHeight = img.height;
+            if (img.width > img.height) {
+              sx = (img.width - img.height) / 2;
+              sWidth = img.height;
+            } else {
+              sy = (img.height - img.width) / 2;
+              sHeight = img.width;
+            }
+            
+            // 填充白色背景
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, size, size);
+            
+            // 绘制图片
+            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, size, size);
+            
+            // 转换为 Blob
+            canvas.toBlob((blob) => {
+              // 同时返回 Blob 和预览 URL
+              resolve({
+                blob: blob,
+                previewUrl: URL.createObjectURL(blob)
+              });
+            }, 'image/jpeg', 0.8); // 使用 JPEG 格式，质量 0.8
+          };
+        };
+      });
+    },
+
+    // 切换小人显示/隐藏
+    toggleBot() {
+      this.showBot = !this.showBot;
+    },
+    
+    // 切换左右侧显示
+    toggleSide() {
+      const botContainer = document.getElementById('bot-container');
+      const diaBody = document.getElementById('Aurora-Dia--body');
+      
+      if (!botContainer || !diaBody) return;
+      
+      botContainer.classList.add('moving');
+      
+      // 计算当前位置和目标位置
+      const currentLeft = this.isLeftSide ? 20 : window.innerWidth - botContainer.offsetWidth - 20;
+      const targetLeft = this.isLeftSide ? window.innerWidth - botContainer.offsetWidth - 20 : 20;
+      
+      // 修改关键帧，让机器人在底部移动
+      const keyframes = [
+        { 
+          left: `${currentLeft}px`,
+          bottom: '0px'
+        },
+        {
+          left: `${(currentLeft + targetLeft) / 2}px`,
+          bottom: '30px' // 降低抛物线的高度
+        },
+        {
+          left: `${targetLeft}px`,
+          bottom: '0px'
+        }
+      ];
+      
+      const options = {
+        duration: 600,
+        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        fill: 'forwards'
+      };
+      
+      botContainer.animate(keyframes, options).onfinish = () => {
+        this.isLeftSide = !this.isLeftSide;
+        botContainer.classList.remove('moving');
+      };
+    },
+
+    // 添加文字动画处理方法
+    wrapTextWithAnimation(text, index = 0) {
+      return `<div class="ai-paragraph" style="animation-delay: ${index * 100}ms">${text}</div>`;
+    },
+
+    // 修改格式化打字机效果的方法,移除特殊标签处理
+    formatMessageWithTypingEffect(text) {
+      // 将文本按段落分割并直接返回
+      const paragraphs = text.split('\n').filter(p => p.trim())
+      return paragraphs.map(paragraph => {
+        return `<div class="ai-paragraph">${paragraph}</div>`
+      }).join('')
+    },
   }
 }
 </script>
@@ -1043,12 +1156,45 @@ export default {
 #bot-container {
   position: fixed;
   right: 20px;
-  bottom: 0;
-  z-index: 1000;
+  bottom: 0; // 确保容器固定在底部
+  z-index: 2000;
   width: 70px;
   height: 60px;
   box-sizing: content-box;
   pointer-events: auto;
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  &.left-side {
+    left: 20px;
+    right: auto;
+    
+    .chat-window {
+      left: 20px;
+      right: auto;
+      transform: translateX(0);
+    }
+    
+    #Aurora-Dia--tips-wrapper {
+      left: 99px;
+      right: auto;
+      transform: translateX(0);
+    }
+  }
+
+  &.moving {
+    transition: none;
+    pointer-events: none;
+    
+    .chat-window,
+    #Aurora-Dia--tips-wrapper {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    #Aurora-Dia--body {
+      animation: bounce-rotate 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+  }
 }
 
 #Aurora-Dia--body {
@@ -1170,8 +1316,8 @@ export default {
   background-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.12);
   animation: tips-breathe 3s linear infinite;
-  transition: all 0.3s linear;
-  z-index: 100;
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 2000; // 提高 z-index
   overflow: hidden;
 }
 
@@ -1267,7 +1413,8 @@ export default {
 .voice-btn {
   position: absolute;
   top: -67px;
-  right: 27%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -1277,41 +1424,41 @@ export default {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  z-index: 200;
   opacity: 0;
-  transform: translateY(10px);
   pointer-events: none;
+  z-index: 200;
 
-  .microphone-icon {
-    width: 16px;
-    height: 16px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z'/%3E%3C/svg%3E");
-    background-size: 16px;
-    background-position: center;
-    background-repeat: no-repeat;
-    transition: all 0.3s;
-
-    &.stop-icon {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
-    }
+  &.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
   }
+
+  &.listening {
+    background: #ff4444;
+    animation: pulse-center 1s infinite;
+  }
+
+  // 移除之前的 show.listening 组合样式
 }
 
-.voice-btn.show {
-  pointer-events: auto;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.voice-btn.listening {
-  animation: pulse 1s infinite;
-  background: #ff4444;
+// 添加新的居中脉冲动画
+@keyframes pulse-center {
+  0% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
 }
 
 .microphone-icon {
   width: 16px;
   height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z'/%3E%3C/svg%3E");
   background-size: 16px;
   background-position: center;
   background-repeat: no-repeat;
@@ -1319,18 +1466,6 @@ export default {
 
   &.stop-icon {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
-  }
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
   }
 }
 
@@ -1363,8 +1498,9 @@ export default {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  z-index: 1000;
+  overflow: visible;
+  z-index: 2000; // 提高 z-index
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .chat-header {
@@ -1375,6 +1511,8 @@ export default {
   align-items: center;
   backdrop-filter: blur(2px);
   position: relative;
+  z-index: 2;
+  background: white;
 
   &::after {
     content: '';
@@ -1421,24 +1559,54 @@ export default {
       color: #666;
     }
   }
-}
-.message-text {
-  :deep(.thinkDiv) {
-    color: #c20000;
-    display: block;
 
-    .think {
-      color: inherit;  // 继承父元素的颜色
-      display: block;
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #999;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    
+    &:hover {
+      background-color: #f5f5f5;
+      color: #666;
+    }
+  }
+
+  .switch-side-btn {
+    &:hover {
+      color: #7aa2f7;
+    }
+  }
+
+  .toggle-bot-btn {
+    &:hover {
+      color: #7aa2f7;
     }
   }
 }
-
-// 或者分开写，提高特异性
-:deep(.message-text .thinkDiv),
-:deep(.message-text .thinkDiv .think) {
-  color: #c20000;
-  display: block;
+.message-text {
+  :deep(.ai-paragraph) {
+    display: block;
+    margin-bottom: 8px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .chat-messages {
@@ -1446,6 +1614,8 @@ export default {
   padding: 12px;
   overflow-y: auto;
   background: white;
+  z-index: 1; // 添加 z-index
+  position: relative; // 添加相对定位
 
   /* 隐藏滚动条 - Webkit 浏览器 */
   &::-webkit-scrollbar {
@@ -1463,6 +1633,8 @@ export default {
     align-items: flex-start;
     margin: 16px;
     gap: 8px;
+    position: relative; // 添加相对定位
+    z-index: 1; // 确保消息气泡可见
 
     &.user {
       flex-direction: row-reverse;
@@ -1559,6 +1731,8 @@ export default {
   align-items: center;
   gap: 8px;
   min-height: 46px;
+  position: relative;
+  z-index: 2;
 
   .input-area {
     flex: 1;
@@ -1611,11 +1785,6 @@ export default {
     background: transparent;
     cursor: pointer;
     color: #666;
-
-    svg {
-      width: 16px;
-      height: 16px;
-    }
 
     &:hover {
       color: #7aa2f7;
@@ -1721,4 +1890,283 @@ export default {
   border-radius: 4px;
   color: #ccc;
 }
+
+.upload-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  color: #666;
+  
+  &:hover {
+    background-color: #f5f5f5;
+    color: #7aa2f7;
+  }
+
+  &.has-image:hover {
+    .image-actions {
+      opacity: 1;
+    }
+  }
+
+  .preview-thumbnail {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .image-actions {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+
+      .delete-btn {
+        color: white;
+        font-size: 16px;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      }
+    }
+  }
+  
+  .file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+// 调整按钮组样式
+.button-group {
+  display: flex;
+  gap: 4px;
+  align-self: center;
+}
+
+.image-preview {
+  padding: 8px;
+  border-top: 1px solid #eee;
+  
+  .preview-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f5f5f5;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+    }
+    
+    .preview-actions {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      
+      .cancel-btn {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        border: none;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        
+        &:hover {
+          background: rgba(0, 0, 0, 0.7);
+        }
+      }
+    }
+  }
+}
+
+// 修改消息中图片的样式
+:deep(.message-text img) {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  margin: 4px 0;
+}
+
+// 添加左侧显示样式
+#bot-container.left-side {
+  left: 20px;
+  right: auto;
+  
+  .chat-window {
+    left: 20px;
+    right: auto;
+  }
+  
+  #Aurora-Dia--tips-wrapper {
+    left: 99px;
+    right: auto;
+  }
+}
+
+// 添加按钮组容器样式
+.bot-action-buttons {
+  position: absolute;
+  top: -67px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 200;
+  width: 130px; // 调整宽度以适应按钮布局
+  margin: 0 auto; // 居中整个按钮组
+}
+
+// 修改按钮样式
+.voice-btn,
+.action-btn {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--aurora-dia--linear-gradient);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  color: white;
+  z-index: 200;
+
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+}
+
+.toggle-bot-btn, .switch-side-btn {
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+}
+
+// 分别设置三个按钮的位置
+.voice-btn {
+  top: -67px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  
+  &.show {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.switch-side-btn {
+  top: -55px;
+  left: -15px;
+  transform: translateY(10px);
+  
+  &.show {
+    transform: translateY(0);
+  }
+}
+
+.toggle-bot-btn {
+  top: -55px;
+  right: -15px;
+  transform: translateY(10px);
+  
+  &.show {
+    transform: translateY(0);
+  }
+}
+
+// ... 其他样式保持不变 ...
+
+@keyframes bounce-rotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(0.8);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+// 添加文字滑入动画
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(1em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 添加渐入上浮动画
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 </style>
+
