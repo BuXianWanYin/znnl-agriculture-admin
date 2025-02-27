@@ -42,3 +42,12 @@ export function delStandardJob(jobId) {
     method: 'delete'
   })
 }
+
+// ai处理任务
+export function aiStandardJob(data) {
+  return request({
+    url: '/agriculture/standardJob/ai/addJob',
+    method: 'post',
+    data:data
+  })
+}

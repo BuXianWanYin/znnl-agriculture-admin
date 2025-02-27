@@ -1,43 +1,31 @@
 <template>
   <div class="app-container-sm">
       <el-card class="card-margin-bottom">
-    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="100px" class="form-minus-bottom">
-      <el-form-item label="作业任务名称" prop="jobName">
+    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" class="form-minus-bottom">
+      <el-form-item label="作业名称" prop="jobName">
         <el-input
           v-model="queryParams.jobName"
-          placeholder="请输入作业任务名称"
+          placeholder="请输入作业名称"
           clearable
           size="small"
+          style="width: 160px"
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+        <el-button type="primary" icon="el-icon-search" size="small" @click="handleQuery">搜索</el-button>
+        <el-button icon="el-icon-refresh" size="small" @click="resetQuery">重置</el-button>
       </el-form-item>
-        <el-form-item class="fr">
-            <el-button
-                    type="primary"
-                    plain
-                    icon="el-icon-plus"
-                    size="mini"
-                    @click="handleAdd"
-                    v-hasPermi="['agriculture:standardJob:add']"
-            >新增</el-button>
-            <el-button
-                    type="warning"
-                    plain
-                    icon="el-icon-download"
-                    size="mini"
-                    @click="handleExport"
-                    v-hasPermi="['agriculture:standardJob:export']"
-            >导出</el-button>
-        </el-form-item>
+      <el-form-item style="float: right">
+        <el-button type="primary" plain icon="el-icon-plus" size="small" @click="handleAdd" v-hasPermi="['agriculture:standardJob:add']">新增</el-button>
+        <el-button type="success" plain icon="el-icon-magic-stick" size="small" @click="handleAIGenerate">AI</el-button>
+        <el-button type="warning" plain icon="el-icon-download" size="small" @click="handleExport" v-hasPermi="['agriculture:standardJob:export']">导出</el-button>
+      </el-form-item>
     </el-form>
       </el-card>
 <el-card>
     <el-table v-loading="loading" :data="standardJobList" >
-      <el-table-column label="作业任务名称" align="center" prop="jobName" />
+      <el-table-column label="作业名称" align="center" prop="jobName" />
       <!-- <el-table-column label="作业周期单位" align="center" prop="cycleUnit">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.agriculture_cycle_unit" :value="scope.row.cycleUnit"/>
@@ -84,8 +72,8 @@
     <!-- 添加或修改标准作业任务对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="120px">
-        <el-form-item label="作业任务名称" prop="jobName">
-          <el-input v-model="form.jobName" placeholder="请输入作业任务名称" />
+        <el-form-item label="作业名称" prop="jobName">
+          <el-input v-model="form.jobName" placeholder="请输入作业名称" />
         </el-form-item>
         <el-form-item label="作业周期单位" prop="cycleUnit">
           <el-select v-model="form.cycleUnit" placeholder="请选择作业周期单位" @change="handleCycleUnitChange">
@@ -113,7 +101,7 @@
 </template>
 
 <script>
-import { listStandardJob, getStandardJob, delStandardJob, addStandardJob, updateStandardJob } from "@/api/agriculture/standardJob";
+import { listStandardJob, getStandardJob, delStandardJob, addStandardJob, updateStandardJob,aiStandardJob } from "@/api/agriculture/standardJob";
 
 export default {
   name: "StandardJob",
@@ -122,6 +110,14 @@ export default {
     germplasmId:{
       type:Number,
       default:0
+    },
+    name:{
+      type:String,
+      default:""
+    },
+    typeName:{
+      type:String,
+      default:""
     }
   },
   data() {
@@ -164,7 +160,7 @@ export default {
       // 表单校验
       rules: {
         jobName: [
-          { required: true, message: "作业任务名称不能为空", trigger: "blur" }
+          { required: true, message: "作业名称不能为空", trigger: "blur" }
         ],
         cycleUnit: [
           { required: true, message: "作业周期单位不能为空", trigger: "change" }
@@ -187,7 +183,6 @@ export default {
       this.loading = true;
       listStandardJob(this.queryParams).then(response => {
         this.standardJobList = response.rows;
-        console.log(777,this.standardJobList);
         this.total = response.total;
         this.loading = false;
       });
@@ -289,7 +284,21 @@ export default {
         this.label.startLabel='起始周';
         this.label.endLabel='结束周';
       }
-    }
+    },
+    /** AI生成按钮操作 */
+    async handleAIGenerate() {
+      this.$modal.msgSuccess("AI生成功能开发中 稍等。。。。。。");
+      const dataFrom = {
+        "germplasmId": this.germplasmId,
+        "name": this.name,
+        "typeName": this.typeName,
+        "type":0
+      }
+      const data = await aiStandardJob(dataFrom)
+      if(data.code == 200){
+        this.getList()
+      }
+    },
   }
 };
 </script>

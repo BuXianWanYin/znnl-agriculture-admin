@@ -3,42 +3,30 @@
     成鱼过程详细页面 （作业流程）
     -->
     <div class="app-container-sm">
-        <el-card class="card-margin-bottom">
-      <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="100px" class="form-minus-bottom">
-        <el-form-item label="作业任务名称" prop="jobName">
-          <el-input
-            v-model="queryParams.jobName"
-            placeholder="请输入作业任务名称"
-            clearable
-            size="small"
-            @keyup.enter.native="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-          <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-        </el-form-item>
-          <el-form-item class="fr">
-              <el-button
-                      type="primary"
-                      plain
-                      icon="el-icon-plus"
-                      size="mini"
-                      @click="handleAdd"
-                      v-hasPermi="['agriculture:standardJob:add']"
-              >新增</el-button>
-              <el-button
-                      type="warning"
-                      plain
-                      icon="el-icon-download"
-                      size="mini"
-                      @click="handleExport"
-                      v-hasPermi="['agriculture:standardJob:export']"
-              >导出</el-button>
-          </el-form-item>
-      </el-form>
-        </el-card>
-  <el-card>
+      <el-card class="card-margin-bottom">
+    <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" class="form-minus-bottom">
+      <el-form-item label="作业名称" prop="jobName">
+        <el-input
+          v-model="queryParams.jobName"
+          placeholder="请输入作业名称"
+          clearable
+          size="small"
+          style="width: 160px"
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="small" @click="handleQuery">搜索</el-button>
+        <el-button icon="el-icon-refresh" size="small" @click="resetQuery">重置</el-button>
+      </el-form-item>
+      <el-form-item style="float: right">
+        <el-button type="primary" plain icon="el-icon-plus" size="small" @click="handleAdd" v-hasPermi="['agriculture:standardJob:add']">新增</el-button>
+        <el-button type="success" plain icon="el-icon-magic-stick" size="small" @click="handleAIGenerate">AI</el-button>
+        <el-button type="warning" plain icon="el-icon-download" size="small" @click="handleExport" v-hasPermi="['agriculture:standardJob:export']">导出</el-button>
+      </el-form-item>
+    </el-form>
+      </el-card>
+<el-card>
       <el-table v-loading="loading" :data="standardJobList" >
         <el-table-column label="作业任务名称" align="center" prop="jobName" />
         <el-table-column label="起始" align="center" prop="jobStart" >
@@ -112,7 +100,7 @@
   
   <script>
   // 查询标准作业任务列表,查询标准作业任务详细,删除标准作业任务,新增标准作业任务,修改标准作业任务 
-  import { listStandardJob, getStandardJob, delStandardJob, addStandardJob, updateStandardJob } from "@/api/agriculture/standardJob";
+  import { listStandardJob, getStandardJob, delStandardJob, addStandardJob, updateStandardJob,aiStandardJob } from "@/api/agriculture/standardJob";
   
   export default {
     name: "GrowthProcess",
@@ -121,6 +109,14 @@
       germplasmId:{
         type:Number,
         default:0
+      },
+      name:{
+        type:String,
+        default:""
+      },
+      typeName:{
+        type:String,
+        default:""
       }
     },
     data() {
@@ -293,9 +289,23 @@
       handleSelectChange(field) {
                 console.log('form values:', this.form);
                 this.$refs.form.validateField(field);
-            }
+            },
+            /** AI生成按钮操作 */
+    async handleAIGenerate() {
+      this.$modal.msgSuccess("AI生成功能开发中 稍等。。。。。。");
+      const dataFrom = {
+        "germplasmId": this.germplasmId,
+        "name": this.name,
+        "typeName": this.typeName,
+        "type":1
+      }
+      const data = await aiStandardJob(dataFrom)
+      if(data.code == 200){
+        this.getList()
+      }
     }
-  };
+  }
+}
   </script>
   <style lang="scss" scoped>
   ::v-deep .el-select {
