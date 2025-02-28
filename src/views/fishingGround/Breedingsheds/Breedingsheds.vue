@@ -13,11 +13,10 @@
                         <el-button type="primary" icon="el-icon-search" size="mini" @click="houseSearch">搜索</el-button>
                         <el-button icon="el-icon-refresh" size="mini" @click="resetName">重置</el-button>
                     </el-form-item>
-                    <el-form-item class="fr">
-                        <el-button type="primary" plain icon="el-icon-plus" size="mini"
-                            @click="addHouse()">新增</el-button>
-                    </el-form-item>
                 </el-form>
+                <div>
+                    <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="addHouse()">新增</el-button>
+                </div>
             </div>
         </el-card>
         <div class="plant-table">
@@ -319,16 +318,10 @@
                     console.log(res)
                     this.houseDoForm = res.data.data;
                     const dvId = res.data.data.devices;
-                    if (dvId.length) {
-                        this.sbId = dvId[0].id
-                        this.deviceOptions.forEach(item => {
-                            if (item.id == dvId[0].id) {
-                                console.log("详情id", res.data.data.id)
-                                this.houseDoForm.deviceId = item.deviceName
-                            }
-                        })
+                    if (dvId && dvId.length) {
+                        this.houseDoForm.deviceId = dvId[0].id;  // 直接设置为设备ID而不是设备名称
+                        this.sbId = dvId[0].id;
                     }
-
                 })
             },
             // 查看列表分页
@@ -399,16 +392,13 @@
                             })
                         } else if (this.btnTxt == 1) {
                             // 编辑
-                            this.deviceOptions.forEach(item => {
-                                if (item.id == this.sbId) {
-                                    this.houseDoForm.deviceId = item.id
-                                }
-                            })
                             this.$http.post("/dev-api/fishPasture/update", this.houseDoForm).then(res => {
                                 if (res.data.code == 0) {
                                     this.$message.success("数据修改成功");
                                     this.closeDialog();
                                     this.getHouseData();
+                                } else {
+                                    this.$message.error(res.data.msg);
                                 }
                             })
                         }
