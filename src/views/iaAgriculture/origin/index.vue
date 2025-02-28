@@ -379,6 +379,18 @@
                         this.showResult = false;
                         this.$message.error(res.data.msg);
                     }
+                    console.log( res.data.data.iaPartitionInfo[0])
+                    const data = {
+                        "name":this.shopInfo.name,
+                        "type":this.type,
+                        "traceCode":this.originName
+                    }
+                    this.$http.post("/dev-api/iaPartitionFoodSensorValue/addAgricultureTraceRecord", data)
+                    .then((res) => {
+                    }).catch((error) => {
+                        console.error("请求失败:", error);
+                    })
+
                 })
                 .catch((error) => {
                     this.showResult = false;

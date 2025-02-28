@@ -156,7 +156,8 @@
                 <el-col :span="8">
                     <data-panel title="溯源统计" more="更多溯源" link="RecordCount">
                         <div class="main main-large">
-                            <div ref="indexDeviceMonitorChart" class="h100"></div>
+                            <!-- 添加样式确保容器有高度 -->
+                            <div ref="indexDeviceMonitorChart" class="h100" style="min-height: 300px;"></div>
                         </div>
                     </data-panel>
                 </el-col>
@@ -255,7 +256,8 @@
     import { getBatch } from "@/api/agriculture/batch";
     import { listSoilSensorValueVO } from '@/api/agriculture/soilsensorvaluevo'
     import { listQuality } from "@/api/agriculture/quality";
-    
+    import http from "@/utils/request";
+
 
     export default {
         name: "",
@@ -363,7 +365,7 @@
                 return this.fishStatusData && this.fishStatusData.length > 0
                     ? this.fishStatusData[0].dateTime
                     : '--'
-            }
+            },
         },
         async mounted() {
             // await this.getBaseInfo();
@@ -385,11 +387,7 @@
                 { deep: true }
             );
             this.houseCheck();
-            // 添加数据检查
-            setTimeout(() => {
-                this.logTableData();
-            }, 1000);
-
+            
             // Add this line to get fish environment data on component mount
             this.getFishEnvironmentData();
         },
@@ -490,6 +488,107 @@
             },
             /** 获取首页统计数据 */
             async getDate() {
+                // 修改获取溯源记录的部分
+                this.$http.get("/dev-api/iaPartitionFoodSensorValue/getAgricultureTraceRecord")
+                    .then((res) => {
+                        const data = res.data.data.data;
+                        // 检查数据结构 - 根据实际返回的数据结构调整
+                        if (!Array.isArray(data)) {
+                            console.error("Invalid data format", res);
+                            return;
+                        }
+
+                        // 初始化月度数据对象
+                        const monthlyData = {};
+                        for (let i = 1; i <= 12; i++) {
+                            monthlyData[i] = {
+                                agriculture: 0,
+                                fish: 0
+                            };
+                        }
+
+                        // 处理数据
+                        data.forEach(item => {
+                            if (!item.queryDate) return;
+                            
+                            // 处理时间戳
+                            const date = new Date(Number(item.queryDate));
+                            if (isNaN(date.getTime())) {
+                                console.error("Invalid date:", item.queryDate);
+                                return;
+                            }
+                            
+                            const month = date.getMonth() + 1;
+                            
+                            // 检查type值
+                            const type = item.type === "0" ? 0 : item.type === "1" ? 1 : null;
+                            if (type === null) {
+                                console.error("Invalid type:", item.type);
+                                return;
+                            }
+
+                            if (type === 0) {
+                                monthlyData[month].agriculture++;
+                            } else if (type === 1) {
+                                monthlyData[month].fish++;
+                            }
+                        });
+                        // 准备图表数据
+                        const months = Array.from({length: 12}, (_, i) => `${i + 1}月`);
+                        const agricultureData = Object.values(monthlyData).map(d => d.agriculture);
+                        const fishData = Object.values(monthlyData).map(d => d.fish);
+                        
+                        // 确保 DOM 已经准备好
+                        this.$nextTick(() => {
+                            const chartDom = this.$refs.indexDeviceMonitorChart;
+                            if (chartDom) {
+                                try {
+                                    // 初始化图表
+                                    const chart = lineChart(
+                                        chartDom,
+                                        {
+                                            text: '溯源统计',
+                                            fontSize: 14,
+                                            color: '#666'
+                                        },
+                                        '',
+                                        null,
+                                        months,
+                                        [
+                                            {
+                                                name: '农产品',
+                                                type: 'line',
+                                                data: agricultureData,
+                                                itemStyle: {
+                                                    color: '#91cc75'
+                                                }
+                                            },
+                                            {
+                                                name: '水产品',
+                                                type: 'line',
+                                                data: fishData,
+                                                itemStyle: {
+                                                    color: '#5470c6'
+                                                }
+                                            }
+                                        ]
+                                    );
+
+                                    if (chart) {
+                                        console.log("图表初始化成功");
+                                    }
+                                } catch (error) {
+                                    console.error("图表初始化失败:", error);
+                                }
+                            } else {
+                                console.error("图表容器未找到");
+                            }
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("请求失败:", error);
+                    });
+
                 //蔬菜基地信息
                 const res = await selectBaseInfo()
                 this.baseInfo = res.rows[0]
@@ -546,18 +645,6 @@
                     { name: '进行中', value: jxz, color: '#409EFF' },
                     { name: '已完成', value: ywc, color: '#67C23A' }
                 ];
-
-
-
-
-                // 初始化溯源图表
-                lineChart(this.$refs.indexDeviceMonitorChart, {
-                    text: `溯源次数`,
-                    fontSize: 14,
-                    color: '#bbb'
-                }, '溯源次数', {
-                    name: '溯源次数'
-                }, this.traceInfo.date, this.traceInfo.num);
             },
             // 处理养殖池数据表格每页显示数量变化
             fishSizeChange(n) {
