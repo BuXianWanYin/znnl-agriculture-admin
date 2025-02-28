@@ -154,7 +154,10 @@
                     </data-panel>
                 </el-col>
                 <el-col :span="8">
-                    <data-panel title="溯源统计" more="更多溯源" link="RecordCount">
+                    <data-panel 
+                        title="溯源统计" 
+                        more="更多溯源" 
+                        @click.native="handleMoreClick">
                         <div class="main main-large">
                             <!-- 添加样式确保容器有高度 -->
                             <div ref="indexDeviceMonitorChart" class="h100" style="min-height: 300px;"></div>
@@ -537,7 +540,7 @@
                         const months = Array.from({length: 12}, (_, i) => `${i + 1}月`);
                         const agricultureData = Object.values(monthlyData).map(d => d.agriculture);
                         const fishData = Object.values(monthlyData).map(d => d.fish);
-                        
+
                         // 确保 DOM 已经准备好
                         this.$nextTick(() => {
                             const chartDom = this.$refs.indexDeviceMonitorChart;
@@ -836,6 +839,9 @@
                         }
                     }
                 ];
+            },
+            handleMoreClick() {
+                window.open('http://192.168.1.153:81/originIndex', '_blank');
             }
         },
     };
