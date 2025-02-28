@@ -143,6 +143,7 @@ import { AuroraDia } from '@/utils/aurora-dia'
 import {
     getToken
 } from "@/utils/auth";
+import { botAiVoicepath, botAiMessage, botAiHistory } from '@/api/bot/botai'
 export default {
   name: 'AUDia',
   data() {
@@ -392,6 +393,7 @@ export default {
                   if (lastBotMessage) {
                     // 更新最后一条机器人消息的内容
                     lastBotMessage.text = text;
+                    this.scrollToBottom();
                   }
                 } else {
                   // 添加新的机器人消息到消息列表
@@ -399,6 +401,7 @@ export default {
                     type: 'bot',
                     text: text
                   });
+                  this.scrollToBottom();
                 }
               } else {
                 // 处理用户的语音输入
@@ -413,12 +416,6 @@ export default {
                     this.adjustTextareaHeight({ target: textarea })
                   }
                 });
-
-                // // 将用户消息添加到消息列表
-                // this.messages.push({
-                //   type: 'user',
-                //   text: text
-                // });
               }
               // 等待DOM更新后滚动到消息列表底部
               this.$nextTick(() => {
@@ -550,10 +547,7 @@ export default {
 
         formData.append('text', processedText) // 使用处理后的文本
 
-        const response = await fetch('http://localhost:8081/cosy/voicepath', {
-          method: 'POST',
-          body: formData
-        })
+        const response = await botAiVoicepath(formData)
 
         if (!response.ok) {
           console.error('获取语音URL失败 - HTTP状态:', response.status)
@@ -581,11 +575,9 @@ export default {
 
       this.isLoadingHistory = true
       try {
-        const response = await fetch(`http://localhost:8081/ai/history?userId=${this.userId}`)
-        if (!response.ok) {
-          throw new Error('Failed to load chat history')
-        }
-        const history = await response.json()
+        const response = await botAiHistory(this.userId)
+
+        const history = response
 
         // 输出原始历史记录数据
         console.log('原始历史记录数据:', history)
@@ -620,20 +612,10 @@ export default {
           userId: this.userId
         }
 
-        const response = await fetch('http://localhost:8081/ai/message', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(messageData)
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to save message')
-        }
+        const response = await botAiMessage(messageData)
 
         // 获取后端返回的数据
-        const savedMessage = await response.json()
+        const savedMessage = response
         if (savedMessage.create_time) {
           message.timestamp = new Date(savedMessage.create_time).getTime()
         }
@@ -691,9 +673,7 @@ export default {
         this.messages.push(botMessage);
         
         // 立即滚动到底部
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
+        this.scrollToBottom();
 
         // 保存用户消息
         await this.saveChatMessage(userMessage);
@@ -728,6 +708,8 @@ export default {
             // 更新最终消息
             botMessage.text = this.formatMessageWithTypingEffect(fullMessage);
             await this.saveChatMessage(botMessage);
+            // 确保最终消息显示后也滚动到底部
+            this.scrollToBottom();
             break;
           }
 
@@ -744,13 +726,9 @@ export default {
               const jsonData = JSON.parse(jsonStr);
               if (jsonData && typeof jsonData.response === 'string') {
                 fullMessage += jsonData.response;
-                // 直接更新消息,不添加延迟
+                // 更新消息时滚动到底部
                 botMessage.text = this.formatMessageWithTypingEffect(fullMessage);
-                
-                // 滚动到底部
-                this.$nextTick(() => {
-                  this.scrollToBottom();
-                });
+                this.scrollToBottom();
               }
             } catch (e) {
               console.log('处理数据时出错:', e);
@@ -769,15 +747,16 @@ export default {
       }
     },
 
+    // 添加一个通用的滚动到底部方法
     scrollToBottom() {
       this.$nextTick(() => {
         if (this.$refs.messagesContainer) {
           const container = this.$refs.messagesContainer;
-          const scrollOptions = {
+          // 使用平滑滚动效果
+          container.scrollTo({
             top: container.scrollHeight,
             behavior: 'smooth'
-          };
-          container.scrollTo(scrollOptions);
+          });
         }
       });
     },
@@ -845,9 +824,13 @@ export default {
     },
 
     toggleChat() {
-      this.showChat = !this.showChat
-      // 清除输入框内容
-      this.userInput = ''
+      this.showChat = !this.showChat;
+      this.userInput = '';
+
+      if (this.showChat) {
+        // 打开聊天窗口时滚动到底部
+        this.scrollToBottom();
+      }
 
       if (!this.showChat) {
         const diaBody = document.getElementById('Aurora-Dia--body')
@@ -857,20 +840,12 @@ export default {
         if (diaBody) diaBody.style.display = ''
         if (platform) platform.style.display = ''
         if (voiceBtn) voiceBtn.style.display = ''
-      } else {
-        // 当打开聊天窗口时，等待 DOM 更新后滚动到底部
-        this.$nextTick(() => {
-          if (this.$refs.messagesContainer) {
-            this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
-          }
-        });
       }
     },
 
     handleDiaClick() {
-      this.showChat = true
-      // 清除输入框内容
-      this.userInput = ''
+      this.showChat = true;
+      this.userInput = '';
 
       const diaBody = document.getElementById('Aurora-Dia--body')
       const platform = document.querySelector('.Aurora-Dia--platform')
@@ -880,12 +855,8 @@ export default {
       if (platform) platform.style.display = 'none'
       if (voiceBtn) voiceBtn.style.display = 'none'
 
-      // 当点击打开聊天窗口时，等待 DOM 更新后滚动到底部
-      this.$nextTick(() => {
-        if (this.$refs.messagesContainer) {
-          this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
-        }
-      });
+      // 点击打开聊天窗口时滚动到底部
+      this.scrollToBottom();
     },
 
     // 修改判断是否显示时间戳的方法
@@ -1430,11 +1401,8 @@ export default {
     background: #ff4444;
     animation: pulse-center 1s infinite;
   }
-
-  // 移除之前的 show.listening 组合样式
 }
 
-// 添加新的居中脉冲动画
 @keyframes pulse-center {
   0% {
     transform: translateX(-50%) scale(1);
@@ -1446,7 +1414,7 @@ export default {
     transform: translateX(-50%) scale(1);
   }
 }
-// 悬浮麦克风图标
+
 .microphone-icon {
   width: 16px;
   height: 16px;
@@ -1459,10 +1427,6 @@ export default {
     height: 16px;
     color: white;
   }
-
-  // &.stop-icon {
-  //   // background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
-  // }
 }
 
 .Aurora-Dia--platform.top {
@@ -2128,8 +2092,6 @@ export default {
   }
 }
 
-// ... 其他样式保持不变 ...
-
 @keyframes bounce-rotate {
   0% {
     transform: rotate(0deg) scale(1);
@@ -2142,7 +2104,6 @@ export default {
   }
 }
 
-// 添加文字滑入动画
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -2154,7 +2115,6 @@ export default {
   }
 }
 
-// 添加渐入上浮动画
 @keyframes fadeInUp {
   from {
     opacity: 0;

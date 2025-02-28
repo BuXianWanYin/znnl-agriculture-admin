@@ -133,7 +133,7 @@
                                         </div>
                                         <!-- 养殖统计数据 -->
                                         <div class="stats-section">
-                                            <div class="stats-title">养殖状态</div>
+                                            <div class="stats-title">养殖任务</div>
                                             <el-row :gutter="10">
                                                 <el-col :span="12" v-for="item in fishStatsInfo" :key="item.name">
                                                     <data-box

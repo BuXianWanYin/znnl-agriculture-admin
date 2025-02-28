@@ -1,6 +1,6 @@
 <template>
     <!--
-     养殖棚管理页面
+     养殖管理页面
     -->
     <div class="list-content">
         <el-card class="card-margin-bottom">
@@ -431,21 +431,17 @@
 }
 
 .house-card {
-    background: #f0f2f5;
+    background: #ffffff;
     border-radius: 16px;
     padding: 20px;
     margin-bottom: 24px;
     transition: all 0.3s ease;
-    border: none;
-    box-shadow: 
-        8px 8px 15px rgba(163, 177, 198, 0.6),
-        -8px -8px 15px rgba(255, 255, 255, 0.9);
+    border: 1px solid #ebeef5;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
     
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 
-            12px 12px 20px rgba(163, 177, 198, 0.7),
-            -12px -12px 20px rgba(255, 255, 255, 1);
+        box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
     }
     
     .house-header {

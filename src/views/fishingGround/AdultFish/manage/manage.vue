@@ -33,7 +33,7 @@
                         <div class="species-card-header">
                             <div class="header-content">
                                 <div class="section-name">鱼类信息</div>
-                                <div class="species-name">{{ item.fishName }}</div>
+                                <div class="species-name">{{ item.fishSpeciesName }}</div>
                             </div>
                         </div>
 
