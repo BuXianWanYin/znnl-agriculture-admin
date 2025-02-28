@@ -651,7 +651,7 @@ export default {
       // 保存当前的输入内容和图片数据
       const currentInput = messageText;
       const currentImageBlob = this.imageBlob;
-      const currentPreviewImage = this.previewImage; // 保存当前的预览图片URL
+      const currentPreviewImage = this.previewImage;
       
       try {
         // 如果有图片，处理图片消息
@@ -672,8 +672,8 @@ export default {
         this.messages.push(userMessage);
         this.messages.push(botMessage);
         
-        // 立即滚动到底部
-        this.scrollToBottom();
+        // 立即滚动到底部并等待动画完成
+        await this.scrollToBottom();
 
         // 保存用户消息
         await this.saveChatMessage(userMessage);
@@ -709,7 +709,7 @@ export default {
             botMessage.text = this.formatMessageWithTypingEffect(fullMessage);
             await this.saveChatMessage(botMessage);
             // 确保最终消息显示后也滚动到底部
-            this.scrollToBottom();
+            await this.scrollToBottom();
             break;
           }
 
@@ -728,7 +728,7 @@ export default {
                 fullMessage += jsonData.response;
                 // 更新消息时滚动到底部
                 botMessage.text = this.formatMessageWithTypingEffect(fullMessage);
-                this.scrollToBottom();
+                await this.scrollToBottom();
               }
             } catch (e) {
               console.log('处理数据时出错:', e);
@@ -741,23 +741,34 @@ export default {
         console.error('发送消息失败:', error);
         if (botMessage) {
           botMessage.text = error.message || '发送失败，请重试';
-          this.scrollToBottom();
+          await this.scrollToBottom(); // 错误消息也需要滚动到底部
         }
         this.$message.error(error.message || '发送失败，请重试');
       }
     },
 
-    // 添加一个通用的滚动到底部方法
-    scrollToBottom() {
-      this.$nextTick(() => {
-        if (this.$refs.messagesContainer) {
-          const container = this.$refs.messagesContainer;
-          // 使用平滑滚动效果
-          container.scrollTo({
-            top: container.scrollHeight,
-            behavior: 'smooth'
-          });
-        }
+    // 修改 scrollToBottom 方法为异步方法
+    async scrollToBottom() {
+      return new Promise(resolve => {
+        this.$nextTick(() => {
+          if (this.$refs.messagesContainer) {
+            const container = this.$refs.messagesContainer;
+            const scrollAnimation = container.animate([
+              { scrollTop: container.scrollTop },
+              { scrollTop: container.scrollHeight }
+            ], {
+              duration: 300,
+              easing: 'ease-out'
+            });
+            
+            scrollAnimation.onfinish = () => {
+              container.scrollTop = container.scrollHeight;
+              resolve();
+            };
+          } else {
+            resolve();
+          }
+        });
       });
     },
 
