@@ -657,6 +657,15 @@ export default {
       let messageText = this.userInput.trim();
       let botMessage = null;
       const formData = new FormData()
+      
+      // 如果有图片，将图片添加到消息文本中
+      if (this.previewImage) {
+        messageText = messageText ? 
+          `${messageText}\n<img src="${this.previewImage}" alt="用户上传图片">` :
+          `<img src="${this.previewImage}" alt="用户上传图片">`;
+      }
+
+      // 添加用户输入到 formData
       formData.append('prompt', messageText)
 
       // 保存当前的输入内容和图片数据
@@ -669,17 +678,10 @@ export default {
       this.imageBlob = null;
 
       try {
-        // 如果有图片，直接使用已保存的URL
-        if (currentImageBlob) {
-          messageText = currentInput ? 
-            `${currentInput}\n<img src="${this.previewImage}" style="max-width: 150px; max-height: 150px;">` :
-            `<img src="${this.previewImage}" style="max-width: 150px; max-height: 150px;">`;
-        }
-
         // 创建用户消息对象
         const userMessage = {
           type: 'user',
-          text: messageText,
+          text: messageText, // 这里包含了图片的 HTML
           timestamp: timestamp
         };
 
@@ -752,6 +754,9 @@ export default {
             }
           }
         }
+
+        console.log('发送的消息文本:', messageText);
+        console.log('预览图片 URL:', this.previewImage);
 
       } catch (error) {
         console.error('发送消息失败:', error);

@@ -49,6 +49,12 @@
                             </div>
                             
                             <div class="info-item">
+                                <i class="el-icon-bell"></i>
+                                <span class="label">预警名称:</span>
+                                <span class="value">{{ item.paramName }}</span>
+                            </div>
+                            
+                            <div class="info-item">
                                 <i class="el-icon-warning-outline"></i>
                                 <span class="label">预警阈值:</span>
                                 <span class="value">{{ item.thresholdValue }}</span>
@@ -113,6 +119,7 @@
         addInfo,
         updateInfo
     } from "@/api/agriculture/info";
+    import { listByPastureType } from "@/api/agriculture/yujin";
 
     export default {
         name: "Info",
@@ -151,56 +158,7 @@
                 // 表单校验
                 rules: {},
                 activeTab: 'greenhouse',
-                fishpondData: [
-                    {
-                        id: 1,
-                        greenhouse: '养殖池A',
-                        cropBatch: '草鱼-A批次',
-                        partitionInfo: '1号池',
-                        thresholdValue: 'pH值>7.5',
-                        warningStatus: '已处理',
-                        responsiblePerson: '张三',
-                        startTime: '2024-01-01',
-                        endTime: '2024-01-02',
-                        updatedAt: '2024-01-01 12:00:00'
-                    },
-                    {
-                        id: 2,
-                        greenhouse: '养殖池A',
-                        cropBatch: '草鱼-A批次',
-                        partitionInfo: '1号池',
-                        thresholdValue: 'pH值>7.5',
-                        warningStatus: '已处理',
-                        responsiblePerson: '张三',
-                        startTime: '2024-01-01',
-                        endTime: '2024-01-02',
-                        updatedAt: '2024-01-01 12:00:00'
-                    },
-                    {
-                        id: 3,
-                        greenhouse: '养殖池A',
-                        cropBatch: '草鱼-A批次',
-                        partitionInfo: '1号池',
-                        thresholdValue: 'pH值>7.5',
-                        warningStatus: '已处理',
-                        responsiblePerson: '张三',
-                        startTime: '2024-01-05',
-                        endTime: '2024-01-06',
-                        updatedAt: '2024-01-06 12:00:00'
-                    },
-                    {
-                        id: 4,
-                        greenhouse: '养殖池A',
-                        cropBatch: '草鱼-A批次',
-                        partitionInfo: '1号池',
-                        thresholdValue: 'pH值>7.5',
-                        warningStatus: '已处理',
-                        responsiblePerson: '张三',
-                        startTime: '2024-01-05',
-                        endTime: '2024-01-06',
-                        updatedAt: '2024-01-06 12:00:00'
-                    }
-                ]
+                fishpondData: []
             };
         },
         created() {
@@ -216,11 +174,23 @@
             getList() {
                 this.loading = true;
                 if (this.activeTab === 'fishpond') {
-                    setTimeout(() => {
-                        this.infoList = this.fishpondData;
-                        this.total = this.fishpondData.length;
+                    listByPastureType(1).then(response => {
+                        this.infoList = response.rows.map(item => ({
+                            id: item.id,
+                            greenhouse: item.pastureName,
+                            cropBatch: item.batchName,
+                            partitionInfo: `${item.batchHead}号池`,
+                            paramName: item.paramName || '水温',
+                            thresholdValue: item.alertMessage,
+                            warningStatus: item.status === '0' ? '警告中' : '已处理',
+                            responsiblePerson: '待分配',
+                            startTime: item.alertDate,
+                            endTime: item.alertDate,
+                            updatedAt: item.alertTime
+                        }));
+                        this.total = response.total;
                         this.loading = false;
-                    }, 500);
+                    });
                 } else {
                     listInfo(this.queryParams).then(response => {
                         this.infoList = response.rows;
