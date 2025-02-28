@@ -161,62 +161,202 @@ let normalPieChart = function(dom,title,seriesName,legendData,seriesData){
  * @param {*} seriesData 图表值
  * @param {*} type line OR bar
  */
-let lineChart = function (dom,title,seriesName,yAxis,xAxisData,seriesData,type) {
+function lineChart(dom, title, name, series, xData, yData) {
+    if (!dom) {
+        console.error("图表容器不存在");
+        return null;
+    }
+
     let myChart = vm.$echarts.init(dom);
     let option = {
-        title:{
-            text:title.text||'标题',
-            left:'center',
-            textStyle:{
-                fontSize: title.fontSize || 13,
-                fontWeight: title.fontWeight || 'bold',
-                color:title.color|| '#2b7'
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        title: {
+            text: title.text,
+            textStyle: {
+                fontSize: title.fontSize || 16,
+                color: title.color || '#333',
+                fontWeight: 'normal'
+            },
+            left: 'center',
+            top: '5%'
+        },
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: 'rgba(255,255,255,0.95)',
+            borderColor: '#eee',
+            borderWidth: 1,
+            padding: [10, 15],
+            textStyle: {
+                color: '#666'
+            },
+            formatter: function(params) {
+                let result = `${params[0].axisValue}<br/>`;
+                params.forEach(item => {
+                    result += `${item.marker} ${item.seriesName}: ${item.value} 次<br/>`;
+                });
+                return result;
+            },
+            axisPointer: {
+                type: 'line',
+                animation: true,
+                lineStyle: {
+                    color: 'rgba(0, 0, 0, 0.1)',
+                    width: 1,
+                    type: 'solid'
+                }
             }
         },
-        // legend: {
-        //     data: [seriesName||'seriesName']
-        // },
-        tooltip: {
-            trigger: 'axis'
-          },
+        legend: {
+            data: ['农产品', '水产品'],
+            right: '5%',
+            top: '5%',
+            textStyle: {
+                color: '#666'
+            },
+            itemWidth: 10,
+            itemHeight: 10,
+            icon: 'circle'
+        },
         grid: {
             left: '3%',
             right: '4%',
-            bottom: '3%',
+            bottom: '5%',
+            top: '15%',
             containLabel: true
         },
-        xAxis: [
-            {
-                type: 'category',
-                data: xAxisData||['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                axisPointer: {
-                    type: 'shadow'
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: xData,
+            axisLine: {
+                lineStyle: {
+                    color: '#eee',
+                    shadowBlur: 5,
+                    shadowColor: 'rgba(0,0,0,0.1)'
+                }
+            },
+            axisTick: {
+                show: false
+            },
+            axisLabel: {
+                color: '#999',
+                fontSize: 12,
+                margin: 12
+            }
+        },
+        yAxis: {
+            type: 'value',
+            name: '查询溯源',
+            min: 0,
+            max: 100,
+            interval: 20,
+            nameTextStyle: {
+                color: '#999',
+                fontSize: 12,
+                padding: [0, 30, 0, 0]
+            },
+            axisLine: {
+                show: false
+            },
+            axisTick: {
+                show: false
+            },
+            axisLabel: {
+                color: '#999',
+                fontSize: 12,
+                formatter: '{value}'
+            },
+            splitLine: {
+                lineStyle: {
+                    color: 'rgba(0,0,0,0.05)',
+                    type: 'dashed'
                 }
             }
-        ],
-        yAxis: [
-            {
-                type: 'value',
-                name: yAxis.name||'yAxisName',
-                min: yAxis.min||0,
-                max:yAxis.max|| 250,
-                interval: yAxis.interval || 50,
-                axisLabel: {
-                    formatter: '{value}'
+        },
+        series: Array.isArray(yData) ? yData.map((item, index) => ({
+            ...item,
+            type: 'line',
+            smooth: true,
+            symbolSize: 0,
+            showSymbol: false,
+            lineStyle: {
+                width: 4,
+                shadowColor: 'rgba(0,0,0,0.2)',
+                shadowBlur: 12,
+                shadowOffsetY: 5,
+                cap: 'round'
+            },
+            emphasis: {
+                focus: 'series',
+                showSymbol: true,
+                symbolSize: 8,
+                itemStyle: {
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    shadowColor: 'rgba(0,0,0,0.2)',
+                    shadowBlur: 10
                 }
+            },
+            areaStyle: {
+                opacity: 0.15,
+                color: new vm.$echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    {
+                        offset: 0,
+                        color: item.itemStyle.color
+                    },
+                    {
+                        offset: 1,
+                        color: 'rgba(255,255,255,0.1)'
+                    }
+                ])
             }
-        ],
-        series: [
-            {
-                name: seriesName||'seriesName',
-                type: type||'bar',
-                data:seriesData|| [
-                    2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4, 3.3
-                ]
-            }
-        ]
+        })) : [{
+            name: series.name,
+            type: 'line',
+            data: yData,
+            smooth: true
+        }]
     };
-    option && myChart.setOption(option);
+
+    // 添加动画效果
+    option.animation = true;
+    option.animationDuration = 2000;
+    option.animationEasing = 'cubicInOut';
+    option.animationDelay = function(idx) {
+        return idx * 150;
+    };
+
+    myChart.setOption(option);
+
+    // 添加鼠标悬停动画效果
+    myChart.on('mouseover', {seriesIndex: 'all'}, function(params) {
+        myChart.setOption({
+            series: option.series.map((s, i) => ({
+                ...s,
+                symbolSize: i === params.seriesIndex ? 8 : 0,
+                lineStyle: {
+                    ...s.lineStyle,
+                    width: i === params.seriesIndex ? 6 : 4
+                }
+            }))
+        });
+    });
+
+    // 鼠标移出时恢复默认效果
+    myChart.on('mouseout', {seriesIndex: 'all'}, function() {
+        myChart.setOption({
+            series: option.series.map(s => ({
+                ...s,
+                symbolSize: 0,
+                lineStyle: {
+                    ...s.lineStyle,
+                    width: 4
+                }
+            }))
+        });
+    });
+
+    return myChart;
 }
 
 
