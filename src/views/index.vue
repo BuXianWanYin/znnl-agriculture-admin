@@ -11,7 +11,7 @@
                                 <el-row :gutter="10" class="section-content">
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-claim"
+                                            icon="zhongzhipici"
                                             backgroundColor="#73c0de"
                                             text="种植批次(批)"
                                             :value="baseInfo.batchCount"
@@ -20,7 +20,7 @@
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-finance"
+                                            icon="zhongzhizhonglei"
                                             backgroundColor="#91cc75"
                                             text="种植种类(种)"
                                             :value="baseInfo.germplasmCount"
@@ -29,7 +29,7 @@
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-shop"
+                                            icon="dapengshuliang"
                                             backgroundColor="#3ba272"
                                             text="大棚数量(个)"
                                             :value="baseInfo.pengCount"
@@ -45,7 +45,7 @@
                                 <el-row :gutter="10" class="section-content">
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-grid"
+                                            icon="yangzhipici"
                                             backgroundColor="#fac858"
                                             text="养殖批次(个)"
                                             :value="fishInfo.batchCount"
@@ -54,7 +54,7 @@
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-finance"
+                                            icon="yuleipingzhong"
                                             backgroundColor="#ee6666"
                                             text="鱼类品种(种)"
                                             :value="fishInfo.speciesCount"
@@ -63,7 +63,7 @@
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-custom"
+                                            icon="yupengshuliang"
                                             backgroundColor="#73c0de"
                                             text="鱼棚数量(个)"
                                             :value="fishInfo.pengCount"
@@ -79,7 +79,7 @@
                                 <el-row :gutter="10" class="section-content">
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-data"
+                                            icon="mianji"
                                             backgroundColor="#5470c6"
                                             text="基地总面积(亩)"
                                             :value="baseInfo.areaCount"
@@ -88,7 +88,7 @@
                                     </el-col>
                                     <el-col :span="12" class="h100 flex aic">
                                         <data-box
-                                            icon="el-icon-s-custom"
+                                            icon="renyuanzhongshu"
                                             backgroundColor="#ee6666"
                                             text="人员总数(位)"
                                             :value="baseInfo.employeeCount"

@@ -11,11 +11,7 @@
           <div class="header-actions">
             <!-- 添加左右切换按钮 -->
             <button class="action-btn switch-side-btn" @click="toggleSide" :title="isLeftSide ? '切换到右侧' : '切换到左侧'">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path fill="currentColor" :d="isLeftSide ? 
-                  'M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z' : 
-                  'M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z'"/>
-              </svg>
+              <!-- <svg-icon icon-class="jqryj" /> -->
             </button>
             <!-- 添加隐藏小人按钮 -->
             <button class="action-btn toggle-bot-btn" @click="toggleBot" :title="showBot ? '隐藏小人' : '显示小人'">
@@ -40,14 +36,8 @@
                  class="message-bubble"
                  :class="[msg.type]">
               <div class="avatar" v-if="msg.type === 'bot'">
-                <svg class="icon" viewBox="0 0 1024 1024" width="24" height="24">
-                  <path d="M814.2848 581.2736a164.7616 104.8576 90 1 0 209.7152 0 164.7616 104.8576 90 1 0-209.7152 0Z" fill="#0C61C6" p-id="9736"></path>
-                  <path d="M5.3248 611.2256a164.7616 104.8576 90 1 0 209.7152 0 164.7616 104.8576 90 1 0-209.7152 0Z" fill="#0C61C6" p-id="9737"></path>
-                  <path d="M514.6624 985.7536c256.4608 0 464.384-161.1776 464.384-423.3728 0-249.7024-210.432-411.2896-464.384-423.3728-42.752-6.2464 24.4224-112.0768 24.4224-112.0768S50.2784 132.1984 50.2784 562.3808c0 261.9392 207.9232 423.3728 464.384 423.3728z" fill="#2B83E2" p-id="9738"></path>
-                  <path d="M140.1344 641.1776a374.528 314.5728 0 1 0 749.056 0 374.528 314.5728 0 1 0-749.056 0Z" fill="#FFFFFF" p-id="9739"></path>
-                  <path d="M274.9952 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9740"></path>
-                  <path d="M634.5216 641.1776a89.9072 59.904 90 1 0 119.808 0 89.9072 59.904 90 1 0-119.808 0Z" fill="#2B83E2" p-id="9741"></path>
-                </svg>
+                <!-- 机器人头像 -->
+                <svg-icon icon-class="jqrtouxiang" />
               </div>
               <div class="bubble-content">
                 <div class="message-text" v-html="msg.text"></div>
@@ -72,7 +62,9 @@
             <div class="voice-input-btn"
                  :class="{ 'listening': isChatListening }"
                  @click="handleChatVoiceClick">
-              <div class="microphone-icon" :class="{ 'stop-icon': isChatListening }"></div>
+              <div class="microphone-icon">
+                <svg-icon :icon-class="isChatListening ? 'jqrstop' : 'jqrmkffa'" />
+              </div>
             </div>
             <div class="upload-btn" :class="{ 'has-image': previewImage }">
               <div class="preview-thumbnail" v-if="previewImage" @click="$refs.fileInput.click()">
@@ -89,15 +81,13 @@
                   class="file-input"
                   @change="handleImageUpload"
                 >
-                <svg viewBox="0 0 24 24" width="16" height="16">
-                  <path fill="currentColor" d="M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19M8.5,13.5L11,16.5L14.5,12L19,18H5M5,5H19V19H5V5Z"/>
-                </svg>
+                <!-- 上传图片图标 -->
+                <svg-icon icon-class="jqrtupian" />
               </template>
             </div>
             <button class="send-btn" @click="sendMessage">
-              <svg viewBox="0 0 24 24" width="16" height="16">
-                <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-              </svg>
+              <!-- 发送消息图标 -->
+              <svg-icon icon-class="jqrfsxx" />
             </button>
           </div>
         </div>
@@ -112,7 +102,9 @@
              @click="handleVoiceClick"
              @mouseenter="handleVoiceBtnHover(true)"
              @mouseleave="handleVoiceBtnHover(false)">
-          <div class="microphone-icon" :class="{ 'stop-icon': isListening }"></div>
+          <div class="microphone-icon">
+            <svg-icon :icon-class="isListening ? 'jqrstop' : 'jqrmkf'" />
+          </div>
         </div>
         <div class="action-btn switch-side-btn"
              :class="{ 'show': isHovering }"
@@ -120,11 +112,8 @@
              @mouseenter="handleVoiceBtnHover(true)"
              @mouseleave="handleVoiceBtnHover(false)"
              :title="isLeftSide ? '切换到右侧' : '切换到左侧'">
-          <svg viewBox="0 0 24 24" width="16" height="16">
-            <path fill="currentColor" :d="isLeftSide ? 
-              'M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z' : 
-              'M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z'"/>
-          </svg>
+          <svg-icon :icon-class="isLeftSide ? 'jqryj' : 'jqrzj'" />
+      
         </div>
         <div class="action-btn toggle-bot-btn"
              :class="{ 'show': isHovering }"
@@ -132,9 +121,7 @@
              @mouseenter="handleVoiceBtnHover(true)"
              @mouseleave="handleVoiceBtnHover(false)"
              :title="showBot ? '隐藏小人' : '显示小人'">
-          <svg viewBox="0 0 24 24" width="16" height="16">
-            <path fill="currentColor" :d="showBot ? 'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z' : 'M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z'"/>
-          </svg>
+          <svg-icon icon-class="jqrxhao" />
         </div>
         <div id="Aurora-Dia" class="Aurora-Dia"
              @mouseenter="handleDiaHover(true)"
@@ -672,11 +659,20 @@ export default {
       const formData = new FormData()
       formData.append('prompt', messageText)
 
+      // 保存当前的输入内容和图片数据
+      const currentInput = messageText;
+      const currentImageBlob = this.imageBlob;
+      
+      // 立即清空输入框和图片数据
+      this.userInput = '';
+      this.previewImage = null;
+      this.imageBlob = null;
+
       try {
-        // 如果有图片，直接使用已上传的URL
-        if (this.previewImage) {
-          messageText = messageText ? 
-            `${messageText}\n<img src="${this.previewImage}" style="max-width: 150px; max-height: 150px;">` :
+        // 如果有图片，直接使用已保存的URL
+        if (currentImageBlob) {
+          messageText = currentInput ? 
+            `${currentInput}\n<img src="${this.previewImage}" style="max-width: 150px; max-height: 150px;">` :
             `<img src="${this.previewImage}" style="max-width: 150px; max-height: 150px;">`;
         }
 
@@ -691,12 +687,6 @@ export default {
         this.messages.push(userMessage);
         this.scrollToBottom();
         await this.saveChatMessage(userMessage);
-
-        // 清空输入和图片数据
-        this.userInput = '';
-        const currentImageBlob = this.imageBlob; // 保存当前的图片数据用于发送
-        this.previewImage = null;
-        this.imageBlob = null;
         
         // 添加机器人思考中的消息
         botMessage = {
@@ -712,7 +702,7 @@ export default {
           formData.append('file', currentImageBlob, 'image.jpg');
         }
 
-        const response = await fetch('http://localhost:8081/ai/chatVLStream', {
+        const response = await fetch('http://192.168.1.153:8081/ai/chatVLStream', {
           method: 'POST',
           body: formData
         })
@@ -720,10 +710,6 @@ export default {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        // 清除预览图片和 Blob 数据
-        this.previewImage = null;
-        this.imageBlob = null;
 
         const reader = response.body.getReader()
         const decoder = new TextDecoder()
@@ -1454,19 +1440,23 @@ export default {
     transform: translateX(-50%) scale(1);
   }
 }
-
+// 悬浮麦克风图标
 .microphone-icon {
   width: 16px;
   height: 16px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z'/%3E%3C/svg%3E");
-  background-size: 16px;
-  background-position: center;
-  background-repeat: no-repeat;
-  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  &.stop-icon {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
+  :deep(.svg-icon) {
+    width: 16px;
+    height: 16px;
+    color: white;
   }
+
+  // &.stop-icon {
+  //   // background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
+  // }
 }
 
 .Aurora-Dia--platform.top {
@@ -1804,14 +1794,15 @@ export default {
   .microphone-icon {
     width: 16px;
     height: 16px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z'/%3E%3C/svg%3E");
-    background-size: 16px;
-    background-position: center;
-    background-repeat: no-repeat;
-    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    &.stop-icon {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
+    :deep(.svg-icon) {
+      width: 16px;
+      height: 16px;
+      color: #666;
+      transition: all 0.3s;
     }
   }
 
@@ -1821,8 +1812,8 @@ export default {
 
   &.listening {
     background-color: #ff4444;
-    .microphone-icon {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M18,18H6V6H18V18Z'/%3E%3C/svg%3E");
+    .microphone-icon :deep(.svg-icon) {
+      color: white;
     }
   }
 }

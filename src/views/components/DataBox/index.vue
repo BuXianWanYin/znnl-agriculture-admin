@@ -1,7 +1,8 @@
 <template>
   <div class="dataBox" :class="{border:isBorder}">
     <div class="dataBox-icon" v-if="isIcon" :style="{backgroundColor:backgroundColor}">
-      <i :class="icon" ></i>
+      <svg-icon v-if="!icon.startsWith('el-')" :icon-class="icon" class="custom-icon"/>
+      <i v-else :class="icon"></i>
     </div>
     <div class="dataBox-des">
       <div class="dataBox-des-text">{{text}}</div>
@@ -11,8 +12,13 @@
 </template>
 
 <script>
+import SvgIcon from '@/components/SvgIcon'
+
 export default {
   name: "DataBox",
+  components: {
+    SvgIcon
+  },
   data() {
     return {};
   },
@@ -63,6 +69,9 @@ export default {
     align-items: center;
     border-radius: 5px;
     margin-right: 20px;
+    .custom-icon {
+      font-size: 24px;
+    }
   }
   &-des {
     &-text {
