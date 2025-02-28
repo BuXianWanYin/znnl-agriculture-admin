@@ -85,6 +85,7 @@ import {
     activeRingChart
 } from '@jiaminghi/data-view'
 
+
 // datav组件 ,会导致生成文件无法打开
 Vue.use(loading)
 Vue.use(borderBox13)
@@ -247,3 +248,5 @@ Element.Table.props.border = {
     default: true,
     type: Boolean
 }
+
+
