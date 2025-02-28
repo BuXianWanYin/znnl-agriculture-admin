@@ -655,49 +655,53 @@ export default {
 
       const timestamp = new Date().getTime();
       let messageText = this.userInput.trim();
-      let botMessage = null;
-      const formData = new FormData()
       
-      // 如果有图片，将图片添加到消息文本中
-      if (this.previewImage) {
-        messageText = messageText ? 
-          `${messageText}\n<img src="${this.previewImage}" alt="用户上传图片">` :
-          `<img src="${this.previewImage}" alt="用户上传图片">`;
-      }
-
-      // 添加用户输入到 formData
+      // 立即创建机器人消息对象
+      let botMessage = {
+        type: 'bot',
+        text: '正在思考...',
+        timestamp: new Date().getTime()
+      };
+      
+      const formData = new FormData()
       formData.append('prompt', messageText)
 
       // 保存当前的输入内容和图片数据
       const currentInput = messageText;
       const currentImageBlob = this.imageBlob;
+      const currentPreviewImage = this.previewImage; // 保存当前的预览图片URL
       
-      // 立即清空输入框和图片数据
-      this.userInput = '';
-      this.previewImage = null;
-      this.imageBlob = null;
-
       try {
+        // 如果有图片，处理图片消息
+        if (currentImageBlob) {
+          messageText = currentInput ? 
+            `${currentInput}\n<img src="${currentPreviewImage}" style="max-width: 150px; max-height: 150px;">` :
+            `<img src="${currentPreviewImage}" style="max-width: 150px; max-height: 150px;">`;
+        }
+
         // 创建用户消息对象
         const userMessage = {
           type: 'user',
-          text: messageText, // 这里包含了图片的 HTML
+          text: messageText,
           timestamp: timestamp
         };
 
-        // 添加到消息列表并保存
+        // 立即添加用户消息和机器人消息到列表
         this.messages.push(userMessage);
-        this.scrollToBottom();
-        await this.saveChatMessage(userMessage);
+        this.messages.push(botMessage);
         
-        // 添加机器人思考中的消息
-        botMessage = {
-          type: 'bot',
-          text: '正在思考...',
-          timestamp: new Date().getTime()
-        }
-        this.messages.push(botMessage)
-        this.scrollToBottom();
+        // 立即滚动到底部
+        this.$nextTick(() => {
+          this.scrollToBottom();
+        });
+
+        // 保存用户消息
+        await this.saveChatMessage(userMessage);
+
+        // 现在才清空输入框和图片数据
+        this.userInput = '';
+        this.previewImage = null;
+        this.imageBlob = null;
 
         // 如果有图片，添加到请求中
         if (currentImageBlob) {
@@ -707,56 +711,53 @@ export default {
         const response = await fetch('http://192.168.1.153:8081/ai/chatVLStream', {
           method: 'POST',
           body: formData
-        })
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-        let fullMessage = ''
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullMessage = '';
 
         while (true) {
-          const { done, value } = await reader.read()
+          const { done, value } = await reader.read();
 
           if (done) {
             // 更新最终消息
-            botMessage.text = this.formatMessageWithTypingEffect(fullMessage)
-            await this.saveChatMessage(botMessage)
-            break
+            botMessage.text = this.formatMessageWithTypingEffect(fullMessage);
+            await this.saveChatMessage(botMessage);
+            break;
           }
 
-          const chunk = decoder.decode(value, { stream: true })
-          const lines = chunk.split('\n')
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
 
           for (const line of lines) {
-            if (!line.trim()) continue
+            if (!line.trim()) continue;
             
-            const jsonStr = line.replace(/^data:\s*/, '').trim()
-            if (jsonStr === '[DONE]') continue
+            const jsonStr = line.replace(/^data:\s*/, '').trim();
+            if (jsonStr === '[DONE]') continue;
 
             try {
-              const jsonData = JSON.parse(jsonStr)
+              const jsonData = JSON.parse(jsonStr);
               if (jsonData && typeof jsonData.response === 'string') {
-                fullMessage += jsonData.response
+                fullMessage += jsonData.response;
                 // 直接更新消息,不添加延迟
-                botMessage.text = this.formatMessageWithTypingEffect(fullMessage)
+                botMessage.text = this.formatMessageWithTypingEffect(fullMessage);
                 
                 // 滚动到底部
                 this.$nextTick(() => {
-                  this.scrollToBottom()
-                })
+                  this.scrollToBottom();
+                });
               }
             } catch (e) {
-              console.log('处理数据时出错:', e)
-              continue
+              console.log('处理数据时出错:', e);
+              continue;
             }
           }
         }
-
-        console.log('发送的消息文本:', messageText);
-        console.log('预览图片 URL:', this.previewImage);
 
       } catch (error) {
         console.error('发送消息失败:', error);
