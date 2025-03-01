@@ -147,6 +147,10 @@ import { botAiVoicepath, botAiMessage, botAiHistory } from '@/api/bot/botai'
 import { AlertWebSocket } from '@/utils/AlertWebSocket'
 import { Notification } from 'element-ui';
 
+// 在组件外部创建单例
+let alertWsInstance = null;
+let wsConnected = false;
+
 export default {
   name: 'AUDia',
   data() {
@@ -176,19 +180,26 @@ export default {
       showBot: true,
       isLeftSide: false,
       alertWs: null,
+      isShowingAlert: false, // 添加新的状态来追踪是否正在显示警告
+      themeTransition: {
+        color_1: '#8f41e9',
+        color_2: '#578cef',
+        color_3: '#7aa2f7'
+      },
+      wsInitialized: false, // 添加标志位来追踪 WebSocket 是否已初始化
     }
   },
 
   computed: {
     cssVariables() {
       return `
-        --aurora-dia--linear-gradient: ${this.theme.header_gradient_css};
+        --aurora-dia--linear-gradient: linear-gradient(130deg, ${this.themeTransition.color_1} 10%, ${this.themeTransition.color_2} 100%);
         --aurora-dia--linear-gradient-hover: linear-gradient(
           to bottom,
-          ${this.theme.gradient.color_2},
-          ${this.theme.gradient.color_3}
+          ${this.themeTransition.color_2},
+          ${this.themeTransition.color_3}
         );
-        --aurora-dia--platform-light: ${this.theme.gradient.color_3};
+        --aurora-dia--platform-light: ${this.themeTransition.color_3};
       `
     },
     shouldShowDiaElements() {
@@ -228,6 +239,11 @@ export default {
         }
       },
       immediate: false
+    },
+    '$route'() {
+      if (!wsConnected && !this.wsInitialized) {
+        this.initAlertWebSocket();
+      }
     }
   },
 
@@ -241,18 +257,26 @@ export default {
       this.loadChatHistory()
     }
     
-    // 初始化 AlertWebSocket 连接
-    this.initAlertWebSocket()
-  },
-
-  beforeDestroy() {
-    // 组件销毁前断开 WebSocket 连接
-    if (this.alertWs) {
-      this.alertWs.disconnect()
+    // 只在未初始化时创建 WebSocket 连接
+    if (!this.wsInitialized) {
+      this.initAlertWebSocket()
     }
   },
 
+  beforeDestroy() {
+    this.disconnectWebSocket();
+  },
+
   methods: {
+    disconnectWebSocket() {
+      if (alertWsInstance) {
+        alertWsInstance.disconnect();
+        alertWsInstance = null;
+        wsConnected = false;
+        this.wsInitialized = false;
+      }
+    },
+
     initializeBot() {
       try {
         // 延迟1秒执行初始化，确保DOM已完全加载
@@ -265,7 +289,14 @@ export default {
           this.diaInstance.installSoftware({
             locale: 'zh-CN',
             containerId: 'Aurora-Dia--tips-wrapper',
-            messageId: 'Aurora-Dia--tips'
+            messageId: 'Aurora-Dia--tips',
+            onMessage: (message) => {
+              // 如果正在显示警告，则不显示其他消息
+              if (this.isShowingAlert) {
+                return false
+              }
+              return true
+            }
           })
           // 启动机器人
           this.diaInstance.on()
@@ -1139,96 +1170,191 @@ export default {
 
     // 初始化 AlertWebSocket
     initAlertWebSocket() {
+      if (wsConnected) {
+        return;
+      }
+
       try {
-        this.alertWs = new AlertWebSocket()
-        
-        // 重写 handleSeriousAlert 方法
-        this.alertWs.handleSeriousAlert = (alert) => {
-          // 设置报警主题
-          this.theme = {
-            gradient: {
-              color_1: '#CD0000',
-              color_2: '#FF4444',
-              color_3: '#FF6666'
-            },
-            header_gradient_css: 'linear-gradient(130deg, #CD0000 10%, #FF4444 100%)'
-          }
+        if (!alertWsInstance) {
+          alertWsInstance = new AlertWebSocket();
           
-          // 在提示框中显示警告
-          const tipsElement = document.getElementById('Aurora-Dia--tips')
-          if (tipsElement) {
-            tipsElement.innerHTML = `⚠️ 严重警告：${alert.alertMessage}`
-            // 5秒后恢复默认提示
-            setTimeout(() => {
-              tipsElement.innerHTML = '你好呀～'
-              // 恢复默认主题
-              this.theme = {
-                gradient: {
-                  color_1: '#8f41e9',
-                  color_2: '#578cef',
-                  color_3: '#7aa2f7'
-                },
-                header_gradient_css: 'linear-gradient(130deg, #8f41e9 10%, #578cef 100%)'
+          const componentInstance = this;
+          
+          // 重写警告处理方法
+          alertWsInstance.handleSeriousAlert = function(alert) {
+            // 立即更新状态
+            componentInstance.isShowingAlert = true;
+            
+            // 立即开始颜色过渡
+            const newTheme = {
+              gradient: {
+                color_1: '#CD0000',
+                color_2: '#FF4444',
+                color_3: '#FF6666'
+              } 
+            };
+            componentInstance.updateThemeWithTransition(newTheme);
+            
+            const tipsElement = document.getElementById('Aurora-Dia--tips');
+            if (tipsElement) {
+              tipsElement.innerHTML = `⚠️ 严重警告：${alert.alertMessage}`;
+              
+              setTimeout(() => {
+                const defaultTheme = {
+                  gradient: {
+                    color_1: '#8f41e9',
+                    color_2: '#578cef',
+                    color_3: '#7aa2f7'
+                  }
+                };
+                componentInstance.updateThemeWithTransition(defaultTheme);
+                
+                setTimeout(() => {
+                  componentInstance.isShowingAlert = false;
+                  tipsElement.innerHTML = '你好呀～';
+                }, 100);
+              }, 15000);
+            }
+            
+            componentInstance.$notify({
+              title: '严重警告',
+              message: alert.alertMessage,
+              type: 'error',
+              showClose: false,
+              duration: 15000,
+              position: 'top-right'
+            });
+          };
+          
+          alertWsInstance.handleWarning = function(alert) {
+            componentInstance.isShowingAlert = true;
+            
+            const newTheme = {
+              gradient: {
+                color_1: '#FF8C00',
+                color_2: '#FFA500',
+                color_3: '#FFD700'
               }
-            }, 5000)
-          }
-          
-          // 使用 Element UI 的 Notification
-          Notification({
-            title: '严重警告',
-            message: alert.alertMessage,
-            type: 'error',
-            duration: 5000,
-            position: 'top-right'
-          })
+            };
+            componentInstance.updateThemeWithTransition(newTheme);
+            
+            const tipsElement = document.getElementById('Aurora-Dia--tips');
+            if (tipsElement) {
+              tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`;
+              
+              setTimeout(() => {
+                const defaultTheme = {
+                  gradient: {
+                    color_1: '#8f41e9',
+                    color_2: '#578cef',
+                    color_3: '#7aa2f7'
+                  }
+                };
+                componentInstance.updateThemeWithTransition(defaultTheme);
+                
+                setTimeout(() => {
+                  componentInstance.isShowingAlert = false;
+                  tipsElement.innerHTML = '你好呀～';
+                }, 100);
+              }, 15000);
+            }
+            
+            componentInstance.$notify({
+              title: '预警提示',
+              message: alert.alertMessage,
+              type: 'warning',
+              showClose: false,
+              duration: 15000
+            });
+          };
+
+          // 添加连接状态监听
+          const originalWsOnopen = alertWsInstance.ws.onopen;
+          alertWsInstance.ws.onopen = function(event) {
+            wsConnected = true;
+            componentInstance.wsInitialized = true;
+            if (originalWsOnopen) {
+              originalWsOnopen.call(this, event);
+            }
+          };
+
+          const originalWsOnclose = alertWsInstance.ws.onclose;
+          alertWsInstance.ws.onclose = function(event) {
+            wsConnected = false;
+            componentInstance.wsInitialized = false;
+            if (originalWsOnclose) {
+              originalWsOnclose.call(this, event);
+            }
+          };
         }
         
-        // 重写 handleWarning 方法
-        this.alertWs.handleWarning = (alert) => {
-          // 设置警告主题
-          this.theme = {
-            gradient: {
-              color_1: '#FF8C00',
-              color_2: '#FFA500',
-              color_3: '#FFD700'
-            },
-            header_gradient_css: 'linear-gradient(130deg, #FF8C00 10%, #FFA500 100%)'
-          }
-          
-          // 在提示框中显示警告
-          const tipsElement = document.getElementById('Aurora-Dia--tips')
-          if (tipsElement) {
-            tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`
-            // 5秒后恢复默认提示
-            setTimeout(() => {
-              tipsElement.innerHTML = '你好呀～'
-              // 恢复默认主题
-              this.theme = {
-                gradient: {
-                  color_1: '#8f41e9',
-                  color_2: '#578cef',
-                  color_3: '#7aa2f7'
-                },
-                header_gradient_css: 'linear-gradient(130deg, #8f41e9 10%, #578cef 100%)'
-              }
-            }, 5000)
-          }
-          
-          // 使用 Element UI 的 Notification
-          Notification({
-            title: '预警提示',
-            message: alert.alertMessage,
-            type: 'warning',
-            duration: 5000
-          })
-        }
-        
-        // 建立连接
-        this.alertWs.connect()
+        this.alertWs = alertWsInstance;
         
       } catch (error) {
-        console.error('初始化 AlertWebSocket 失败:', error)
+        console.error('初始化 AlertWebSocket 失败:', error);
+        this.disconnectWebSocket();
       }
+    },
+
+    // 更新主题过渡方法
+    async updateThemeWithTransition(newTheme) {
+      const startColors = {
+        color_1: this.themeTransition.color_1,
+        color_2: this.themeTransition.color_2,
+        color_3: this.themeTransition.color_3
+      }
+      
+      const endColors = {
+        color_1: newTheme.gradient.color_1,
+        color_2: newTheme.gradient.color_2,
+        color_3: newTheme.gradient.color_3
+      }
+
+      const startTime = performance.now()
+      const duration = 3000 // 改为3秒的颜色过渡时间
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime
+        const progress = Math.min(elapsed / duration, 1)
+
+        // 使用更快的缓动函数
+        const easing = t => 1 - Math.pow(1 - t, 3)
+
+        // 计算当前颜色
+        Object.keys(startColors).forEach(key => {
+          const start = this.hexToRgb(startColors[key])
+          const end = this.hexToRgb(endColors[key])
+          const current = {
+            r: Math.round(start.r + (end.r - start.r) * easing(progress)),
+            g: Math.round(start.g + (end.g - start.g) * easing(progress)),
+            b: Math.round(start.b + (end.b - start.b) * easing(progress))
+          }
+          this.themeTransition[key] = this.rgbToHex(current)
+        })
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        }
+      }
+
+      requestAnimationFrame(animate)
+    },
+
+    // 添加颜色转换辅助方法
+    hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null
+    },
+
+    rgbToHex(rgb) {
+      return '#' + ['r', 'g', 'b'].map(key => {
+        const hex = rgb[key].toString(16)
+        return hex.length === 1 ? '0' + hex : hex
+      }).join('')
     },
   }
 }
