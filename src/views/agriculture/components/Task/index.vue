@@ -450,19 +450,24 @@
 <style lang="scss" scoped>
     .gantt-container {
         height: 100%;
+        display: flex;
+        flex-direction: column;
 
         .search {
             background: #fff;
             padding: 16px;
             border-radius: 8px;
             margin-bottom: 16px;
+            flex-shrink: 0; // 防止搜索框被压缩
         }
 
         .table {
             background: #fff;
             padding: 24px;
             border-radius: 8px;
-            min-height: calc(100% - 70px - 70px);
+            flex: 1; // 让表格区域占据剩余空间
+            min-height: 0; // 重要：允许内容超出时滚动
+            overflow: auto; // 添加滚动条
 
             .task-list {
                 display: flex;
@@ -540,6 +545,14 @@
                         }
                     }
                 }
+            }
+
+            // 添加甘特图容器样式
+            .gantt {
+                height: 100%;
+                min-height: 400px; // 设置最小高度
+                width: 100%;
+                overflow: visible; // 确保甘特图内容不被裁剪
             }
         }
     }
