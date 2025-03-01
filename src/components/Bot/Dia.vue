@@ -144,6 +144,9 @@ import {
     getToken
 } from "@/utils/auth";
 import { botAiVoicepath, botAiMessage, botAiHistory } from '@/api/bot/botai'
+import { AlertWebSocket } from '@/utils/AlertWebSocket'
+import { Notification } from 'element-ui';
+
 export default {
   name: 'AUDia',
   data() {
@@ -168,10 +171,11 @@ export default {
       messages: [],
       userId: '',
       isLoadingHistory: false,
-      previewImage: null, // 添加预览图片数据
-      imageBlob: null, // 添加图片 Blob 数据
-      showBot: true, // 控制小人显示/隐藏
-      isLeftSide: false, // 控制左右侧显示
+      previewImage: null,
+      imageBlob: null,
+      showBot: true,
+      isLeftSide: false,
+      alertWs: null,
     }
   },
 
@@ -230,11 +234,21 @@ export default {
   mounted() {
     this.initializeBot()
     this.activateMotion()
-    // 获取用户ID (这里假设从localStorage获取，你需要根据实际情况修改)
+    // 获取用户ID
     this.userId = 1
     // 加载历史记录
     if (this.userId) {
       this.loadChatHistory()
+    }
+    
+    // 初始化 AlertWebSocket 连接
+    this.initAlertWebSocket()
+  },
+
+  beforeDestroy() {
+    // 组件销毁前断开 WebSocket 连接
+    if (this.alertWs) {
+      this.alertWs.disconnect()
     }
   },
 
@@ -1121,6 +1135,100 @@ export default {
       return paragraphs.map(paragraph => {
         return `<div class="ai-paragraph">${paragraph}</div>`
       }).join('')
+    },
+
+    // 初始化 AlertWebSocket
+    initAlertWebSocket() {
+      try {
+        this.alertWs = new AlertWebSocket()
+        
+        // 重写 handleSeriousAlert 方法
+        this.alertWs.handleSeriousAlert = (alert) => {
+          // 设置报警主题
+          this.theme = {
+            gradient: {
+              color_1: '#CD0000',
+              color_2: '#FF4444',
+              color_3: '#FF6666'
+            },
+            header_gradient_css: 'linear-gradient(130deg, #CD0000 10%, #FF4444 100%)'
+          }
+          
+          // 在提示框中显示警告
+          const tipsElement = document.getElementById('Aurora-Dia--tips')
+          if (tipsElement) {
+            tipsElement.innerHTML = `⚠️ 严重警告：${alert.alertMessage}`
+            // 5秒后恢复默认提示
+            setTimeout(() => {
+              tipsElement.innerHTML = '你好呀～'
+              // 恢复默认主题
+              this.theme = {
+                gradient: {
+                  color_1: '#8f41e9',
+                  color_2: '#578cef',
+                  color_3: '#7aa2f7'
+                },
+                header_gradient_css: 'linear-gradient(130deg, #8f41e9 10%, #578cef 100%)'
+              }
+            }, 5000)
+          }
+          
+          // 使用 Element UI 的 Notification
+          Notification({
+            title: '严重警告',
+            message: alert.alertMessage,
+            type: 'error',
+            duration: 5000,
+            position: 'top-right'
+          })
+        }
+        
+        // 重写 handleWarning 方法
+        this.alertWs.handleWarning = (alert) => {
+          // 设置警告主题
+          this.theme = {
+            gradient: {
+              color_1: '#FF8C00',
+              color_2: '#FFA500',
+              color_3: '#FFD700'
+            },
+            header_gradient_css: 'linear-gradient(130deg, #FF8C00 10%, #FFA500 100%)'
+          }
+          
+          // 在提示框中显示警告
+          const tipsElement = document.getElementById('Aurora-Dia--tips')
+          if (tipsElement) {
+            tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`
+            // 5秒后恢复默认提示
+            setTimeout(() => {
+              tipsElement.innerHTML = '你好呀～'
+              // 恢复默认主题
+              this.theme = {
+                gradient: {
+                  color_1: '#8f41e9',
+                  color_2: '#578cef',
+                  color_3: '#7aa2f7'
+                },
+                header_gradient_css: 'linear-gradient(130deg, #8f41e9 10%, #578cef 100%)'
+              }
+            }, 5000)
+          }
+          
+          // 使用 Element UI 的 Notification
+          Notification({
+            title: '预警提示',
+            message: alert.alertMessage,
+            type: 'warning',
+            duration: 5000
+          })
+        }
+        
+        // 建立连接
+        this.alertWs.connect()
+        
+      } catch (error) {
+        console.error('初始化 AlertWebSocket 失败:', error)
+      }
     },
   }
 }

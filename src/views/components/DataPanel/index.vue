@@ -2,7 +2,7 @@
   <div class="dataPanel">
       <div class="header">
           <span class="title">{{title}}</span>
-          <span class="more" v-if="!!more" @click="push()">
+          <span class="more" v-if="!!more" @click="moreLink ? handleMoreClick() : push()">
               <!-- <router-link @click="push()"> -->
                 {{more}} <i class="el-icon-arrow-right"></i>
               <!-- </router-link> -->
@@ -32,6 +32,10 @@ export default {
         link:{
             type:String,
             default:''
+        },
+        moreLink: {
+            type: String,
+            default: ''
         }
     },
     data(){
@@ -43,7 +47,12 @@ export default {
     methods:{
         push(){
             this.$router.push({name:this.link});
-        }
+        },
+        handleMoreClick() {
+            if (this.moreLink) {
+                window.open(this.moreLink, '_blank');
+            }
+    }
     }
 }
 </script>
