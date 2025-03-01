@@ -28,8 +28,8 @@
                     <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
                 </el-form-item>
                 <el-form-item class="fr">
-                    <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                        v-hasPermi="['agriculture:batch:add']">新增</el-button>
+                    <!-- <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
+                        v-hasPermi="['agriculture:batch:add']">新增</el-button> -->
                     <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
                         v-hasPermi="['agriculture:batch:export']">导出</el-button>
                 </el-form-item>

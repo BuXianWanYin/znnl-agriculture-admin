@@ -48,7 +48,7 @@
                                     <span class="label">最大区分数量</span>
                                     <span class="value">{{ item.bigBreedingQuantity }}</span>
                                 </div>
-                                <div class="info-item">
+                                <!-- <div class="info-item">
                                     <i class="el-icon-sunny"></i>
                                     <span class="label">平均温度</span>
                                     <span class="value">{{ getTodayAverage(item.id).temperature }}{{ getTodayAverage(item.id).temperature !== '/' ? '℃' : '' }}</span>
@@ -57,7 +57,7 @@
                                     <i class="el-icon-umbrella"></i>
                                     <span class="label">平均湿度</span>
                                     <span class="value">{{ getTodayAverage(item.id).humidity }}{{ getTodayAverage(item.id).humidity !== '/' ? '%' : '' }}</span>
-                                </div>
+                                </div> -->
                                 <div class="info-item">
                                     <i class="el-icon-location"></i>
                                     <span class="label">位置</span>
