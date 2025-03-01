@@ -383,14 +383,23 @@
                 fishTotal: 0,
                 timeRange: 'week', // 修改默认值为'week'而不是'month'
                 traceabilityData: {
-                    week: { agriculture: [], fish: [] },
-                    month: { agriculture: [], fish: [] },
-                    year: { agriculture: [], fish: [] }
+                    week: {
+                        agriculture: new Array(7).fill(0),
+                        fish: new Array(7).fill(0)
+                    },
+                    month: {
+                        agriculture: new Array(30).fill(0), 
+                        fish: new Array(30).fill(0)
+                    },
+                    year: {
+                        agriculture: new Array(12).fill(0),
+                        fish: new Array(12).fill(0)
+                    }
                 },
                 timeTabs: [
-                    { label: '本周', value: 'week' },
-                    { label: '本月', value: 'month' },
-                    { label: '本年', value: 'year' }
+                    { label: '周', value: 'week' },
+                    { label: '月', value: 'month' },
+                    { label: '年', value: 'year' }
                 ],
             };
         },
@@ -407,9 +416,9 @@
             },
             timeRangeLabel() {
                 const labels = {
-                    week: '本周',
-                    month: '本月',
-                    year: '本年'
+                    week: '近一周',
+                    month: '近一月',
+                    year: '近一年'
                 };
                 return labels[this.timeRange];
             },
@@ -814,103 +823,115 @@
             },
             // 添加新的方法用于处理数据
             processTraceabilityData(rawData) {
-                // 确保 rawData 存在且是数组
                 if (!Array.isArray(rawData)) {
                     console.error('Invalid rawData:', rawData);
                     return;
                 }
 
                 const now = new Date();
-                const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const startOfYear = new Date(now.getFullYear(), 0, 1);
-
-                // 初始化数据结构
-                this.traceabilityData = {
-                    week: this.initWeekData(),
-                    month: this.initMonthData(),
-                    year: this.initYearData()
+                const periods = {
+                    week: {
+                        start: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6),
+                        length: 7,
+                        getIndex: (date) => Math.floor((date - periods.week.start) / (1000 * 60 * 60 * 24)),
+                        getLabel: (i) => {
+                            const d = new Date(now);
+                            d.setDate(d.getDate() - (6 - i));
+                            return `${d.getMonth() + 1}/${d.getDate()}`;
+                        }
+                    },
+                    month: {
+                        start: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29),
+                        length: 30,
+                        getIndex: (date) => Math.floor((date - periods.month.start) / (1000 * 60 * 60 * 24)),
+                        getLabel: (i) => {
+                            const d = new Date(now);
+                            d.setDate(d.getDate() - (29 - i));
+                            return `${d.getMonth() + 1}/${d.getDate()}`;
+                        }
+                    },
+                    year: {
+                        start: new Date(now.getFullYear(), now.getMonth() - 11, 1),
+                        length: 12,
+                        getIndex: (date) => date.getMonth() - periods.year.start.getMonth() + 
+                                          (12 * (date.getFullYear() - periods.year.start.getFullYear())),
+                        getLabel: (i) => {
+                            const d = new Date(now);
+                            d.setMonth(d.getMonth() - (11 - i));
+                            return `${d.getMonth() + 1}月`;
+                        }
+                    }
                 };
 
+                // 重置数据
+                ['week', 'month', 'year'].forEach(period => {
+                    this.traceabilityData[period] = {
+                        agriculture: new Array(periods[period].length).fill(0),
+                        fish: new Array(periods[period].length).fill(0)
+                    };
+                });
+
+                // 处理数据
                 rawData.forEach(item => {
                     if (!item.queryDate) return;
                     
                     const date = new Date(Number(item.queryDate));
-                    if (isNaN(date.getTime())) {
-                        console.error('Invalid date:', item.queryDate);
-                        return;
-                    }
+                    if (isNaN(date.getTime())) return;
 
                     const type = item.type === "0" ? 'agriculture' : 'fish';
 
-                    // 处理周数据
-                    if (date >= startOfWeek) {
-                        let dayIndex = (date.getDay() + 6) % 7; // 将周一设为0，周日设为6
-                        this.traceabilityData.week[type][dayIndex]++;
-                    }
-
-                    // 处理月数据
-                    if (date >= startOfMonth) {
-                        const dayOfMonth = date.getDate() - 1;
-                        this.traceabilityData.month[type][dayOfMonth]++;
-                    }
-
-                    // 处理年数据
-                    if (date >= startOfYear) {
-                        const month = date.getMonth();
-                        this.traceabilityData.year[type][month]++;
-                    }
+                    // 更新各时间段的数据
+                    Object.keys(periods).forEach(period => {
+                        if (date >= periods[period].start && date <= now) {
+                            const index = periods[period].getIndex(date);
+                            if (index >= 0 && index < periods[period].length) {
+                                this.traceabilityData[period][type][index]++;
+                            }
+                        }
+                    });
                 });
             },
-
-            // 初始化周数据结构
-            initWeekData() {
-                return {
-                    agriculture: new Array(7).fill(0),
-                    fish: new Array(7).fill(0)
-                };
-            },
-
-            // 初始化月数据结构
-            initMonthData() {
-                return {
-                    agriculture: new Array(31).fill(0),
-                    fish: new Array(31).fill(0)
-                };
-            },
-
-            // 初始化年数据结构
-            initYearData() {
-                return {
-                    agriculture: new Array(12).fill(0),
-                    fish: new Array(12).fill(0)
-                };
-            },
-
-            // 更新图表的方法
             updateTraceabilityChart() {
                 const chartDom = this.$refs.indexDeviceMonitorChart;
                 if (!chartDom) return;
 
-                let xAxisData, seriesData, maxValue;
+                const now = new Date();
+                const periods = {
+                    week: {
+                        length: 7,
+                        getLabel: (i) => {
+                            const d = new Date(now);
+                            d.setDate(d.getDate() - (6 - i));
+                            return `${d.getMonth() + 1}/${d.getDate()}`;
+                        }
+                    },
+                    month: {
+                        length: 30,
+                        getLabel: (i) => {
+                            const d = new Date(now);
+                            d.setDate(d.getDate() - (29 - i));
+                            return `${d.getMonth() + 1}/${d.getDate()}`;
+                        }
+                    },
+                    year: {
+                        length: 12,
+                        getLabel: (i) => {
+                            const d = new Date(now);
+                            d.setMonth(d.getMonth() - (11 - i));
+                            return `${d.getMonth() + 1}月`;
+                        }
+                    }
+                };
 
-                switch(this.timeRange) {
-                    case 'week':
-                        xAxisData = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-                        seriesData = this.traceabilityData.week;
-                        maxValue = 100; // 周维度最大值设为20
-                        break;
-                    case 'month':
-                        xAxisData = Array.from({length: 31}, (_, i) => `${i + 1} 天`);
-                        seriesData = this.traceabilityData.month; 
-                        maxValue = 1000; // 月维度最大值设为50
-                        break;
-                    case 'year':
-                        xAxisData = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-                        seriesData = this.traceabilityData.year;
-                        maxValue = 8000; // 年维度最大值设为200
-                        break;
-                }
+                const period = periods[this.timeRange];
+                const xAxisData = Array.from({length: period.length}, (_, i) => period.getLabel(i));
+                const seriesData = this.traceabilityData[this.timeRange];
+
+                const maxValue = {
+                    week: 100,
+                    month: 1000,
+                    year: 8000
+                }[this.timeRange];
 
                 const option = {
                     tooltip: {
@@ -955,15 +976,11 @@
                             lineStyle: { color: '#eee', width: 2 }
                         },
                         axisLabel: {
-                            interval: this.timeRange === 'month' ? 2 : 0,  // 月份视图时每隔3个显示一个标签
+                            interval: this.timeRange === 'month' ? 2 : 0,
                             margin: 8,
                             color: '#666',
                             fontSize: 12,
                             formatter: function(value) {
-                                // 对于月份视图,简化显示格式
-                                if(value.includes('日')) {
-                                    return value.replace('日', '');  // 移除"日"字,只显示数字
-                                }
                                 return value;
                             }
                         },
@@ -1061,7 +1078,6 @@
                     chart.dispose();
                 });
             },
-
             // 添加切换时间范围的方法
             handleTimeRangeChange(range) {
                 this.timeRange = range;
