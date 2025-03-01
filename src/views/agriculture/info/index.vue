@@ -41,9 +41,28 @@
                         <!-- 卡片头部：大棚名称和状态标签 -->
                         <div class="card-header">
                             <span class="greenhouse-name">{{ item.greenhouse }}</span>
-                            <el-tag :type="getStatusType(item.warningStatus)" size="small">
-                                {{ item.warningStatus }}
-                            </el-tag>
+                            <div class="status-controls">
+                                <!-- 只在 status 不为 1 时显示编辑按钮 -->
+                                <el-button
+                                    v-if="item.status !== '1'"
+                                    type="text"
+                                    size="mini"
+                                    @click="handleStatusChange(item)"
+                                >编辑</el-button>
+                                <!-- 只在 status 不为 1 时显示预警/报警标签 -->
+                                <el-tag 
+                                    v-if="item.status !== '1'" 
+                                    :type="getStatusType(item.warningStatus)" 
+                                    size="small" 
+                                    class="mr8"
+                                >
+                                    {{ item.warningStatus }}
+                                </el-tag>
+                                <!-- 处理状态标签 -->
+                                <el-tag :type="getProcessStatusType(item.status)" size="small">
+                                    {{ getProcessStatusText(item.status) }}
+                                </el-tag>
+                            </div>
                         </div>
                         
                         <!-- 卡片内容区：预警详细信息 -->
@@ -51,7 +70,7 @@
                             <!-- 各项信息条目 -->
                             <div class="info-item">
                                 <i class="el-icon-plant"></i>
-                                <span class="label">农作物批次:</span>
+                                <span class="label">{{ activeTab === 'fishpond' ? '养殖批次:' : '农作物批次:' }}</span>
                                 <span class="value">{{ item.cropBatch }}</span>
                             </div>
                             
@@ -60,18 +79,18 @@
                                 <span class="label">预警分区:</span>
                                 <span class="value">{{ item.partitionInfo }}</span>
                             </div>
+
+                              <div class="info-item">
+                                <i class="el-icon-bell"></i>
+                                <span class="label">预警名称:</span>
+                                <span class="value">{{ item.paramName }}</span>
+                            </div>
                             
                             <div class="info-item">
                                 <i class="el-icon-bell"></i>
                                 <span class="label">预警类型:</span>
                                 <span class="value">{{ item.alertType }}</span>
-                            </div>
-
-                            <div class="info-item">
-                                <i class="el-icon-bell"></i>
-                                <span class="label">预警名称:</span>
-                                <span class="value">{{ item.paramName }}</span>
-                            </div>
+                            </div> 
                             
                             <div class="info-item">
                                 <i class="el-icon-warning-outline"></i>
@@ -91,12 +110,18 @@
                                 <span class="value">{{ item.responsiblePerson }}</span>
                             </div>
                             
+                            <div class="info-item">
+                                <i class="el-icon-user"></i>
+                                <span class="label">备注:</span>
+                                <span class="value">{{ item.remark || '/' }}</span>  
+                            </div>
+
                             <!-- 时间信息区域 -->
                             <div class="time-info">
-                                <div class="time-range">
+                                <!-- <div class="time-range">
                                     <i class="el-icon-time"></i>
                                     <span>{{ parseTime(item.startTime) }} 至 {{ parseTime(item.endTime) }}</span>
-                                </div>
+                                </div> -->
                                 <div class="update-time">
                                     更新于: {{ parseTime(item.updatedAt) }}
                                 </div>
@@ -121,9 +146,34 @@
             />
         </div>
         
-        <!-- 添加/修改预警信息的对话框 -->
+        <!-- 修改状态的对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+                <el-form-item label="状态" prop="status">
+                    <el-select v-model="form.status" placeholder="请选择状态">
+                        <el-option
+                            v-for="dict in statusOptions"
+                            :key="dict.value"
+                            :label="dict.label"
+                            :value="dict.value"
+                        />
+                    </el-select>
+                </el-form-item>
+                
+                <!-- 添加更新时间字段 -->
+                <el-form-item label="更新时间" prop="alertTime">
+                    <el-input v-model="form.alertTime" disabled />
+                </el-form-item>
+
+                <el-form-item label="备注" prop="remark">
+                    <el-input
+                        v-model="form.remark"
+                        type="textarea"
+                        placeholder="请输入备注"
+                        maxlength="200"
+                        show-word-limit
+                    />
+                </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -134,15 +184,8 @@
 </template>
 
 <script>
-    // 导入API接口
-    import {
-        listInfo,
-        getInfo,
-        delInfo,
-        addInfo,
-        updateInfo
-    } from "@/api/agriculture/info";
-    import { listByPastureType } from "@/api/agriculture/yujin";
+    import { listByPastureType as listVegetable, listUser } from "@/api/agriculture/yujincai";
+    import { listByPastureType, updateBaseinfo } from "@/api/agriculture/yujinyu";
 
     export default {
         name: "Info",
@@ -169,16 +212,36 @@
                     type: 'greenhouse'
                 },
                 
-                form: {},              // 表单数据
-                rules: {},             // 表单验证规则
+                form: {
+                    id: null,
+                    status: '',
+                    alertTime: '',
+                    remark: ''
+                },
+                
+                rules: {
+                    status: [
+                        { required: true, message: "请选择状态", trigger: "change" }
+                    ],
+                    alertTime: [
+                        { required: true, message: "请选择修改时间", trigger: "change" }
+                    ]
+                },
+                
                 activeTab: 'greenhouse', // 当前激活的标签页
-                fishpondData: []        // 养殖池数据
+                fishpondData: [],        // 养殖池数据
+                userList: [],             // 添加负责人列表数据
+                statusOptions: [     //编辑的可选
+                    { value: '0', label: '未处理' },
+                    { value: '1', label: '已处理' }
+                ]
             };
         },
         
         // 生命周期钩子：组件创建时获取列表数据
         created() {
             this.getList();
+            this.getUserList(); // 获取负责人列表
         },
         
         methods: {
@@ -196,29 +259,59 @@
                 if (this.activeTab === 'fishpond') {
                     // 获取养殖池数据
                     listByPastureType(1).then(response => {
-                        // 数据转换处理
-                        this.infoList = response.rows.map(item => ({
-                            id: item.id,
-                            greenhouse: item.batchName,
-                            cropBatch: item.batchName,
-                            partitionInfo: `${item.batchHead}号池`,
-                            paramName: item.paramName || '水温',
-                            thresholdValue: item.alertMessage,
-                            warningStatus: item.status === '0' ? '警告中' : '已处理',
-                            responsiblePerson: '待分配',
-                            startTime: item.alertDate,
-                            endTime: item.alertDate,
-                            updatedAt: item.alertTime,
-                            alertTime: item.alertTime,
-                            alertType: item.alertType
-                        }));
+                        this.infoList = response.rows.map(item => {
+                            // 查找对应的负责人信息
+                            const user = this.userList.find(user => user.userId === item.batchHead);
+                            return {
+                                id: item.id,
+                                greenhouse: item.batchName,
+                                cropBatch: item.batchName,
+                                partitionInfo: `${item.batchHead}号池`,
+                                paramName: item.paramName || '水温',
+                                thresholdValue: item.alertMessage,
+                                warningStatus: item.alertLevel === '1' ? '报警' : '预警',
+                                responsiblePerson: user ? user.nickName : item.nickName || '未指定',
+                                startTime: item.alertDate,
+                                endTime: item.alertDate,
+                                updatedAt: item.updateTime || item.alertTime,
+                                alertTime: item.alertTime,
+                                alertType: item.alertType,
+                                remark: item.remark,
+                                status: item.status
+                            };
+                        });
                         this.total = response.total;
                         this.loading = false;
                     });
                 } else {
-                    // 获取温室大棚数据
-                    listInfo(this.queryParams).then(response => {
-                        this.infoList = response.rows;
+                    // 获取蔬菜大棚数据
+                    listVegetable(0).then(response => {
+                        this.infoList = response.rows.map(item => {
+                            // 使用 batchHead 查找对应的负责人信息
+                            const user = this.userList.find(user => user.userId === item.batchHead);
+                            return {
+                                id: item.id,
+                                greenhouse: item.batchName,
+                                cropBatch: item.batchName,
+                                partitionInfo: `${item.batchHead}号棚`,
+                                paramName: item.paramName || '温度',
+                                thresholdValue: item.alertMessage,
+                                warningStatus: item.alertLevel === '1' ? '报警' : '预警',
+                                // 按优先级获取负责人名称：
+                                // 1. 从 userList 中匹配的用户昵称
+                                // 2. 数据中的 batchHeadName 字段
+                                // 3. 数据中的 pastureHead 字段
+                                // 4. 默认值 "未指定"
+                                responsiblePerson: user ? user.nickName : (item.batchHeadName || item.pastureHead || '未指定'),
+                                startTime: item.alertDate,
+                                endTime: item.alertDate,
+                                updatedAt: item.updateTime || item.alertTime,
+                                alertTime: item.alertTime,
+                                alertType: item.alertType,
+                                remark: item.remark,
+                                status: item.status
+                            };
+                        });
                         this.total = response.total;
                         this.loading = false;
                     });
@@ -235,18 +328,9 @@
             reset() {
                 this.form = {
                     id: null,
-                    greenhouse: null,
-                    cropBatch: null,
-                    partitionInfo: null,
-                    thresholdValue: null,
-                    warningStatus: "0",
-                    responsiblePerson: null,
-                    handler: null,
-                    startTime: null,
-                    endTime: null,
-                    createdAt: null,
-                    updatedAt: null,
-                    delFlag: null
+                    status: '',
+                    alertTime: this.parseTime(new Date()), // 设置当前时间
+                    remark: ''
                 };
                 this.resetForm("form");
             },
@@ -268,15 +352,25 @@
             submitForm() {
                 this.$refs["form"].validate(valid => {
                     if (valid) {
-                        if (this.form.id != null) {
-                            updateInfo(this.form).then(response => {
+                        const data = {
+                            id: this.form.id,
+                            status: this.form.status,
+                            remark: this.form.remark,
+                            // 添加更新时间
+                            updateTime: this.form.alertTime
+                        };
+                        
+                        // 调用更新接口
+                        if (this.activeTab === 'fishpond') {
+                            updateBaseinfo(data).then(response => {
                                 this.$modal.msgSuccess("修改成功");
                                 this.open = false;
                                 this.getList();
                             });
                         } else {
-                            addInfo(this.form).then(response => {
-                                this.$modal.msgSuccess("新增成功");
+                            // 处理蔬菜大棚的更新逻辑
+                            updateBaseinfo(data).then(response => {
+                                this.$modal.msgSuccess("修改成功");
                                 this.open = false;
                                 this.getList();
                             });
@@ -315,12 +409,42 @@
             // 获取预警状态对应的标签类型
             getStatusType(status) {
                 const statusMap = {
-                    '警告中': 'danger',
-                    '已解决': 'success',
-                    '已处理': 'success',
-                    '待处理': 'warning'
+                    '预警': 'warning',      // 黄色
+                    '报警': 'danger',       // 红色
+                    '已解决': 'success',    // 绿色
+                    '已处理': 'success',    // 绿色
+                    '待处理': 'warning'     // 黄色
                 }
                 return statusMap[status] || 'info'
+            },
+
+            // 添加获取负责人列表方法
+            getUserList() {
+                listUser().then(response => {
+                    this.userList = response.rows || [];
+                });
+            },
+
+            // 处理状态变更按钮点击
+            handleStatusChange(row) {
+                this.reset();
+                this.form.id = row.id;
+                this.form.status = row.status;
+                // 设置当前时间
+                this.form.alertTime = this.parseTime(new Date());
+                this.form.remark = row.remark;
+                this.title = "修改状态";
+                this.open = true;
+            },
+
+            // 获取处理状态对应的标签类型
+            getProcessStatusType(status) {
+                return status === '0' ? 'warning' : 'success';
+            },
+
+            // 获取处理状态的显示文本
+            getProcessStatusText(status) {
+                return status === '0' ? '未处理' : '已处理';
             }
         }
     };
@@ -386,6 +510,12 @@
             .el-tag {
                 border-radius: 6px;
                 padding: 0 8px;
+            }
+
+            .status-controls {
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
         }
         
@@ -500,6 +630,20 @@
             border-radius: 8px;
             padding: 8px 20px;
         }
+    }
+}
+
+.mr8 {
+    margin-right: 8px;
+}
+
+.status-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .el-tag {
+        margin-left: 8px;
     }
 }
 </style>
