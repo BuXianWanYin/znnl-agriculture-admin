@@ -30,7 +30,7 @@
                         <div class="germplasm-card-header">
                             <div class="header-content">
                                 <div class="section-name">种质信息</div>
-                                <div class="germplasm-name">{{ item.germplasmName }}</div>
+                                <div class="germplasm-name">{{ item.cropName }}</div>
                             </div>
                         </div>
 

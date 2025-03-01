@@ -1,33 +1,44 @@
 <template>
     <div class="app-container-sm">
+        <!-- 顶部卡片：包含标签页和搜索表单 -->
         <el-card class="card-margin-bottom">
+            <!-- 标签页切换：大棚和养殖池 -->
             <el-tabs v-model="activeTab" @tab-click="handleTabClick">
                 <el-tab-pane label="蔬菜大棚" name="greenhouse"></el-tab-pane>
                 <el-tab-pane label="养殖池" name="fishpond"></el-tab-pane>
             </el-tabs>
+            
+            <!-- 搜索表单 -->
             <el-form :model="queryParams" ref="queryForm" :inline="true" v-show="showSearch" label-width="68px"
                 class="form-minus-bottom">
+                <!-- 日期范围选择器 -->
                 <el-form-item label="创建时间">
                     <el-date-picker v-model="dateRange" size="small" style="width: 240px" value-format="yyyy-MM-dd"
                         type="daterange" range-separator="-" start-placeholder="开始日期"
                         end-placeholder="结束日期"></el-date-picker>
                 </el-form-item>
+                
+                <!-- 搜索和重置按钮 -->
                 <el-form-item>
                     <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
                     <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
                 </el-form-item>
+                
+                <!-- 导出按钮 -->
                 <el-form-item class="fr">
-
                     <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
                         v-hasPermi="['agriculture:info:export']">导出</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
         
+        <!-- 预警卡片列表容器 -->
         <div class="warning-cards-container" v-loading="loading">
             <el-row :gutter="20">
+                <!-- 预警信息卡片循环 -->
                 <el-col :xs="24" :sm="12" v-for="(item, index) in infoList" :key="index">
                     <el-card class="warning-card" :class="getStatusClass(item.warningStatus)">
+                        <!-- 卡片头部：大棚名称和状态标签 -->
                         <div class="card-header">
                             <span class="greenhouse-name">{{ item.greenhouse }}</span>
                             <el-tag :type="getStatusType(item.warningStatus)" size="small">
@@ -35,7 +46,9 @@
                             </el-tag>
                         </div>
                         
+                        <!-- 卡片内容区：预警详细信息 -->
                         <div class="card-content">
+                            <!-- 各项信息条目 -->
                             <div class="info-item">
                                 <i class="el-icon-plant"></i>
                                 <span class="label">农作物批次:</span>
@@ -50,6 +63,12 @@
                             
                             <div class="info-item">
                                 <i class="el-icon-bell"></i>
+                                <span class="label">预警类型:</span>
+                                <span class="value">{{ item.alertType }}</span>
+                            </div>
+
+                            <div class="info-item">
+                                <i class="el-icon-bell"></i>
                                 <span class="label">预警名称:</span>
                                 <span class="value">{{ item.paramName }}</span>
                             </div>
@@ -59,6 +78,12 @@
                                 <span class="label">预警阈值:</span>
                                 <span class="value">{{ item.thresholdValue }}</span>
                             </div>
+
+                            <div class="info-item">
+                                <i class="el-icon-bell"></i>
+                                <span class="label">预警时间:</span>
+                                <span class="value">{{ item.alertTime }}</span>
+                            </div>
                             
                             <div class="info-item">
                                 <i class="el-icon-user"></i>
@@ -66,6 +91,7 @@
                                 <span class="value">{{ item.responsiblePerson }}</span>
                             </div>
                             
+                            <!-- 时间信息区域 -->
                             <div class="time-info">
                                 <div class="time-range">
                                     <i class="el-icon-time"></i>
@@ -77,19 +103,15 @@
                             </div>
                         </div>
                         
+                        <!-- 卡片底部：操作按钮区 -->
                         <div class="card-footer">
-
-                            <!-- <el-button type="text" @click="handleUpdate(item)" v-hasPermi="['agriculture:info:edit']">
-                                <i class="el-icon-edit"></i> 修改按钮
-                            </el-button> -->
-                            <!-- <el-button type="text" class="danger-text" @click="handleDelete(item)" v-hasPermi="['agriculture:info:remove']">
-                                <i class="el-icon-delete"></i> 删除 按钮
-                            </el-button> -->
+                            <!-- 预留的编辑和删除按钮位置 -->
                         </div>
                     </el-card>
                 </el-col>
             </el-row>
             
+            <!-- 分页组件 -->
             <pagination 
                 v-show="total>0" 
                 :total="total" 
@@ -99,7 +121,7 @@
             />
         </div>
         
-        <!-- 添加或修改预警信息对话框 -->
+        <!-- 添加/修改预警信息的对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
             <el-form ref="form" :model="form" :rules="rules" label-width="80px">
             </el-form>
@@ -112,6 +134,7 @@
 </template>
 
 <script>
+    // 导入API接口
     import {
         listInfo,
         getInfo,
@@ -125,26 +148,18 @@
         name: "Info",
         data() {
             return {
-                // 遮罩层
-                loading: true,
-                // 选中数组
-                ids: [],
-                // 非单个禁用
-                single: true,
-                // 非多个禁用
-                multiple: true,
-                // 显示搜索条件
-                showSearch: true,
-                // 总条数
-                total: 0,
-                // 预警信息表格数据
-                infoList: [],
-                dateRange: [],
-                // 弹出层标题
-                title: "",
-                // 是否显示弹出层
-                open: false,
-                // 查询参数
+                loading: true,          // 加载状态
+                ids: [],               // 选中的ID数组
+                single: true,          // 是否为单选
+                multiple: true,        // 是否为多选
+                showSearch: true,      // 是否显示搜索条件
+                total: 0,              // 数据总数
+                infoList: [],          // 预警信息列表
+                dateRange: [],         // 日期范围
+                title: "",             // 弹窗标题
+                open: false,           // 是否显示弹窗
+                
+                // 查询参数对象
                 queryParams: {
                     pageNum: 1,
                     pageSize: 10,
@@ -153,31 +168,38 @@
                     partitionInfo: null,
                     type: 'greenhouse'
                 },
-                // 表单参数
-                form: {},
-                // 表单校验
-                rules: {},
-                activeTab: 'greenhouse',
-                fishpondData: []
+                
+                form: {},              // 表单数据
+                rules: {},             // 表单验证规则
+                activeTab: 'greenhouse', // 当前激活的标签页
+                fishpondData: []        // 养殖池数据
             };
         },
+        
+        // 生命周期钩子：组件创建时获取列表数据
         created() {
             this.getList();
         },
+        
         methods: {
+            // 标签页切换处理
             handleTabClick() {
                 this.queryParams.pageNum = 1;
                 this.queryParams.type = this.activeTab;
                 this.getList();
             },
-            /** 查询预警信息列表 */
+            
+            // 获取预警信息列表
             getList() {
                 this.loading = true;
+                // 根据不同标签页获取不同数据
                 if (this.activeTab === 'fishpond') {
+                    // 获取养殖池数据
                     listByPastureType(1).then(response => {
+                        // 数据转换处理
                         this.infoList = response.rows.map(item => ({
                             id: item.id,
-                            greenhouse: item.pastureName,
+                            greenhouse: item.batchName,
                             cropBatch: item.batchName,
                             partitionInfo: `${item.batchHead}号池`,
                             paramName: item.paramName || '水温',
@@ -186,12 +208,15 @@
                             responsiblePerson: '待分配',
                             startTime: item.alertDate,
                             endTime: item.alertDate,
-                            updatedAt: item.alertTime
+                            updatedAt: item.alertTime,
+                            alertTime: item.alertTime,
+                            alertType: item.alertType
                         }));
                         this.total = response.total;
                         this.loading = false;
                     });
                 } else {
+                    // 获取温室大棚数据
                     listInfo(this.queryParams).then(response => {
                         this.infoList = response.rows;
                         this.total = response.total;
@@ -199,11 +224,13 @@
                     });
                 }
             },
+            
             // 取消按钮
             cancel() {
                 this.open = false;
                 this.reset();
             },
+            
             // 表单重置
             reset() {
                 this.form = {
@@ -223,17 +250,20 @@
                 };
                 this.resetForm("form");
             },
+            
             /** 搜索按钮操作 */
             handleQuery() {
                 this.dateRange = [];
                 this.queryParams.pageNum = 1;
                 this.getList();
             },
+            
             /** 重置按钮操作 */
             resetQuery() {
                 this.resetForm("queryForm");
                 this.handleQuery();
             },
+            
             /** 提交按钮 */
             submitForm() {
                 this.$refs["form"].validate(valid => {
@@ -254,6 +284,7 @@
                     }
                 });
             },
+            
             /** 删除按钮操作 */
             handleDelete(row) {
                 const ids = row.id || this.ids;
@@ -264,12 +295,15 @@
                     this.$modal.msgSuccess("删除成功");
                 }).catch(() => {});
             },
+            
             /** 导出按钮操作 */
             handleExport() {
                 this.download('agriculture/info/export', {
                     ...this.queryParams
                 }, `info_${new Date().getTime()}.xlsx`)
             },
+            
+            // 获取预警状态对应的样式类
             getStatusClass(status) {
                 return {
                     'warning-active': status === '警告中',
@@ -277,6 +311,8 @@
                     'warning-pending': status === '待处理'
                 }
             },
+            
+            // 获取预警状态对应的标签类型
             getStatusType(status) {
                 const statusMap = {
                     '警告中': 'danger',
@@ -291,11 +327,13 @@
 </script>
 
 <style lang="scss" scoped>
+// 容器样式
 .app-container-sm {
     padding: 20px;
     background-color: #f5f7fa;
 }
 
+// 卡片基础样式
 .card-margin-bottom {
     margin-bottom: 20px;
     border-radius: 12px;
@@ -305,6 +343,7 @@
     border: none;
 }
 
+// 预警卡片容器样式
 .warning-cards-container {
     .el-row {
         margin: 0 -12px;
@@ -421,6 +460,7 @@
     }
 }
 
+// 分页容器样式
 .pagination-container {
     margin-top: 20px;
     display: flex;
