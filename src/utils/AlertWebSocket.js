@@ -1,11 +1,27 @@
+// 添加全局变量来追踪 WebSocket 实例
+let globalWsInstance = null;
+let isHotReloading = false;
+
 export class AlertWebSocket {
     constructor() {
+        // 如果已经存在全局实例且不是热重载，直接返回该实例
+        if (globalWsInstance && !isHotReloading) {
+            return globalWsInstance;
+        }
+
         this.clientId = this.generateClientId();
         this.url = `ws://localhost:8081/websocket/alert?clientId=${this.clientId}`;
-        // 立即创建 WebSocket 实例
         this.ws = new WebSocket(this.url);
         
-        // 在构造函数中设置默认的事件处理器
+        // 设置基本事件处理器
+        this.setupEventHandlers();
+        
+        // 更新全局实例
+        globalWsInstance = this;
+        return this;
+    }
+
+    setupEventHandlers() {
         this.ws.onopen = () => {
             console.log('消息推送WebSocket连接成功，clientId:', this.clientId);
         };
@@ -17,13 +33,25 @@ export class AlertWebSocket {
         
         this.ws.onclose = () => {
             console.log('消息推送WebSocket连接关闭');
-            // 可以在这里实现重连逻辑
-            setTimeout(() => this.connect(), 5000);
+            // 只在非热重载情况下重连
+            if (!isHotReloading) {
+                setTimeout(() => this.connect(), 5000);
+            }
         };
         
         this.ws.onerror = (error) => {
             console.error('消息推送WebSocket错误:', error);
         };
+    }
+
+    // 静态方法用于处理热重载
+    static handleHotReload() {
+        isHotReloading = true;
+        if (globalWsInstance) {
+            globalWsInstance.disconnect();
+            globalWsInstance = null;
+        }
+        isHotReloading = false;
     }
 
     generateClientId() {
@@ -46,23 +74,7 @@ export class AlertWebSocket {
         this.ws = new WebSocket(this.url);
         
         // 重新绑定事件处理器
-        this.ws.onopen = () => {
-            console.log('消息推送WebSocket连接成功，clientId:', this.clientId);
-        };
-        
-        this.ws.onmessage = (event) => {
-            const alert = JSON.parse(event.data);
-            this.handleAlert(alert);
-        };
-        
-        this.ws.onclose = () => {
-            console.log('消息推送WebSocket连接关闭');
-            setTimeout(() => this.connect(), 5000);
-        };
-        
-        this.ws.onerror = (error) => {
-            console.error('消息推送WebSocket错误:', error);
-        };
+        this.setupEventHandlers();
     }
 
     handleAlert(alert) {
@@ -103,4 +115,11 @@ export class AlertWebSocket {
             this.ws = null;
         }
     }
+}
+
+// 添加热重载处理
+if (module.hot) {
+    module.hot.dispose(() => {
+        AlertWebSocket.handleHotReload();
+    });
 }
