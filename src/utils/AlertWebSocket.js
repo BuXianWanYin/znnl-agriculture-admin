@@ -1,14 +1,29 @@
+// 添加全局变量来追踪 WebSocket 实例
+let globalWsInstance = null;
+let isHotReloading = false;
+
 export class AlertWebSocket {
     constructor() {
-        this.ws = null;
-        this.url = `ws://localhost:8081/websocket/alert`;
-    }
+        // 如果已经存在全局实例且不是热重载，直接返回该实例
+        if (globalWsInstance && !isHotReloading) {
+            return globalWsInstance;
+        }
 
-    connect() {
+        this.clientId = this.generateClientId();
+        this.url = `ws://localhost:8081/websocket/alert?clientId=${this.clientId}`;
         this.ws = new WebSocket(this.url);
         
+        // 设置基本事件处理器
+        this.setupEventHandlers();
+        
+        // 更新全局实例
+        globalWsInstance = this;
+        return this;
+    }
+
+    setupEventHandlers() {
         this.ws.onopen = () => {
-            console.log('消息推送WebSocket连接成功');
+            console.log('消息推送WebSocket连接成功，clientId:', this.clientId);
         };
         
         this.ws.onmessage = (event) => {
@@ -18,13 +33,48 @@ export class AlertWebSocket {
         
         this.ws.onclose = () => {
             console.log('消息推送WebSocket连接关闭');
-            // 可以在这里实现重连逻辑
-            setTimeout(() => this.connect(), 5000);
+            // 只在非热重载情况下重连
+            if (!isHotReloading) {
+                setTimeout(() => this.connect(), 5000);
+            }
         };
         
         this.ws.onerror = (error) => {
             console.error('消息推送WebSocket错误:', error);
         };
+    }
+
+    // 静态方法用于处理热重载
+    static handleHotReload() {
+        isHotReloading = true;
+        if (globalWsInstance) {
+            globalWsInstance.disconnect();
+            globalWsInstance = null;
+        }
+        isHotReloading = false;
+    }
+
+    generateClientId() {
+        // 生成唯一的客户端ID，可以使用时间戳+随机数
+        return 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    connect() {
+        // 如果已经存在连接且连接是打开的，则不需要重新连接
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            return;
+        }
+        
+        // 如果存在旧连接，先关闭
+        if (this.ws) {
+            this.disconnect();
+        }
+
+        // 创建新的 WebSocket 连接
+        this.ws = new WebSocket(this.url);
+        
+        // 重新绑定事件处理器
+        this.setupEventHandlers();
     }
 
     handleAlert(alert) {
@@ -40,7 +90,6 @@ export class AlertWebSocket {
 
     handleSeriousAlert(alert) {
         // 实现严重警告的UI处理逻辑
-        // 例如：显示红色弹窗、播放警报声等
         notification.error({
             message: '严重警告',
             description: alert.alertMessage,
@@ -53,7 +102,6 @@ export class AlertWebSocket {
 
     handleWarning(alert) {
         // 实现普通预警的UI处理逻辑
-        // 例如：显示黄色提示等
         notification.warning({
             message: '预警提示',
             description: alert.alertMessage,
@@ -64,6 +112,14 @@ export class AlertWebSocket {
     disconnect() {
         if (this.ws) {
             this.ws.close();
+            this.ws = null;
         }
     }
+}
+
+// 添加热重载处理
+if (module.hot) {
+    module.hot.dispose(() => {
+        AlertWebSocket.handleHotReload();
+    });
 }

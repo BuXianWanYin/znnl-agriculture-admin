@@ -147,48 +147,59 @@ import { botAiVoicepath, botAiMessage, botAiHistory } from '@/api/bot/botai'
 import { AlertWebSocket } from '@/utils/AlertWebSocket'
 import { Notification } from 'element-ui';
 
+// 在组件外部创建单例
+let alertWsInstance = null;
+let wsConnected = false;
+
 export default {
   name: 'AUDia',
   data() {
     return {
-      showDia: false,
-      isListening: false,
-      isChatListening: false,
-      isHovering: false,
-      diaInstance: null,
-      theme: {
+      showDia: false,         // 控制机器人整体显示/隐藏
+      isListening: false,     // 语音识别状态标志
+      isChatListening: false, // 聊天窗口语音识别状态
+      isHovering: false,      // 鼠标悬停状态
+      diaInstance: null,      // Aurora-Dia 实例
+      theme: {               // 主题配置
         gradient: {
-          color_1: '#8f41e9',
-          color_2: '#578cef',
-          color_3: '#7aa2f7'
+          color_1: '#8f41e9', // 渐变色1
+          color_2: '#578cef', // 渐变色2
+          color_3: '#7aa2f7'  // 渐变色3
         },
-        header_gradient_css: 'linear-gradient(130deg, #8f41e9 10%, #578cef 100%)'
+        header_gradient_css: 'linear-gradient(130deg, #8f41e9 10%, #578cef 100%)' // 头部渐变样式
       },
-      eyesAnimationTimer: null,
-      isInputListening: false,
-      userInput: '',
-      showChat: false,
-      messages: [],
-      userId: '',
-      isLoadingHistory: false,
-      previewImage: null,
-      imageBlob: null,
-      showBot: true,
-      isLeftSide: false,
-      alertWs: null,
+      eyesAnimationTimer: null, // 眼睛动画定时器
+      isInputListening: false,  // 输入框语音识别状态
+      userInput: '',           // 用户输入内容
+      showChat: false,         // 聊天窗口显示状态
+      messages: [],            // 聊天消息数组
+      userId: '',              // 用户ID
+      isLoadingHistory: false, // 历史记录加载状态
+      previewImage: null,      // 图片预览URL
+      imageBlob: null,         // 图片二进制数据
+      showBot: true,          // 机器人显示状态
+      isLeftSide: false,      // 左侧显示状态
+      alertWs: null,          // WebSocket实例
+      isShowingAlert: false,  // 警告显示状态
+      themeTransition: {      // 主题过渡颜色
+        color_1: '#8f41e9',
+        color_2: '#578cef',
+        color_3: '#7aa2f7'
+      },
+      wsInitialized: false,   // WebSocket初始化状态
     }
   },
 
   computed: {
     cssVariables() {
       return `
-        --aurora-dia--linear-gradient: ${this.theme.header_gradient_css};
+        --aurora-dia--linear-gradient: linear-gradient(130deg, ${this.themeTransition.color_1} 10%, ${this.themeTransition.color_2} 100%);
         --aurora-dia--linear-gradient-hover: linear-gradient(
           to bottom,
-          ${this.theme.gradient.color_2},
-          ${this.theme.gradient.color_3}
+          ${this.themeTransition.color_2},
+          ${this.themeTransition.color_3}
         );
-        --aurora-dia--platform-light: ${this.theme.gradient.color_3};
+        --aurora-dia--platform-light: ${this.themeTransition.color_3};
       `
     },
     shouldShowDiaElements() {
@@ -228,62 +239,82 @@ export default {
         }
       },
       immediate: false
+    },
+    '$route'() {
+      if (!wsConnected && !this.wsInitialized) {
+        this.initAlertWebSocket();
+      }
     }
   },
 
   mounted() {
-    this.initializeBot()
-    this.activateMotion()
-    // 获取用户ID
-    this.userId = 1
-    // 加载历史记录
+    this.initializeBot()      // 初始化机器人
+    this.activateMotion()     // 激活运动效果
+    this.userId = 1           // 设置用户ID
+    
+    // 如果有用户ID则加载聊天历史
     if (this.userId) {
       this.loadChatHistory()
     }
     
-    // 初始化 AlertWebSocket 连接
-    this.initAlertWebSocket()
+    // 只在未初始化时创建WebSocket连接
+    if (!this.wsInitialized) {
+      this.initAlertWebSocket()
+    }
   },
 
   beforeDestroy() {
-    // 组件销毁前断开 WebSocket 连接
-    if (this.alertWs) {
-      this.alertWs.disconnect()
+    // 只在非热重载环境下断开连接
+    if (!module.hot) {
+        this.disconnectWebSocket();
     }
   },
 
   methods: {
+    // 断开WebSocket连接
+    disconnectWebSocket() {
+      if (alertWsInstance) {
+        alertWsInstance.disconnect();
+        alertWsInstance = null;
+        wsConnected = false;
+        this.wsInitialized = false;
+      }
+    },
+
+    // 初始化机器人
     initializeBot() {
       try {
         // 延迟1秒执行初始化，确保DOM已完全加载
         setTimeout(() => {
-          // 显示机器人
-          this.showDia = true
-          // 创建AuroraDia实例
+          this.showDia = true // 显示机器人
+          
+          // 创建AuroraDia实例并配置
           this.diaInstance = new AuroraDia()
-          // 安装机器人软件，配置基本参数
           this.diaInstance.installSoftware({
             locale: 'zh-CN',
             containerId: 'Aurora-Dia--tips-wrapper',
-            messageId: 'Aurora-Dia--tips'
+            messageId: 'Aurora-Dia--tips',
+            onMessage: (message) => {
+              // 如果正在显示警告，则不显示其他消息
+              if (this.isShowingAlert) {
+                return false
+              }
+              return true
+            }
           })
+          
           // 启动机器人
           this.diaInstance.on()
 
           // 设置录音结束的回调函数
           this.diaInstance.onRecordingEnd((text, isChat, isAIResponse, isTyping = false) => {
-            // 判断是否是聊天模式
             if (isChat) {
-              // 判断是否需要打字机效果
               if (isTyping) {
                 // 将识别的文本显示在输入框中
                 this.userInput = text;
-                // 等待DOM更新后调整输入框高度
                 this.$nextTick(() => {
-                  // 获取输入框元素
                   const textarea = document.querySelector('.input-area')
                   if (textarea) {
-                    // 调整输入框高度
                     this.adjustTextareaHeight({ target: textarea })
                   }
                 });
@@ -302,7 +333,7 @@ export default {
                     text: text
                   });
                 }
-                // 等待DOM更新后滚动到底部
+                // 滚动到底部
                 this.$nextTick(() => {
                   if (this.$refs.messagesContainer) {
                     this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
@@ -313,21 +344,24 @@ export default {
           })
         }, 1000)
       } catch (error) {
-        // 捕获并打印初始化过程中的错误
         console.error('初始化机器人失败:', error)
       }
     },
 
+    // 处理悬停效果
     handleVoiceBtnHover(hovering) {
+      // 如果不在录音状态，更新悬停状态
       if (!this.isListening) {
         this.isHovering = hovering
       }
 
+      // 处理悬停效果的DOM元素
       if (!hovering && !document.querySelector('.Aurora-Dia:hover')) {
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
 
+        // 移除悬停效果
         diaElement.classList.remove('hover-effect')
         if (platform) platform.classList.remove('hover-effect')
         if (topPlatform) topPlatform.classList.remove('hover-effect')
@@ -336,6 +370,7 @@ export default {
           this.handleClick()
         }
       } else if (hovering) {
+        // 添加悬停效果
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
@@ -346,6 +381,7 @@ export default {
       }
     },
 
+    // 处理机器人主体的悬停效果
     handleDiaHover(hovering) {
       if (!hovering) {
         if (!document.querySelector('.voice-btn:hover')) {
@@ -354,6 +390,7 @@ export default {
           const platform = document.querySelector('.Aurora-Dia--platform')
           const topPlatform = document.querySelector('.Aurora-Dia--platform.top')
 
+          // 移除悬停效果
           diaElement.classList.remove('hover-effect')
           if (platform) platform.classList.remove('hover-effect')
           if (topPlatform) topPlatform.classList.remove('hover-effect')
@@ -363,6 +400,7 @@ export default {
           }
         }
       } else {
+        // 添加悬停效果
         this.isHovering = true
         const diaElement = document.querySelector('.Aurora-Dia')
         const platform = document.querySelector('.Aurora-Dia--platform')
@@ -384,10 +422,8 @@ export default {
         if (isChatMode ? !this.isChatListening : !this.isListening) {
           // 根据模式设置相应的录音状态
           if (isChatMode) {
-            // 设置聊天窗口的录音状态为true
             this.isChatListening = true
           } else {
-            // 设置普通模式的录音状态为true
             this.isListening = true
           }
 
@@ -396,21 +432,17 @@ export default {
 
           // 设置录音结束后的回调函数
           this.diaInstance.onRecordingEnd((text, isChat, isAIResponse, shouldUpdate = false) => {
-            // 判断是否为聊天模式
             if (isChat) {
-              // 判断是否为AI的响应
               if (isAIResponse) {
-                // 判断是否需要更新已有消息
                 if (shouldUpdate) {
-                  // 查找最后一条机器人消息
+                  // 更新最后一条机器人消息
                   const lastBotMessage = this.messages.findLast(msg => msg.type === 'bot');
                   if (lastBotMessage) {
-                    // 更新最后一条机器人消息的内容
                     lastBotMessage.text = text;
                     this.scrollToBottom();
                   }
                 } else {
-                  // 添加新的机器人消息到消息列表
+                  // 添加新的机器人消息
                   this.messages.push({
                     type: 'bot',
                     text: text
@@ -419,19 +451,15 @@ export default {
                 }
               } else {
                 // 处理用户的语音输入
-                // 将识别的文本设置到输入框
                 this.userInput = text;
-                // 等待DOM更新后调整输入框高度
                 this.$nextTick(() => {
-                  // 获取输入框元素
                   const textarea = document.querySelector('.input-area')
                   if (textarea) {
-                    // 调整输入框高度
                     this.adjustTextareaHeight({ target: textarea })
                   }
                 });
               }
-              // 等待DOM更新后滚动到消息列表底部
+              // 滚动到消息列表底部
               this.$nextTick(() => {
                 if (this.$refs.messagesContainer) {
                   this.$refs.messagesContainer.scrollTop = this.$refs.messagesContainer.scrollHeight;
@@ -443,30 +471,27 @@ export default {
         } else {
           // 如果已经在录音，则停止录音
           await this.diaInstance.stopListening(isChatMode)
-          // 根据模式重置相应的录音状态
+          // 重置录音状态
           if (isChatMode) {
-            // 重置聊天窗口的录音状态
             this.isChatListening = false
           } else {
-            // 重置普通模式的录音状态
             this.isListening = false
           }
         }
       } catch (error) {
-        // 捕获并打印录音过程中的错误
         console.error('录音操作失败:', error)
         // 发生错误时重置录音状态
         if (isChatMode) {
-          // 重置聊天窗口的录音状态
           this.isChatListening = false
         } else {
-          // 重置普通模式的录音状态
           this.isListening = false
         }
       }
     },
 
+    // 激活机器人的运动效果
     activateMotion() {
+      // 获取眼睛和身体相关的DOM元素
       const leftEye = document.getElementById('Aurora-Dia--left-eye')
       const rightEye = document.getElementById('Aurora-Dia--right-eye')
       const eyesEl = document.getElementById('Aurora-Dia--eyes')
@@ -475,6 +500,7 @@ export default {
       if (leftEye && rightEye && eyesEl && diaBody) {
         let rafId = null
 
+        // 添加鼠标移动事件监听
         document.addEventListener('mousemove', evt => {
           if (rafId) {
             cancelAnimationFrame(rafId)
@@ -484,22 +510,26 @@ export default {
             clearTimeout(this.eyesAnimationTimer)
             eyesEl.classList.add('moving')
 
+            // 计算视口尺寸和中心点
             const viewportWidth = window.innerWidth
             const viewportHeight = window.innerHeight
-
             const diaRect = diaBody.getBoundingClientRect()
             const diaCenterX = diaRect.left + diaRect.width / 2
             const diaCenterY = diaRect.top + diaRect.height / 2
 
+            // 计算鼠标位置相对于中心点的偏移
             const deltaX = evt.clientX - diaCenterX
             const deltaY = evt.clientY - diaCenterY
 
+            // 计算最大可能移动距离
             const maxPossibleX = Math.max(diaCenterX, viewportWidth - diaCenterX)
             const maxPossibleY = Math.max(diaCenterY, viewportHeight - diaCenterY)
 
+            // 计算移动比例
             const ratioX = Math.abs(deltaX) / maxPossibleX
             const ratioY = Math.abs(deltaY) / maxPossibleY
 
+            // 计算身体和眼睛的移动距离
             const maxMoveBody = 15
             const bodyX = Math.sign(deltaX) * maxMoveBody * ratioX
             const bodyY = Math.sign(deltaY) * maxMoveBody * ratioY
@@ -508,6 +538,7 @@ export default {
             const eyesX = Math.sign(deltaX) * maxMoveEyes * ratioX
             const eyesY = Math.sign(deltaY) * maxMoveEyes * ratioY
 
+            // 应用变换
             diaBody.style.transform = `translate(${bodyX}px, ${bodyY}px)`
 
             const relativeX = eyesX - bodyX
@@ -515,6 +546,7 @@ export default {
             leftEye.style.transform = `translate(${relativeX}px, ${relativeY}px)`
             rightEye.style.transform = `translate(${relativeX}px, ${relativeY}px)`
 
+            // 设置定时器，3秒后重置位置
             this.eyesAnimationTimer = setTimeout(() => {
               diaBody.style.transform = 'translate(0, 0)'
               leftEye.style.transform = 'translate(0, 0)'
@@ -526,10 +558,9 @@ export default {
       }
     },
 
+    // 处理输入框语音识别
     handleInputVoice() {
-      // 切换输入框语音识别状态
       this.isInputListening = !this.isInputListening
-      // 触发点击事件
       this.handleClick()
     },
 
@@ -557,8 +588,6 @@ export default {
       try {
         const formData = new FormData()
         formData.append('timestamp', formattedTimestamp)
-
-
         formData.append('text', processedText) // 使用处理后的文本
 
         const response = await botAiVoicepath(formData)
@@ -583,14 +612,13 @@ export default {
       }
     },
 
-    // 修改加载历史记录的方法，处理 create_time 字段
+    // 加载历史聊天记录
     async loadChatHistory() {
       if (this.isLoadingHistory) return
 
       this.isLoadingHistory = true
       try {
         const response = await botAiHistory(this.userId)
-
         const history = response
 
         // 输出原始历史记录数据
@@ -604,11 +632,8 @@ export default {
             timestamp: msg.createTime ? new Date(msg.createTime).getTime() :
                      (typeof msg.timestamp === 'number' ? msg.timestamp : new Date().getTime())
           }
-
           return convertedMsg
         })
-
-
       } catch (error) {
         console.error('加载聊天历史失败:', error)
       } finally {
@@ -616,7 +641,7 @@ export default {
       }
     },
 
-    // 修改保存消息的方法，使用后端返回的 create_time
+    // 保存聊天消息到后端
     async saveChatMessage(message) {
       try {
         const messageData = {
@@ -638,14 +663,14 @@ export default {
       }
     },
 
-    // 添加将 URL 转换为 Blob 的方法
+    // 将URL转换为Blob对象
     async urlToBlob(url) {
       const response = await fetch(url);
       const blob = await response.blob();
       return blob;
     },
 
-    // 修改发送消息方法
+    // 发送消息
     async sendMessage() {
       if (!this.userInput.trim() && !this.previewImage) return;
 
@@ -692,7 +717,7 @@ export default {
         // 保存用户消息
         await this.saveChatMessage(userMessage);
 
-        // 现在才清空输入框和图片数据
+        // 清空输入框和图片数据
         this.userInput = '';
         this.previewImage = null;
         this.imageBlob = null;
@@ -702,6 +727,7 @@ export default {
           formData.append('file', currentImageBlob, 'image.jpg');
         }
 
+        // 发送请求到AI服务器
         const response = await fetch('http://192.168.1.153:8081/ai/chatVLStream', {
           method: 'POST',
           body: formData
@@ -711,6 +737,7 @@ export default {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
+        // 处理流式响应
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let fullMessage = '';
@@ -722,11 +749,11 @@ export default {
             // 更新最终消息
             botMessage.text = this.formatMessageWithTypingEffect(fullMessage);
             await this.saveChatMessage(botMessage);
-            // 确保最终消息显示后也滚动到底部
             await this.scrollToBottom();
             break;
           }
 
+          // 处理每个数据块
           const chunk = decoder.decode(value, { stream: true });
           const lines = chunk.split('\n');
 
@@ -740,7 +767,6 @@ export default {
               const jsonData = JSON.parse(jsonStr);
               if (jsonData && typeof jsonData.response === 'string') {
                 fullMessage += jsonData.response;
-                // 更新消息时滚动到底部
                 botMessage.text = this.formatMessageWithTypingEffect(fullMessage);
                 await this.scrollToBottom();
               }
@@ -755,18 +781,19 @@ export default {
         console.error('发送消息失败:', error);
         if (botMessage) {
           botMessage.text = error.message || '发送失败，请重试';
-          await this.scrollToBottom(); // 错误消息也需要滚动到底部
+          await this.scrollToBottom();
         }
         this.$message.error(error.message || '发送失败，请重试');
       }
     },
 
-    // 修改 scrollToBottom 方法为异步方法
+    // 异步滚动到底部方法
     async scrollToBottom() {
       return new Promise(resolve => {
         this.$nextTick(() => {
           if (this.$refs.messagesContainer) {
             const container = this.$refs.messagesContainer;
+            // 创建滚动动画
             const scrollAnimation = container.animate([
               { scrollTop: container.scrollTop },
               { scrollTop: container.scrollHeight }
@@ -786,23 +813,28 @@ export default {
       });
     },
 
+    // 调整文本框高度
     adjustTextareaHeight(e) {
       const textarea = e.target
 
       textarea.style.height = '24px'
-
       const scrollHeight = textarea.scrollHeight
 
+      // 如果文本框为空，重置高度
       if (!textarea.value.trim()) {
         textarea.style.height = '24px'
         return
       }
 
+      // 设置文本框高度，最大100px
       textarea.style.height = Math.min(scrollHeight, 100) + 'px'
 
+      // 如果内容超出100px，处理滚动位置
       if (scrollHeight > 100) {
         const cursorPosition = textarea.selectionStart
         const textBeforeCursor = textarea.value.substring(0, cursorPosition)
+        
+        // 创建临时文本框计算光标位置
         const dummyElement = document.createElement('textarea')
         dummyElement.style.cssText = window.getComputedStyle(textarea).cssText
         dummyElement.style.height = 'auto'
@@ -814,13 +846,16 @@ export default {
         const cursorOffset = dummyElement.scrollHeight
         document.body.removeChild(dummyElement)
 
+        // 调整滚动位置
         const scrollOffset = Math.max(0, cursorOffset - 90)
         textarea.scrollTop = scrollOffset
       }
     },
 
+    // 处理回车键按下事件
     handleEnterPress(e) {
       if (e.shiftKey) {
+        // Shift+Enter 插入换行
         e.preventDefault()
         const textarea = e.target
         const start = textarea.selectionStart
@@ -835,19 +870,23 @@ export default {
           textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px'
         })
       } else {
+        // 直接回车发送消息
         e.preventDefault()
         this.sendMessage()
       }
     },
 
+    // 处理聊天窗口语音按钮点击
     handleChatVoiceClick() {
       this.handleVoiceRecognition(true)
     },
 
+    // 处理主界面语音按钮点击
     handleVoiceClick() {
       this.handleVoiceRecognition(false)
     },
 
+    // 切换聊天窗口显示状态
     toggleChat() {
       this.showChat = !this.showChat;
       this.userInput = '';
@@ -858,6 +897,7 @@ export default {
       }
 
       if (!this.showChat) {
+        // 隐藏聊天窗口时恢复机器人显示
         const diaBody = document.getElementById('Aurora-Dia--body')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const voiceBtn = document.querySelector('.voice-btn')
@@ -868,10 +908,12 @@ export default {
       }
     },
 
+    // 处理机器人点击事件
     handleDiaClick() {
       this.showChat = true;
       this.userInput = '';
 
+      // 隐藏机器人相关元素
       const diaBody = document.getElementById('Aurora-Dia--body')
       const platform = document.querySelector('.Aurora-Dia--platform')
       const voiceBtn = document.querySelector('.voice-btn')
@@ -884,7 +926,7 @@ export default {
       this.scrollToBottom();
     },
 
-    // 修改判断是否显示时间戳的方法
+    // 判断是否显示时间戳
     shouldShowTimestamp(currentMsg, index) {
       if (index === 0) return true;
 
@@ -896,7 +938,7 @@ export default {
       return currentTime - prevTime > 300000;
     },
 
-    // 修改格式化时间显示的方法
+    // 格式化消息时间显示
     formatMessageTime(timestamp) {
       // 确保timestamp是数字类型
       if (typeof timestamp !== 'number') {
@@ -1139,96 +1181,194 @@ export default {
 
     // 初始化 AlertWebSocket
     initAlertWebSocket() {
+      if (wsConnected || this.isLoginPage) {
+        return;
+      }
+
       try {
-        this.alertWs = new AlertWebSocket()
+        // 如果是热重载，确保旧连接被清理
+        if (module.hot && alertWsInstance) {
+          this.disconnectWebSocket();
+        }
+
+        alertWsInstance = new AlertWebSocket();
         
-        // 重写 handleSeriousAlert 方法
-        this.alertWs.handleSeriousAlert = (alert) => {
-          // 设置报警主题
-          this.theme = {
+        const componentInstance = this;
+        
+        // 重写警告处理方法
+        alertWsInstance.handleSeriousAlert = function(alert) {
+          // 立即更新状态
+          componentInstance.isShowingAlert = true;
+          
+          // 立即开始颜色过渡
+          const newTheme = {
             gradient: {
               color_1: '#CD0000',
               color_2: '#FF4444',
               color_3: '#FF6666'
-            },
-            header_gradient_css: 'linear-gradient(130deg, #CD0000 10%, #FF4444 100%)'
-          }
+            } 
+          };
+          componentInstance.updateThemeWithTransition(newTheme);
           
-          // 在提示框中显示警告
-          const tipsElement = document.getElementById('Aurora-Dia--tips')
+          const tipsElement = document.getElementById('Aurora-Dia--tips');
           if (tipsElement) {
-            tipsElement.innerHTML = `⚠️ 严重警告：${alert.alertMessage}`
-            // 5秒后恢复默认提示
+            tipsElement.innerHTML = `⚠️ 严重警告：${alert.alertMessage}`;
+            
             setTimeout(() => {
-              tipsElement.innerHTML = '你好呀～'
-              // 恢复默认主题
-              this.theme = {
+              const defaultTheme = {
                 gradient: {
                   color_1: '#8f41e9',
                   color_2: '#578cef',
                   color_3: '#7aa2f7'
-                },
-                header_gradient_css: 'linear-gradient(130deg, #8f41e9 10%, #578cef 100%)'
-              }
-            }, 5000)
+                }
+              };
+              componentInstance.updateThemeWithTransition(defaultTheme);
+              
+              setTimeout(() => {
+                componentInstance.isShowingAlert = false;
+                tipsElement.innerHTML = '你好呀～';
+              }, 100);
+            }, 15000);
           }
           
-          // 使用 Element UI 的 Notification
-          Notification({
+          componentInstance.$notify({
             title: '严重警告',
             message: alert.alertMessage,
             type: 'error',
-            duration: 5000,
+            showClose: false,
+            duration: 15000,
             position: 'top-right'
-          })
-        }
+          });
+        };
         
-        // 重写 handleWarning 方法
-        this.alertWs.handleWarning = (alert) => {
-          // 设置警告主题
-          this.theme = {
+        alertWsInstance.handleWarning = function(alert) {
+          componentInstance.isShowingAlert = true;
+          
+          const newTheme = {
             gradient: {
               color_1: '#FF8C00',
               color_2: '#FFA500',
               color_3: '#FFD700'
-            },
-            header_gradient_css: 'linear-gradient(130deg, #FF8C00 10%, #FFA500 100%)'
-          }
+            }
+          };
+          componentInstance.updateThemeWithTransition(newTheme);
           
-          // 在提示框中显示警告
-          const tipsElement = document.getElementById('Aurora-Dia--tips')
+          const tipsElement = document.getElementById('Aurora-Dia--tips');
           if (tipsElement) {
-            tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`
-            // 5秒后恢复默认提示
+            tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`;
+            
             setTimeout(() => {
-              tipsElement.innerHTML = '你好呀～'
-              // 恢复默认主题
-              this.theme = {
+              const defaultTheme = {
                 gradient: {
                   color_1: '#8f41e9',
                   color_2: '#578cef',
                   color_3: '#7aa2f7'
-                },
-                header_gradient_css: 'linear-gradient(130deg, #8f41e9 10%, #578cef 100%)'
-              }
-            }, 5000)
+                }
+              };
+              componentInstance.updateThemeWithTransition(defaultTheme);
+              
+              setTimeout(() => {
+                componentInstance.isShowingAlert = false;
+                tipsElement.innerHTML = '你好呀～';
+              }, 100);
+            }, 15000);
           }
           
-          // 使用 Element UI 的 Notification
-          Notification({
+          componentInstance.$notify({
             title: '预警提示',
             message: alert.alertMessage,
             type: 'warning',
-            duration: 5000
-          })
-        }
+            showClose: false,
+            duration: 15000
+          });
+        };
+
+        // 添加连接状态监听
+        const originalWsOnopen = alertWsInstance.ws.onopen;
+        alertWsInstance.ws.onopen = function(event) {
+          wsConnected = true;
+          componentInstance.wsInitialized = true;
+          if (originalWsOnopen) {
+            originalWsOnopen.call(this, event);
+          }
+        };
+
+        const originalWsOnclose = alertWsInstance.ws.onclose;
+        alertWsInstance.ws.onclose = function(event) {
+          wsConnected = false;
+          componentInstance.wsInitialized = false;
+          if (originalWsOnclose) {
+            originalWsOnclose.call(this, event);
+          }
+        };
         
-        // 建立连接
-        this.alertWs.connect()
+        this.alertWs = alertWsInstance;
         
       } catch (error) {
-        console.error('初始化 AlertWebSocket 失败:', error)
+        console.error('初始化 AlertWebSocket 失败:', error);
+        this.disconnectWebSocket();
       }
+    },
+
+    // 更新主题过渡方法
+    async updateThemeWithTransition(newTheme) {
+      const startColors = {
+        color_1: this.themeTransition.color_1,
+        color_2: this.themeTransition.color_2,
+        color_3: this.themeTransition.color_3
+      }
+      
+      const endColors = {
+        color_1: newTheme.gradient.color_1,
+        color_2: newTheme.gradient.color_2,
+        color_3: newTheme.gradient.color_3
+      }
+
+      const startTime = performance.now()
+      const duration = 3000 // 改为3秒的颜色过渡时间
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime
+        const progress = Math.min(elapsed / duration, 1)
+
+        // 使用更快的缓动函数
+        const easing = t => 1 - Math.pow(1 - t, 3)
+
+        // 计算当前颜色
+        Object.keys(startColors).forEach(key => {
+          const start = this.hexToRgb(startColors[key])
+          const end = this.hexToRgb(endColors[key])
+          const current = {
+            r: Math.round(start.r + (end.r - start.r) * easing(progress)),
+            g: Math.round(start.g + (end.g - start.g) * easing(progress)),
+            b: Math.round(start.b + (end.b - start.b) * easing(progress))
+          }
+          this.themeTransition[key] = this.rgbToHex(current)
+        })
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        }
+      }
+
+      requestAnimationFrame(animate)
+    },
+
+    // 添加颜色转换辅助方法
+    hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null
+    },
+
+    rgbToHex(rgb) {
+      return '#' + ['r', 'g', 'b'].map(key => {
+        const hex = rgb[key].toString(16)
+        return hex.length === 1 ? '0' + hex : hex
+      }).join('')
     },
   }
 }
