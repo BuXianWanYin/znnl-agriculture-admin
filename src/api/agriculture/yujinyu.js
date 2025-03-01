@@ -7,3 +7,13 @@ export function listByPastureType(pastureType) {
     method: 'get'
   })
 }
+
+// 修改预警信息状态
+export function updateBaseinfo(data) {
+  return request({
+    url: '/agriculture/alert',
+    method: 'put',
+    data: data
+  })
+}
+
