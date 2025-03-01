@@ -157,10 +157,35 @@
                     <data-panel 
                         title="溯源统计" 
                         more="更多溯源" 
-                        @click.native="handleMoreClick">
+                        :moreLink="'http://192.168.1.153:81/originIndex'">
                         <div class="main main-large">
-                            <!-- 添加样式确保容器有高度 -->
-                            <div ref="indexDeviceMonitorChart" class="h100" style="min-height: 300px;"></div>
+                            <div class="trace-header">
+                                <div class="time-range-selector">
+                                    <div class="time-range-tabs">
+                                        <div 
+                                            v-for="tab in timeTabs" 
+                                            :key="tab.value"
+                                            :class="['time-tab', { active: timeRange === tab.value }]"
+                                            @click="handleTimeRangeChange(tab.value)"
+                                        >
+                                            {{ tab.label }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="trace-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ totalTraces }}</div>
+                                        <div class="stat-label">总溯源次数</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-value">{{ currentPeriodTraces }}</div>
+                                        <div class="stat-label">{{ timeRangeLabel }}溯源次数</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="trace-chart-container">
+                                <div ref="indexDeviceMonitorChart" class="trace-chart"></div>
+                            </div>
                         </div>
                     </data-panel>
                 </el-col>
@@ -355,7 +380,18 @@
                 fishStatusData: [],
                 fishCurrentPage: 1,
                 fishPageSize: 10,
-                fishTotal: 0
+                fishTotal: 0,
+                timeRange: 'week', // 修改默认值为'week'而不是'month'
+                traceabilityData: {
+                    week: { agriculture: [], fish: [] },
+                    month: { agriculture: [], fish: [] },
+                    year: { agriculture: [], fish: [] }
+                },
+                timeTabs: [
+                    { label: '本周', value: 'week' },
+                    { label: '本月', value: 'month' },
+                    { label: '本年', value: 'year' }
+                ],
             };
         },
         computed: {
@@ -369,6 +405,24 @@
                     ? this.fishStatusData[0].dateTime
                     : '--'
             },
+            timeRangeLabel() {
+                const labels = {
+                    week: '本周',
+                    month: '本月',
+                    year: '本年'
+                };
+                return labels[this.timeRange];
+            },
+            totalTraces() {
+                const data = this.traceabilityData[this.timeRange];
+                return data.agriculture.reduce((a, b) => a + b, 0) + 
+                       data.fish.reduce((a, b) => a + b, 0);
+            },
+            currentPeriodTraces() {
+                const data = this.traceabilityData[this.timeRange];
+                return data.agriculture.reduce((a, b) => a + b, 0) + 
+                       data.fish.reduce((a, b) => a + b, 0);
+            }
         },
         async mounted() {
             // await this.getBaseInfo();
@@ -492,105 +546,20 @@
             /** 获取首页统计数据 */
             async getDate() {
                 // 修改获取溯源记录的部分
-                this.$http.get("/dev-api/iaPartitionFoodSensorValue/getAgricultureTraceRecord")
-                    .then((res) => {
-                        const data = res.data.data.data;
-                        // 检查数据结构 - 根据实际返回的数据结构调整
-                        if (!Array.isArray(data)) {
-                            console.error("Invalid data format", res);
-                            return;
-                        }
-
-                        // 初始化月度数据对象
-                        const monthlyData = {};
-                        for (let i = 1; i <= 12; i++) {
-                            monthlyData[i] = {
-                                agriculture: 0,
-                                fish: 0
-                            };
-                        }
-
-                        // 处理数据
-                        data.forEach(item => {
-                            if (!item.queryDate) return;
-                            
-                            // 处理时间戳
-                            const date = new Date(Number(item.queryDate));
-                            if (isNaN(date.getTime())) {
-                                console.error("Invalid date:", item.queryDate);
-                                return;
-                            }
-                            
-                            const month = date.getMonth() + 1;
-                            
-                            // 检查type值
-                            const type = item.type === "0" ? 0 : item.type === "1" ? 1 : null;
-                            if (type === null) {
-                                console.error("Invalid type:", item.type);
-                                return;
-                            }
-
-                            if (type === 0) {
-                                monthlyData[month].agriculture++;
-                            } else if (type === 1) {
-                                monthlyData[month].fish++;
-                            }
-                        });
-                        // 准备图表数据
-                        const months = Array.from({length: 12}, (_, i) => `${i + 1}月`);
-                        const agricultureData = Object.values(monthlyData).map(d => d.agriculture);
-                        const fishData = Object.values(monthlyData).map(d => d.fish);
-
-                        // 确保 DOM 已经准备好
-                        this.$nextTick(() => {
-                            const chartDom = this.$refs.indexDeviceMonitorChart;
-                            if (chartDom) {
-                                try {
-                                    // 初始化图表
-                                    const chart = lineChart(
-                                        chartDom,
-                                        {
-                                            text: '溯源统计',
-                                            fontSize: 14,
-                                            color: '#666'
-                                        },
-                                        '',
-                                        null,
-                                        months,
-                                        [
-                                            {
-                                                name: '农产品',
-                                                type: 'line',
-                                                data: agricultureData,
-                                                itemStyle: {
-                                                    color: '#91cc75'
-                                                }
-                                            },
-                                            {
-                                                name: '水产品',
-                                                type: 'line',
-                                                data: fishData,
-                                                itemStyle: {
-                                                    color: '#5470c6'
-                                                }
-                                            }
-                                        ]
-                                    );
-
-                                    if (chart) {
-                                        console.log("图表初始化成功");
-                                    }
-                                } catch (error) {
-                                    console.error("图表初始化失败:", error);
-                                }
-                            } else {
-                                console.error("图表容器未找到");
-                            }
-                        });
-                    })
-                    .catch((error) => {
-                        console.error("请求失败:", error);
+                try {
+                    const res = await this.$http.get("/dev-api/iaPartitionFoodSensorValue/getAgricultureTraceRecord");
+                    const rawData = res.data.data.data;
+                    
+                    // 处理数据按不同时间范围分类
+                    this.processTraceabilityData(rawData);
+                    
+                    // 初始化图表
+                    this.$nextTick(() => {
+                        this.updateTraceabilityChart();
                     });
+                } catch (error) {
+                    console.error("获取溯源数据失败:", error);
+                }
 
                 //蔬菜基地信息
                 const res = await selectBaseInfo()
@@ -842,6 +811,261 @@
             },
             handleMoreClick() {
                 window.open('http://192.168.1.153:81/originIndex', '_blank');
+            },
+            // 添加新的方法用于处理数据
+            processTraceabilityData(rawData) {
+                // 确保 rawData 存在且是数组
+                if (!Array.isArray(rawData)) {
+                    console.error('Invalid rawData:', rawData);
+                    return;
+                }
+
+                const now = new Date();
+                const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+                // 初始化数据结构
+                this.traceabilityData = {
+                    week: this.initWeekData(),
+                    month: this.initMonthData(),
+                    year: this.initYearData()
+                };
+
+                rawData.forEach(item => {
+                    if (!item.queryDate) return;
+                    
+                    const date = new Date(Number(item.queryDate));
+                    if (isNaN(date.getTime())) {
+                        console.error('Invalid date:', item.queryDate);
+                        return;
+                    }
+
+                    const type = item.type === "0" ? 'agriculture' : 'fish';
+
+                    // 处理周数据
+                    if (date >= startOfWeek) {
+                        let dayIndex = (date.getDay() + 6) % 7; // 将周一设为0，周日设为6
+                        this.traceabilityData.week[type][dayIndex]++;
+                    }
+
+                    // 处理月数据
+                    if (date >= startOfMonth) {
+                        const dayOfMonth = date.getDate() - 1;
+                        this.traceabilityData.month[type][dayOfMonth]++;
+                    }
+
+                    // 处理年数据
+                    if (date >= startOfYear) {
+                        const month = date.getMonth();
+                        this.traceabilityData.year[type][month]++;
+                    }
+                });
+            },
+
+            // 初始化周数据结构
+            initWeekData() {
+                return {
+                    agriculture: new Array(7).fill(0),
+                    fish: new Array(7).fill(0)
+                };
+            },
+
+            // 初始化月数据结构
+            initMonthData() {
+                return {
+                    agriculture: new Array(31).fill(0),
+                    fish: new Array(31).fill(0)
+                };
+            },
+
+            // 初始化年数据结构
+            initYearData() {
+                return {
+                    agriculture: new Array(12).fill(0),
+                    fish: new Array(12).fill(0)
+                };
+            },
+
+            // 更新图表的方法
+            updateTraceabilityChart() {
+                const chartDom = this.$refs.indexDeviceMonitorChart;
+                if (!chartDom) return;
+
+                let xAxisData, seriesData, maxValue;
+
+                switch(this.timeRange) {
+                    case 'week':
+                        xAxisData = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+                        seriesData = this.traceabilityData.week;
+                        maxValue = 100; // 周维度最大值设为20
+                        break;
+                    case 'month':
+                        xAxisData = Array.from({length: 31}, (_, i) => `${i + 1} 天`);
+                        seriesData = this.traceabilityData.month; 
+                        maxValue = 1000; // 月维度最大值设为50
+                        break;
+                    case 'year':
+                        xAxisData = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+                        seriesData = this.traceabilityData.year;
+                        maxValue = 8000; // 年维度最大值设为200
+                        break;
+                }
+
+                const option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        borderColor: '#eee',
+                        borderWidth: 1,
+                        textStyle: { color: '#666' },
+                        formatter: function(params) {
+                            let result = `<div style="font-weight:bold;margin-bottom:5px;">${params[0].axisValue}</div>`;
+                            params.forEach(param => {
+                                result += `<div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0;">
+                                    <span style="margin-right:15px;">
+                                        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${param.color};margin-right:5px;"></span>
+                                        ${param.seriesName}
+                                    </span>
+                                    <span style="font-weight:bold;">${param.value} 次</span>
+                                </div>`;
+                            });
+                            return result;
+                        }
+                    },
+                    legend: {
+                        data: ['农产品', '水产品'],
+                        right: 20,
+                        top: 0,
+                        textStyle: {
+                            color: '#666'
+                        }
+                    },
+                    grid: {
+                        top: '30px',      // 减小顶部边距
+                        left: '30px',     // 减小左侧边距
+                        right: '20px',    // 减小右侧边距
+                        bottom: '10px',   // 减小底部边距
+                        containLabel: true // 确保包含坐标轴标签
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: xAxisData,
+                        axisLine: {
+                            lineStyle: { color: '#eee', width: 2 }
+                        },
+                        axisLabel: {
+                            interval: this.timeRange === 'month' ? 2 : 0,  // 月份视图时每隔3个显示一个标签
+                            margin: 8,
+                            color: '#666',
+                            fontSize: 12,
+                            formatter: function(value) {
+                                // 对于月份视图,简化显示格式
+                                if(value.includes('日')) {
+                                    return value.replace('日', '');  // 移除"日"字,只显示数字
+                                }
+                                return value;
+                            }
+                        },
+                        axisTick: {
+                            show: false
+                        },
+                        boundaryGap: false
+                    },
+                    yAxis: {
+                        type: 'value',
+                        nameTextStyle: {
+                            color: '#666',
+                            fontSize: 12,
+                            padding: [0, 0, 0, 0]  // 减小名称的内边距
+                        },
+                        splitLine: {
+                            lineStyle: { 
+                                color: '#eee',
+                                type: 'dashed'
+                            }
+                        },
+                        axisLabel: {
+                            color: '#666',
+                            fontSize: 12,
+                            margin: 8,    // 减小标签与轴线的距离
+                            formatter: '{value}'
+                        },
+                        axisTick: {
+                            show: false
+                        },
+                        axisLine: {
+                            show: false
+                        },
+                        min: 0,
+                        max: maxValue,
+                        interval: maxValue / 5  // 减少刻度数量，使用5等分
+                    },
+                    series: [
+                        {
+                            name: '农产品',
+                            type: 'line',
+                            smooth: true,
+                            symbolSize: 6,  // 减小数据点的大小
+                            data: seriesData.agriculture,
+                            itemStyle: { color: '#91cc75' },
+                            lineStyle: {
+                                width: 2    // 减小线条宽度
+                            },
+                            areaStyle: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0, y: 0, x2: 0, y2: 1,
+                                    colorStops: [
+                                        { offset: 0, color: 'rgba(145, 204, 117, 0.3)' },
+                                        { offset: 1, color: 'rgba(145, 204, 117, 0.1)' }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            name: '水产品',
+                            type: 'line',
+                            smooth: true,
+                            symbolSize: 6,  // 减小数据点的大小
+                            data: seriesData.fish,
+                            itemStyle: { color: '#5470c6' },
+                            lineStyle: {
+                                width: 2    // 减小线条宽度
+                            },
+                            areaStyle: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0, y: 0, x2: 0, y2: 1,
+                                    colorStops: [
+                                        { offset: 0, color: 'rgba(84, 112, 198, 0.3)' },
+                                        { offset: 1, color: 'rgba(84, 112, 198, 0.1)' }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                };
+
+                const chart = this.$echarts.init(chartDom);
+                chart.setOption(option);
+
+                // 添加窗口大小变化的监听
+                window.addEventListener('resize', () => {
+                    chart.resize();
+                });
+
+                // 在组件销毁时移除监听器
+                this.$once('hook:beforeDestroy', () => {
+                    window.removeEventListener('resize', chart.resize);
+                    chart.dispose();
+                });
+            },
+
+            // 添加切换时间范围的方法
+            handleTimeRangeChange(range) {
+                this.timeRange = range;
+                this.updateTraceabilityChart();
             }
         },
     };
@@ -1244,5 +1468,89 @@
                 }
             }
         }
+    }
+
+    .trace-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        margin-bottom: 20px;
+
+        .time-range-selector {
+            .time-range-tabs {
+                display: flex;
+                background: #f5f7fa;
+                border-radius: 20px;
+                padding: 3px;
+                
+                .time-tab {
+                    padding: 6px 16px;
+                    cursor: pointer;
+                    border-radius: 17px;
+                    font-size: 13px;
+                    color: #606266;
+                    transition: all 0.3s ease;
+                    
+                    &:hover {
+                        color: #409EFF;
+                    }
+                    
+                    &.active {
+                        background: #409EFF;
+                        color: white;
+                        box-shadow: 0 2px 6px rgba(64, 158, 255, 0.3);
+                    }
+                }
+            }
+        }
+
+        .trace-stats {
+            display: flex;
+            gap: 24px;
+
+            .stat-item {
+                text-align: center;
+                
+                .stat-value {
+                    font-size: 24px;
+                    font-weight: 600;
+                    color: #303133;
+                    line-height: 1.2;
+                    background: linear-gradient(45deg, #409EFF, #36D1DC);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                
+                .stat-label {
+                    font-size: 13px;
+                    color: #909399;
+                    margin-top: 4px;
+                }
+            }
+        }
+    }
+
+    .trace-chart-container {
+        height: calc(100% - 60px); // 减小头部区域的高度
+        width: 100%;
+        padding: 0; // 移除内边距
+
+        .trace-chart {
+            height: 100%;
+            width: 100%;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+    }
+
+    .main-large {
+        position: relative;
+        padding: 20px 0;
+        height: calc(((100vh - 84px - #{$margin} * 4 - 51px * 3) / 3) * 2 + #{$margin});
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
     }
 </style>
