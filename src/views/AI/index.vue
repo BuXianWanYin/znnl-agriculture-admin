@@ -913,6 +913,7 @@ export default {
   border: 2px dashed #dcdfe6;
   border-radius: 6px;
   cursor: pointer;
+  margin-bottom: 15px;
 }
 
 .upload-content {
@@ -1399,7 +1400,7 @@ export default {
 }
 
 .ai-assistant {
-  margin-top: 15px;
+  margin: 15px 0px;
   padding: 10px;
   background: #f5f7fa;
   border-radius: 6px;
