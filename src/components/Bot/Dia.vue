@@ -1199,8 +1199,52 @@ export default {
         alertWsInstance = new AlertWebSocket();
         
         const componentInstance = this;
+     
         
-        // 重写警告处理方法
+        alertWsInstance.handleWarning = function(alert) {
+          componentInstance.isShowingAlert = true;
+          
+          const newTheme = {
+            gradient: {
+              color_1: '#FF8C00',
+              color_2: '#FFA500',
+              color_3: '#FFD700'
+            }
+          };
+          componentInstance.updateThemeWithTransition(newTheme);
+          
+          const tipsElement = document.getElementById('Aurora-Dia--tips');
+          if (tipsElement) {
+            tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`;
+            
+            setTimeout(() => {
+              const defaultTheme = {
+                gradient: {
+                  color_1: '#8f41e9',
+                  color_2: '#578cef',
+                  color_3: '#7aa2f7'
+                }
+              };
+              componentInstance.updateThemeWithTransition(defaultTheme);
+              
+              setTimeout(() => {
+                componentInstance.isShowingAlert = false;
+                tipsElement.innerHTML = '你好呀～';
+              }, 100);
+            }, 15000);
+          }
+          
+          componentInstance.$notify({
+            title: '预警提示',
+            message: alert.alertMessage,
+            type: 'warning',
+            showClose: false,
+            duration: 15000
+          });
+        };
+
+         
+        // 报警处理   全栈工程师做 
         alertWsInstance.handleSeriousAlert = function(alert) {
           // 立即更新状态
           componentInstance.isShowingAlert = true;
@@ -1245,48 +1289,8 @@ export default {
             position: 'top-right'
           });
         };
-        
-        alertWsInstance.handleWarning = function(alert) {
-          componentInstance.isShowingAlert = true;
-          
-          const newTheme = {
-            gradient: {
-              color_1: '#FF8C00',
-              color_2: '#FFA500',
-              color_3: '#FFD700'
-            }
-          };
-          componentInstance.updateThemeWithTransition(newTheme);
-          
-          const tipsElement = document.getElementById('Aurora-Dia--tips');
-          if (tipsElement) {
-            tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`;
-            
-            setTimeout(() => {
-              const defaultTheme = {
-                gradient: {
-                  color_1: '#8f41e9',
-                  color_2: '#578cef',
-                  color_3: '#7aa2f7'
-                }
-              };
-              componentInstance.updateThemeWithTransition(defaultTheme);
-              
-              setTimeout(() => {
-                componentInstance.isShowingAlert = false;
-                tipsElement.innerHTML = '你好呀～';
-              }, 100);
-            }, 15000);
-          }
-          
-          componentInstance.$notify({
-            title: '预警提示',
-            message: alert.alertMessage,
-            type: 'warning',
-            showClose: false,
-            duration: 15000
-          });
-        };
+
+
 
         // 添加连接状态监听
         const originalWsOnopen = alertWsInstance.ws.onopen;
