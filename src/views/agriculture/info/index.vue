@@ -61,16 +61,16 @@
                         <!-- 卡片内容区：预警详细信息 -->
                         <div class="card-content">
                             <!-- 各项信息条目 -->
-                            <div class="info-item">
+                            <!-- <div class="info-item">
                                 <i class="el-icon-plant"></i>
                                 <span class="label">{{ activeTab === 'fishpond' ? '养殖批次:' : '农作物批次:' }}</span>
                                 <span class="value">{{ item.cropBatch }}</span>
-                            </div>
+                            </div> -->
                             
                             <div class="info-item">
                                 <i class="el-icon-map-location"></i>
                                 <span class="label">预警分区:</span>
-                                <span class="value">{{ item.partitionInfo }}</span>
+                                <span class="value">{{ item.batchName }}</span>
                             </div>
 
                               <div class="info-item">
@@ -208,7 +208,8 @@
                     pageSize: 10,
                     greenhouse: null,
                     cropBatch: null,
-                    partitionInfo: null,
+                    // partitionInfo: null,
+                    batchName: null,
                     type: 'greenhouse'
                 },
                 
@@ -239,9 +240,10 @@
         },
         
         // 生命周期钩子：组件创建时获取列表数据
-        created() {
+        async created() {
+            // 先获取用户列表，再获取预警信息
+            await this.getUserList();
             this.getList();
-            this.getUserList(); // 获取负责人列表
         },
         
         methods: {
@@ -266,7 +268,8 @@
                                 id: item.id,
                                 greenhouse: item.batchName,
                                 cropBatch: item.batchName,
-                                partitionInfo: `${item.batchHead}号池`,
+                                // partitionInfo: `${item.batchHead}号池`,
+                                batchName: item.batchName,
                                 paramName: item.paramName || '水温',
                                 thresholdValue: item.alertMessage,
                                 warningStatus: item.alertLevel === '1' ? '报警' : '预警',
@@ -293,7 +296,7 @@
                                 id: item.id,
                                 greenhouse: item.batchName,
                                 cropBatch: item.batchName,
-                                partitionInfo: `${item.batchHead}号棚`,
+                                batchName: item.batchName,
                                 paramName: item.paramName || '温度',
                                 thresholdValue: item.alertMessage,
                                 warningStatus: item.alertLevel === '1' ? '报警' : '预警',
@@ -302,7 +305,8 @@
                                 // 2. 数据中的 batchHeadName 字段
                                 // 3. 数据中的 pastureHead 字段
                                 // 4. 默认值 "未指定"
-                                responsiblePerson: user ? user.nickName : (item.batchHeadName || item.pastureHead || '未指定'),
+                                // responsiblePerson: user ? user.nickName : (item.batchHeadName || item.pastureHead || '未指定'),
+                                responsiblePerson: user ? user.nickName : item.nickName || '未指定',
                                 startTime: item.alertDate,
                                 endTime: item.alertDate,
                                 updatedAt: item.updateTime || item.alertTime,
@@ -419,10 +423,14 @@
             },
 
             // 添加获取负责人列表方法
-            getUserList() {
-                listUser().then(response => {
+            async getUserList() {
+                try {
+                    const response = await listUser();
                     this.userList = response.rows || [];
-                });
+                } catch (error) {
+                    console.error('获取用户列表失败:', error);
+                    this.userList = [];
+                }
             },
 
             // 处理状态变更按钮点击
@@ -482,7 +490,7 @@
             // 添加这个样式来确保卡片占满整个高度
             .warning-card {
                 width: 100%;
-                min-height: 450px; // 设置一个固定的最小高度
+                min-height: 430px; // 设置一个固定的最小高度
                 display: flex;
                 flex-direction: column;
                 
