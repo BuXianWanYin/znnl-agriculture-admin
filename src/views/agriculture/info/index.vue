@@ -20,14 +20,14 @@
                 
                 <!-- 搜索和重置按钮 -->
                 <el-form-item>
-                    <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-                    <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+                    <el-button type="primary"  size="mini" @click="handleQuery"><svg-icon icon-class="ss" />搜索</el-button>
+                    <el-button size="mini" @click="resetQuery"><svg-icon icon-class="cz" />重置</el-button>
                 </el-form-item>
                 
                 <!-- 导出按钮 -->
                 <el-form-item class="fr">
-                    <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
-                        v-hasPermi="['agriculture:info:export']">导出</el-button>
+                    <el-button type="warning" plain size="mini" @click="handleExport"
+                        v-hasPermi="['agriculture:info:export']"><svg-icon icon-class="dc" />导出</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
@@ -129,7 +129,7 @@
                                     type="text"
                                     size="mini"
                                     @click="handleStatusChange(item)"
-                                >编辑</el-button>
+                                ><svg-icon icon-class="bj" />编辑</el-button>
                             <!-- 预留的编辑和删除按钮位置 -->
                         </div>
                     </el-card>

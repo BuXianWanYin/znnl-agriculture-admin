@@ -25,14 +25,14 @@
           </el-select>
       </el-form-item> -->
                 <el-form-item>
-                    <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-                    <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+                    <el-button type="primary" size="mini" @click="handleQuery"><svg-icon icon-class="ss"></svg-icon>搜索</el-button>
+                    <el-button  size="mini" @click="resetQuery"><svg-icon icon-class="cz"></svg-icon>重置</el-button>
                 </el-form-item>
                 <el-form-item class="fr">
-                    <el-button type="primary" plain icon="el-icon-plus" size="mini" @click="handleAdd"
-                        v-hasPermi="['agriculture:batch:add']">新增</el-button>
-                    <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
-                        v-hasPermi="['agriculture:batch:export']">导出</el-button>
+                    <el-button type="primary" plain size="mini" @click="handleAdd"
+                        v-hasPermi="['agriculture:batch:add']"><svg-icon icon-class="xz"></svg-icon>新增</el-button>
+                    <el-button type="warning" plain  size="mini" @click="handleExport"
+                        v-hasPermi="['agriculture:batch:export']"><svg-icon icon-class="dc"></svg-icon>导出</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
@@ -58,7 +58,7 @@
                             <div class="batch-card-content">
                                 <div class="batch-info">
                                     <div class="info-item">
-                                        <i class="el-icon-menu"></i>
+                                        <svg-icon icon-class="zzc"></svg-icon>
                                         <span class="label">种质：</span>
                                         <data-tag :options="germplasmList" 
                                                  :value="item.germplasmId" 
@@ -67,7 +67,7 @@
                                                  type="" />
                                     </div>
                                     <div class="info-item">
-                                        <i class="el-icon-user"></i>
+                                        <svg-icon icon-class="fzrc"></svg-icon>
                                         <span class="label">负责人：</span>
                                         <data-tag :options="userList" 
                                                  :value="item.batchHead" 
@@ -76,22 +76,22 @@
                                                  type="notag" />
                                     </div>
                                     <div class="info-item">
-                                        <i class="el-icon-office-building"></i>
+                                        <svg-icon icon-class="dp"></svg-icon>
                                         <span class="label">所属大棚：</span>
                                         <span>{{ getLabel(item.landId) }}</span>
                                     </div>
                                     <div class="info-item">
-                                        <i class="el-icon-full-screen"></i>
+                                        <svg-icon icon-class="zzmjc"></svg-icon>
                                         <span class="label">种植面积：</span>
                                         <span>{{ item.cropArea }}亩</span>
                                     </div>
                                     <div class="info-item">
-                                        <i class="el-icon-link"></i>
+                                        <svg-icon icon-class="hydzc"></svg-icon>
                                         <span class="label">合约地址：</span>
                                         <span>{{ item.contractAddress }}</span>
                                     </div>
                                     <div class="info-item">
-                                        <i class="el-icon-date"></i>
+                                        <svg-icon icon-class="kssjc"></svg-icon>
                                         <span class="label">开始时间：</span>
                                         <span>{{ parseTime(item.startTime, '{y}-{m}-{d}') }}</span>
                                     </div>
@@ -99,15 +99,15 @@
                             </div>
 
                             <div class="batch-card-actions">
-                                <el-button size="small" type="primary" icon="el-icon-edit"
+                                <el-button size="small" type="primary" 
                                     @click="handleUpdate(item)" 
-                                    v-hasPermi="['agriculture:batch:edit']">修改</el-button>
-                                <el-button size="small" type="danger" icon="el-icon-delete"
+                                    v-hasPermi="['agriculture:batch:edit']"><svg-icon icon-class="xg"></svg-icon>修改</el-button>
+                                <el-button size="small" type="danger"
                                     @click="handleDelete(item)" 
-                                    v-hasPermi="['agriculture:batch:remove']">删除</el-button>
-                                <el-button size="small" plain type="warning" icon="el-icon-s-claim"
+                                    v-hasPermi="['agriculture:batch:remove']"><svg-icon icon-class="sc"></svg-icon>删除</el-button>
+                                <el-button size="small" plain type="warning" 
                                     @click="handleBatchTask(item)"
-                                    v-hasPermi="['agriculture:batchTask:list']">批次任务</el-button>
+                                    v-hasPermi="['agriculture:batchTask:list']"><svg-icon icon-class="pcrwc"></svg-icon>批次任务</el-button>
                             </div>
                         </el-card>
                     </el-col>
