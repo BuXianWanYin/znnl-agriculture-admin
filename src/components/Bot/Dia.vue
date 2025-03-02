@@ -241,7 +241,8 @@ export default {
       immediate: false
     },
     '$route'() {
-      if (!wsConnected && !this.wsInitialized) {
+      // 修改路由监听逻辑，避免重复初始化
+      if (!wsConnected && !this.wsInitialized && !this.isLoginPage) {
         this.initAlertWebSocket();
       }
     }
@@ -257,21 +258,25 @@ export default {
       this.loadChatHistory()
     }
     
-    // 只在未初始化时创建WebSocket连接
-    if (!this.wsInitialized) {
+    // 修改 WebSocket 初始化逻辑
+    if (!this.wsInitialized && !this.isLoginPage) {
       this.initAlertWebSocket()
     }
   },
 
   beforeDestroy() {
-    // 只在非热重载环境下断开连接
-    if (!module.hot) {
-        this.disconnectWebSocket();
+    // 修改销毁逻辑，区分热重载和正常销毁
+    if (process.env.NODE_ENV === 'development' && module.hot) {
+      // 热重载时，先断开旧连接
+      this.disconnectWebSocket();
+    } else {
+      // 正常销毁时的处理
+      this.disconnectWebSocket();
     }
   },
 
   methods: {
-    // 断开WebSocket连接
+    // 修改断开连接方法
     disconnectWebSocket() {
       if (alertWsInstance) {
         alertWsInstance.disconnect();
@@ -1181,21 +1186,65 @@ export default {
 
     // 初始化 AlertWebSocket
     initAlertWebSocket() {
-      if (wsConnected || this.isLoginPage) {
+      if (wsConnected || this.isLoginPage || this.wsInitialized) {
         return;
       }
 
       try {
-        // 如果是热重载，确保旧连接被清理
-        if (module.hot && alertWsInstance) {
+        // 如果是热重载环境，确保先断开旧连接
+        if (process.env.NODE_ENV === 'development' && module.hot && alertWsInstance) {
           this.disconnectWebSocket();
         }
 
         alertWsInstance = new AlertWebSocket();
         
         const componentInstance = this;
+     
         
-        // 重写警告处理方法
+        alertWsInstance.handleWarning = function(alert) {
+          componentInstance.isShowingAlert = true;
+          
+          const newTheme = {
+            gradient: {
+              color_1: '#FF8C00',
+              color_2: '#FFA500',
+              color_3: '#FFD700'
+            }
+          };
+          componentInstance.updateThemeWithTransition(newTheme);
+          
+          const tipsElement = document.getElementById('Aurora-Dia--tips');
+          if (tipsElement) {
+            tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`;
+            
+            setTimeout(() => {
+              const defaultTheme = {
+                gradient: {
+                  color_1: '#8f41e9',
+                  color_2: '#578cef',
+                  color_3: '#7aa2f7'
+                }
+              };
+              componentInstance.updateThemeWithTransition(defaultTheme);
+              
+              setTimeout(() => {
+                componentInstance.isShowingAlert = false;
+                tipsElement.innerHTML = '你好呀～';
+              }, 100);
+            }, 15000);
+          }
+          
+          componentInstance.$notify({
+            title: '预警提示',
+            message: alert.alertMessage,
+            type: 'warning',
+            showClose: false,
+            duration: 15000
+          });
+        };
+
+         
+        // 报警处理   全栈工程师做 
         alertWsInstance.handleSeriousAlert = function(alert) {
           // 立即更新状态
           componentInstance.isShowingAlert = true;
@@ -1240,72 +1289,32 @@ export default {
             position: 'top-right'
           });
         };
-        
-        alertWsInstance.handleWarning = function(alert) {
-          componentInstance.isShowingAlert = true;
-          
-          const newTheme = {
-            gradient: {
-              color_1: '#FF8C00',
-              color_2: '#FFA500',
-              color_3: '#FFD700'
-            }
-          };
-          componentInstance.updateThemeWithTransition(newTheme);
-          
-          const tipsElement = document.getElementById('Aurora-Dia--tips');
-          if (tipsElement) {
-            tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`;
-            
-            setTimeout(() => {
-              const defaultTheme = {
-                gradient: {
-                  color_1: '#8f41e9',
-                  color_2: '#578cef',
-                  color_3: '#7aa2f7'
-                }
-              };
-              componentInstance.updateThemeWithTransition(defaultTheme);
-              
-              setTimeout(() => {
-                componentInstance.isShowingAlert = false;
-                tipsElement.innerHTML = '你好呀～';
-              }, 100);
-            }, 15000);
-          }
-          
-          componentInstance.$notify({
-            title: '预警提示',
-            message: alert.alertMessage,
-            type: 'warning',
-            showClose: false,
-            duration: 15000
-          });
-        };
+
+
 
         // 添加连接状态监听
         const originalWsOnopen = alertWsInstance.ws.onopen;
-        alertWsInstance.ws.onopen = function(event) {
+        alertWsInstance.ws.onopen = (event) => {
           wsConnected = true;
-          componentInstance.wsInitialized = true;
+          this.wsInitialized = true;
           if (originalWsOnopen) {
-            originalWsOnopen.call(this, event);
+            originalWsOnopen.call(alertWsInstance.ws, event);
           }
         };
 
         const originalWsOnclose = alertWsInstance.ws.onclose;
-        alertWsInstance.ws.onclose = function(event) {
+        alertWsInstance.ws.onclose = (event) => {
           wsConnected = false;
-          componentInstance.wsInitialized = false;
+          this.wsInitialized = false;
           if (originalWsOnclose) {
-            originalWsOnclose.call(this, event);
+            originalWsOnclose.call(alertWsInstance.ws, event);
           }
         };
         
         this.alertWs = alertWsInstance;
         
       } catch (error) {
-        console.error('初始化 AlertWebSocket 失败:', error);
+        console.error('初始化 Aler tWebS ocket 失 败:', error);
         this.disconnectWebSocket();
       }
     },
