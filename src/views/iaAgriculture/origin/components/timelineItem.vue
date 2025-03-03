@@ -96,14 +96,12 @@
               </div>
 
               <!-- 工作照片 -->
-              <div class="images-section" v-if="displayImages && displayImages.length">
+              <div class="images-section" v-if="task.taskImages">
                 <div class="section-title">工作照片：</div>
                 <div class="image-grid">
                   <el-image 
-                    v-for="(img, index) in displayImages" 
-                    :key="index"
-                    :src="img"
-                    :preview-src-list="displayImages"
+                    :src="getImageUrl(task.taskImages)"
+                    :preview-src-list="[getImageUrl(task.taskImages)]"
                     fit="cover"
                     class="task-image"
                   >
@@ -151,12 +149,6 @@
           { name: '复合肥', amount: '50', unit: 'kg' },
           { name: '农药', amount: '2', unit: 'L' },
           { name: '有机肥', amount: '100', unit: 'kg' }
-        ],
-        mockImages: [
-          'https://via.placeholder.com/150',
-          'https://via.placeholder.com/150',
-          'https://via.placeholder.com/150',
-          'https://via.placeholder.com/150'
         ]
       }
     },
@@ -203,9 +195,6 @@
       // 添加测试数据的计算属性
       displayResources() {
         return this.task.resources || this.mockResources;
-      },
-      displayImages() {
-        return this.task.images || this.mockImages;
       }
     },
     methods: {
@@ -225,6 +214,16 @@
       },
       showDetails() {
         this.$emit('show-details', this.task);
+      },
+      // 添加处理图片URL的方法
+      getImageUrl(path) {
+        if (!path) return '';
+        // 如果是完整的URL，直接返回
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+          return path;
+        }
+        // 否则添加基础API路径
+        return process.env.VUE_APP_BASE_API + path;
       }
     }
   }
@@ -550,14 +549,21 @@
 
         .image-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(2, 1fr); // 改为两列显示
           gap: 8px;
-
+          padding: 8px 0;
+          
           .task-image {
             width: 100%;
-            aspect-ratio: 1;
+            height: 120px; // 调整高度更合理
             border-radius: 4px;
             overflow: hidden;
+            
+            &::v-deep .el-image__inner {
+              object-fit: cover;
+              width: 100%;
+              height: 100%;
+            }
             
             .image-slot {
               display: flex;
@@ -567,6 +573,10 @@
               height: 100%;
               background: #f5f7fa;
               color: #909399;
+              
+              i {
+                font-size: 24px;
+              }
             }
           }
         }
@@ -586,29 +596,23 @@
     opacity: 0;
   }
   
-  @media screen and (max-width: 768px) {
-    .mobile-timeline-item {
-      .timeline-card {
-        .card-content {
-          .image-grid {
-            .el-image {
-              width: calc(33.33% - 6px);
-              height: 80px;
-            }
-          }
-        }
+  // 针对不同屏幕尺寸优化显示
+  @media screen and (max-width: 480px) {
+    .image-grid {
+      grid-template-columns: repeat(2, 1fr); // 小屏幕保持两列
+      
+      .task-image {
+        height: 100px; // 更小屏幕上稍微降低高度
       }
     }
   }
   
-  @media screen and (max-width: 480px) {
-    .mobile-timeline-item {
-      .timeline-card {
-        .card-content {
-          .image-grid {
-            grid-template-columns: repeat(2, 1fr); // 在更小的屏幕上改为两列
-          }
-        }
+  @media screen and (min-width: 481px) and (max-width: 768px) {
+    .image-grid {
+      grid-template-columns: repeat(3, 1fr); // 中等屏幕显示三列
+      
+      .task-image {
+        height: 110px;
       }
     }
   }

@@ -256,21 +256,37 @@
                             环境监测
                         </div>
                         <div class="monitor-grid">
-                            <div class="monitor-item">
+                            <div class="monitor-item temperature">
+                                <div class="item-bg">
+                                    <svg viewBox="0 0 100 100" class="bg-icon">
+                                        <path d="M45,20v40.5c-4.1,2.4-7,6.9-7,12c0,7.7,6.3,14,14,14s14-6.3,14-14c0-5.1-2.9-9.6-7-12V20c0-5.5-4.5-10-10-10 S45,14.5,45,20z M52,65.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S47.9,65.5,52,65.5z"/>
+                                    </svg>
+                                </div>
                                 <div class="item-label">环境温度</div>
                                 <div class="item-value">
                                     <span class="number">{{ environmentData.temperature || 0 }}</span>
                                     <span class="unit">℃</span>
                                 </div>
                             </div>
-                            <div class="monitor-item">
+                            <div class="monitor-item humidity">
+                                <div class="item-bg">
+                                    <svg viewBox="0 0 100 100" class="bg-icon">
+                                        <path d="M50,15L35.7,36.9C29,47.5,29,54.5,29,58.2C29,71.9,38.3,83,50,83s21-11.1,21-24.8c0-3.7,0-10.7-6.7-21.3L50,15z"/>
+                                    </svg>
+                                </div>
                                 <div class="item-label">环境湿度</div>
                                 <div class="item-value">
                                     <span class="number">{{ environmentData.humidity || 0 }}</span>
                                     <span class="unit">%</span>
                                 </div>
                             </div>
-                            <div class="monitor-item">
+                            <div class="monitor-item light">
+                                <div class="item-bg">
+                                    <svg viewBox="0 0 100 100" class="bg-icon">
+                                        <circle cx="50" cy="50" r="20"/>
+                                        <path d="M50,25V10 M50,90V75 M75,50H90 M10,50H25 M75,75L85,85 M15,15L25,25 M75,25L85,15 M15,85L25,75"/>
+                                    </svg>
+                                </div>
                                 <div class="item-label">光照强度</div>
                                 <div class="item-value">
                                     <span class="number">{{ environmentData.lightLux || 0 }}</span>
@@ -286,34 +302,56 @@
                             土壤检测
                         </div>
                         <div class="soil-grid">
-                            <div class="soil-row">
-                                <div class="soil-item">
-                                    <div class="item-label">土壤PH</div>
-                                    <div class="item-value">
-                                        <span class="number">{{ environmentData.soilPh || 0 }}</span>
-                                        <span class="unit">pH</span>
-                                    </div>
+                            <div class="soil-item ph">
+                                <div class="item-bg">
+                                    <svg viewBox="0 0 100 100" class="bg-icon">
+                                        <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" stroke-width="6"/>
+                                        <text x="50" y="58" text-anchor="middle" font-size="24" fill="currentColor">pH</text>
+                                    </svg>
                                 </div>
-                                <div class="soil-item">
-                                    <div class="item-label">土壤温度</div>
-                                    <div class="item-value">
-                                        <span class="number">{{ environmentData.soilTemperature || 0 }}</span>
-                                        <span class="unit">℃</span>
-                                    </div>
+                                <div class="item-label">土壤PH</div>
+                                <div class="item-value">
+                                    <span class="number">{{ environmentData.soilPh || 0 }}</span>
+                                    <span class="unit">pH</span>
                                 </div>
-                                <div class="soil-item">
-                                    <div class="item-label">土壤湿度</div>
-                                    <div class="item-value">
-                                        <span class="number">{{ environmentData.humidity || 0 }}</span>
-                                        <span class="unit">%</span>
-                                    </div>
+                            </div>
+                            <div class="soil-item temperature">
+                                <div class="item-bg">
+                                    <svg viewBox="0 0 100 100" class="bg-icon">
+                                        <path d="M40,10v50c-8,4-12,15-8,24s15,12,24,8s12-15,8-24c-1.4-3-3.8-5.6-7-7V10c0-5.5-4.5-10-10-10S40,4.5,40,10z"/>
+                                        <circle cx="50" cy="70" r="6"/>
+                                    </svg>
                                 </div>
-                                <div class="soil-item">
-                                    <div class="item-label">电导率</div>
-                                    <div class="item-value">
-                                        <span class="number">{{ environmentData.soilConductivity || 0 }}</span>
-                                        <span class="unit">mS/cm</span>
-                                    </div>
+                                <div class="item-label">土壤温度</div>
+                                <div class="item-value">
+                                    <span class="number">{{ environmentData.soilTemperature || 0 }}</span>
+                                    <span class="unit">℃</span>
+                                </div>
+                            </div>
+                            <div class="soil-item humidity">
+                                <div class="item-bg">
+                                    <svg viewBox="0 0 100 100" class="bg-icon">
+                                        <path d="M50,15L35.7,36.9C29,47.5,29,54.5,29,58.2C29,71.9,38.3,83,50,83s21-11.1,21-24.8c0-3.7,0-10.7-6.7-21.3L50,15z"/>
+                                    </svg>
+                                </div>
+                                <div class="item-label">土壤湿度</div>
+                                <div class="item-value">
+                                    <span class="number">{{ environmentData.soilMoisture || 0 }}</span>
+                                    <span class="unit">%</span>
+                                </div>
+                            </div>
+                            <div class="soil-item conductivity">
+                                <div class="item-bg">
+                                    <svg viewBox="0 0 100 100" class="bg-icon">
+                                        <path d="M20,50h15 M65,50h15"/>
+                                        <path d="M35,50c0-8.3,6.7-15,15-15s15,6.7,15,15s-6.7,15-15,15S35,58.3,35,50z"/>
+                                        <path d="M38,35l-8-8 M62,65l8,8 M62,35l8-8 M38,65l-8,8" stroke-width="2"/>
+                                    </svg>
+                                </div>
+                                <div class="item-label">电导率</div>
+                                <div class="item-value">
+                                    <span class="number">{{ environmentData.soilConductivity || 0 }}</span>
+                                    <span class="unit">mS/cm</span>
                                 </div>
                             </div>
                         </div>
@@ -364,15 +402,13 @@
                     </div>
                 </div>
 
-                <!-- 图片展示区域 -->
-                <div class="images-section">
+                <!-- Only show images section if taskImages exists -->
+                <div v-if="currentTask.taskImages" class="images-section">
                     <div class="section-title">工作照片：</div>
                     <div class="image-list">
                         <el-image 
-                            v-for="(img, index) in mockImages" 
-                            :key="index"
-                            :src="img"
-                            :preview-src-list="mockImages"
+                            :src="getImageUrl(currentTask.taskImages)"
+                            :preview-src-list="[getImageUrl(currentTask.taskImages)]"
                             fit="cover"
                             class="task-image"
                         >
@@ -457,7 +493,7 @@
                     light: 0,
                     soilPh: 0,
                     soilTemperature: 0,
-                    soilHumidity: 0,
+                    soilMoisture: 0,
                     conductivity: 0
                 },
                 physicalNetworkMsg: '',
@@ -959,6 +995,15 @@
                     this.originName = code;
                     this.originSearch();
                 }
+            },
+            // Add new method to handle image URLs
+            getImageUrl(path) {
+                // If path starts with http or https, return as is
+                if (path.startsWith('http://') || path.startsWith('https://')) {
+                    return path;
+                }
+                // Otherwise, prepend the base URL
+                return process.env.VUE_APP_BASE_API + path;
             },
         },
         computed: {
@@ -2359,6 +2404,328 @@
     .el-dialog__body {
         max-height: 70vh;
         overflow-y: auto;
+    }
+}
+
+.monitor-section {
+    .monitor-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+
+        .monitor-item {
+            position: relative;
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                opacity: 0.1;
+                transition: opacity 0.3s ease;
+            }
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+
+                &::before {
+                    opacity: 0.15;
+                }
+
+                .item-bg .bg-icon {
+                    opacity: 0.2;
+                }
+            }
+
+            .item-bg {
+                position: absolute;
+                right: -20px;
+                bottom: -20px;
+                width: 120px;
+                height: 120px;
+                opacity: 0.1;
+
+                .bg-icon {
+                    width: 100%;
+                    height: 100%;
+                    opacity: 0.15;
+                    transition: opacity 0.3s ease;
+                }
+            }
+
+            .item-label {
+                position: relative;
+                color: #909399;
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+
+            .item-value {
+                position: relative;
+                display: flex;
+                align-items: baseline;
+                gap: 4px;
+
+                .number {
+                    font-size: 24px;
+                    font-weight: 600;
+                }
+
+                .unit {
+                    font-size: 14px;
+                    color: #909399;
+                }
+            }
+
+            &.temperature {
+                background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+                
+                &::before {
+                    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+                }
+
+                .item-value .number {
+                    color: #f56c6c;
+                }
+
+                .bg-icon {
+                    fill: #f56c6c;
+                }
+            }
+
+            &.humidity {
+                background: linear-gradient(135deg, #f0f7ff 0%, #fff 100%);
+                
+                &::before {
+                    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+                }
+
+                .item-value .number {
+                    color: #409EFF;
+                }
+
+                .bg-icon {
+                    fill: #409EFF;
+                }
+            }
+
+            &.light {
+                background: linear-gradient(135deg, #fffbf0 0%, #fff 100%);
+                
+                &::before {
+                    background: linear-gradient(135deg, #ffd86f 0%, #ffc371 100%);
+                }
+
+                .item-value .number {
+                    color: #e6a23c;
+                }
+
+                .bg-icon {
+                    fill: #e6a23c;
+                }
+            }
+        }
+    }
+}
+
+// 响应式布局
+@media screen and (max-width: 768px) {
+    .monitor-section {
+        .monitor-grid {
+            grid-template-columns: repeat(1, 1fr);
+            gap: 15px;
+        }
+    }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1200px) {
+    .monitor-section {
+        .monitor-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+}
+
+.soil-section {
+    margin-top: 30px;
+
+    .soil-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+
+        .soil-item {
+            position: relative;
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                opacity: 0.1;
+                transition: opacity 0.3s ease;
+            }
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+
+                &::before {
+                    opacity: 0.15;
+                }
+
+                .item-bg .bg-icon {
+                    opacity: 0.2;
+                }
+            }
+
+            .item-bg {
+                position: absolute;
+                right: -20px;
+                bottom: -20px;
+                width: 120px;
+                height: 120px;
+                opacity: 0.1;
+
+                .bg-icon {
+                    width: 100%;
+                    height: 100%;
+                    opacity: 0.15;
+                    transition: opacity 0.3s ease;
+                }
+            }
+
+            .item-label {
+                position: relative;
+                color: #909399;
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+
+            .item-value {
+                position: relative;
+                display: flex;
+                align-items: baseline;
+                gap: 4px;
+
+                .number {
+                    font-size: 24px;
+                    font-weight: 600;
+                }
+
+                .unit {
+                    font-size: 14px;
+                    color: #909399;
+                }
+            }
+
+            // PH值卡片样式
+            &.ph {
+                background: linear-gradient(135deg, #f0f7ff 0%, #fff 100%);
+                
+                &::before {
+                    background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+                }
+
+                .item-value .number {
+                    color: #9254de;
+                }
+
+                .bg-icon {
+                    fill: none;
+                    stroke: #9254de;
+                    color: #9254de;
+                }
+            }
+
+            // 土壤温度卡片样式
+            &.temperature {
+                background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+                
+                &::before {
+                    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+                }
+
+                .item-value .number {
+                    color: #f56c6c;
+                }
+
+                .bg-icon {
+                    fill: #f56c6c;
+                }
+            }
+
+            // 土壤湿度卡片样式
+            &.humidity {
+                background: linear-gradient(135deg, #e6f7ff 0%, #fff 100%);
+                
+                &::before {
+                    background: linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%);
+                }
+
+                .item-value .number {
+                    color: #1890ff;
+                }
+
+                .bg-icon {
+                    fill: #1890ff;
+                }
+            }
+
+            // 电导率卡片样式
+            &.conductivity {
+                background: linear-gradient(135deg, #f6ffed 0%, #fff 100%);
+                
+                &::before {
+                    background: linear-gradient(135deg, #52c41a 0%, #85d675 100%);
+                }
+
+                .item-value .number {
+                    color: #52c41a;
+                }
+
+                .bg-icon {
+                    fill: #52c41a;
+                    stroke: #52c41a;
+                }
+            }
+        }
+    }
+}
+
+// 响应式布局
+@media screen and (max-width: 768px) {
+    .soil-section {
+        .soil-grid {
+            grid-template-columns: repeat(1, 1fr);
+            gap: 15px;
+        }
+    }
+}
+
+@media screen and (min-width: 769px) and (max-width: 1200px) {
+    .soil-section {
+        .soil-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 }
 </style>
