@@ -84,7 +84,7 @@
           </div>
           <div class="suggestions-list">
             <el-tag
-              v-for="(suggestion, index) in aiSuggestions"
+              v-for="(suggestion, index) in fixedSuggestions"
               :key="`suggestion_${index}`"
               size="small"
               effect="plain"
@@ -407,9 +407,6 @@
               <el-button-group>
                 <el-button type="primary" icon="el-icon-document" @click="exportReport">
                   导出报告
-                </el-button>
-                <el-button type="success" icon="el-icon-share">
-                  分享结果
                 </el-button>
                 <el-button icon="el-icon-more" @click="resultView = 'detail'">
                   查看详情
@@ -966,7 +963,11 @@ export default {
         saveReport: { key: 's', ctrl: true, description: '保存报告' },
         clearPrompt: { key: 'Delete', description: '清空描述' },
         openCamera: { key: 'c', description: '打开相机' }
-      }
+      },
+      fixedSuggestions: [
+        "鱼类游动缓慢、食欲不振、体表有白点、经常浮在水面",
+        "叶片发黄卷曲、茎秆腐烂、根部变黑、生长缓慢"
+      ],
     }
   },
   computed: {
