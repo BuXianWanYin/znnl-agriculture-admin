@@ -1,6 +1,6 @@
 <template>
     <div>
-        <!-- 顶部 Banner -->
+       
         <div class="origin-banner">
             <div class="decoration-circles">
                 <div class="circle-1"></div>
@@ -217,6 +217,7 @@
                             :task="item" 
                             :is-mobile="isMobile"
                             :key="index"
+                            @show-details="handleShowDetails"
                         />
                     </div>
                     <el-empty v-else description="暂无任务数据"></el-empty>
@@ -321,6 +322,68 @@
             </el-card>
 
         </div>
+
+        <!-- 添加任务详情对话框 -->
+        <el-dialog
+            title="任务详情"
+            :visible.sync="dialogVisible"
+            width="50%"
+            :before-close="handleClose"
+        >
+            <div v-if="currentTask" class="task-detail">
+                <div class="detail-item">
+                    <span class="label">任务名称：</span>
+                    <span>{{ currentTask.taskName }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">操作人：</span>
+                    <span>{{ currentTask.taskHeadName }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">时间：</span>
+                    <span>{{ currentTask.planStart }} 至 {{ currentTask.planFinish }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">状态：</span>
+                    <el-tag :type="getStatusType(currentTask.status)">
+                        {{ getStatusText(currentTask.status) }}
+                    </el-tag>
+                </div>
+                
+                <!-- 农资使用信息 -->
+                <div class="resource-section">
+                    <div class="section-title">农资使用：</div>
+                    <div class="resource-list">
+                        <el-tag 
+                            v-for="(resource, index) in mockResources" 
+                            :key="index"
+                            class="resource-tag"
+                        >
+                            {{ resource.name }}: {{ resource.amount }}{{ resource.unit }}
+                        </el-tag>
+                    </div>
+                </div>
+
+                <!-- 图片展示区域 -->
+                <div class="images-section">
+                    <div class="section-title">工作照片：</div>
+                    <div class="image-list">
+                        <el-image 
+                            v-for="(img, index) in mockImages" 
+                            :key="index"
+                            :src="img"
+                            :preview-src-list="mockImages"
+                            fit="cover"
+                            class="task-image"
+                        >
+                            <div slot="error" class="image-slot">
+                                <i class="el-icon-picture-outline"></i>
+                            </div>
+                        </el-image>
+                    </div>
+                </div>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -399,6 +462,19 @@
                 },
                 physicalNetworkMsg: '',
                 currentBatchId: null, // 添加一个属性来存储当前的 batchId
+                dialogVisible: false,
+                currentTask: null,
+                // 模拟数据
+                mockResources: [
+                    { name: '有机肥', amount: '50', unit: 'kg' },
+                    { name: '农药', amount: '2', unit: 'L' },
+                    { name: '水', amount: '100', unit: 'L' }
+                ],
+                mockImages: [
+                    require('@/assets/avatar.png'),
+                    require('@/assets/avatar.png'),
+                    require('@/assets/avatar.png')
+                ]
             };
         },
         components: {
@@ -843,6 +919,31 @@
                     this.taskList = response.data;
                     await this.afterGetTaskList();
                 }
+            },
+            handleShowDetails(task) {
+                console.log('显示任务详情:', task);  // 用于调试
+                this.currentTask = task;
+                this.dialogVisible = true;
+            },
+            handleClose(done) {
+                this.currentTask = null;
+                done();
+            },
+            getStatusType(status) {
+                const types = {
+                    '1': 'info',
+                    '2': 'warning',
+                    '3': 'success'
+                };
+                return types[status] || 'info';
+            },
+            getStatusText(status) {
+                const texts = {
+                    '1': '未开始',
+                    '2': '进行中',
+                    '3': '已完成'
+                };
+                return texts[status] || '未知状态';
             }
         },
         computed: {
@@ -2181,6 +2282,68 @@
     .monitor-section,
     .soil-section {
         // ... existing styles ...
+    }
+}
+
+.task-detail {
+    padding: 10px;
+
+    .detail-item {
+        margin-bottom: 15px;
+        
+        .label {
+            font-weight: bold;
+            color: #606266;
+            margin-right: 10px;
+        }
+    }
+
+    .resource-section,
+    .images-section {
+        margin-top: 20px;
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #303133;
+            border-left: 3px solid #42b983;
+            padding-left: 10px;
+        }
+    }
+
+    .resource-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .resource-tag {
+            margin: 4px;
+        }
+    }
+
+    .image-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+
+        .task-image {
+            width: 100%;
+            height: 120px;
+            border-radius: 4px;
+            
+            &:hover {
+                cursor: pointer;
+                transform: scale(1.05);
+                transition: transform 0.3s;
+            }
+        }
+    }
+}
+
+.el-dialog {
+    .el-dialog__body {
+        max-height: 70vh;
+        overflow-y: auto;
     }
 }
 </style>

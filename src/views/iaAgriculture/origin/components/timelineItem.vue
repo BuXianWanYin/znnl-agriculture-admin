@@ -8,6 +8,9 @@
         </div>
         <div class="timeline-connector" :class="{'active-connector': isCompleted || isInProgress}" v-if="index !== tasks.length - 1"></div>
         <div class="timeline-content">
+          <div class="details-icon" @click="showDetails">
+            <el-button type="text" icon="el-icon-info" circle></el-button>
+          </div>
           <div class="timeline-header">
             <span class="timeline-title">{{ task.taskName }}</span>
             <el-tag size="small" :type="getStatusType" effect="dark">{{ getStatusText }}</el-tag>
@@ -16,14 +19,10 @@
           
           <!-- 实际日期（如果有） -->
           <div class="timeline-date actual-date" v-if="task.actualStart || task.actualFinish">
-            <span>{{ formatDate(task.actualStart) }} ~ {{ formatDate(task.actualFinish) }}</span>
+            <span>{{ formatDate(task.actualStart) }} 至 {{ formatDate(task.actualFinish) }}</span>
           </div>
           
           <div class="timeline-desc" v-if="task.taskDesc">{{ task.taskDesc }}</div>
-          <div class="timeline-info" v-if="task.taskHeadName">
-            <span class="info-label">操作人：</span>
-            <span class="info-value">{{ task.taskHeadName }}</span>
-          </div>
           <div class="timeline-images" v-if="task.images && task.images.length">
             <el-image 
               v-for="(img, index) in task.images" 
@@ -53,12 +52,6 @@
               <el-tag size="mini" :type="getStatusType" effect="dark">{{ getStatusText }}</el-tag>
             </div>
             <div class="header-right">
-              <!-- 添加负责人信息在卡片头部 -->
-              <div class="task-operator" v-if="task.taskHeadName">
-                <i class="el-icon-user"></i>
-                <span>{{ task.taskHeadName }}</span>
-              </div>
-              <div class="task-date">{{ formatDate(task.planStart) }}</div>
               <div class="expand-icon">
                 <i :class="expanded ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i>
               </div>
@@ -67,50 +60,54 @@
           
           <transition name="slide-fade">
             <div class="card-content" v-show="expanded">
-              <!-- 计划日期范围 -->
-              <div class="task-date-range" v-if="task.planStart || task.planFinish">
-                <i class="el-icon-date"></i>
-                <div class="date-content">
-                  <!-- 实际日期 -->
-                  <div class="date-item" v-if="task.actualStart || task.actualFinish">
-                    <span class="label">日期：</span>
-                    <span class="value">{{ formatDate(task.actualStart) }} ~ {{ formatDate(task.actualFinish) }}</span>
-                  </div>
+              <!-- 基本信息 -->
+              <div class="info-section">
+                <div class="info-item">
+                  <span class="label">操作人：</span>
+                  <span class="value">{{ task.taskHeadName || '未指定' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">开始时间：</span>
+                  <span class="value">{{ formatDate(task.actualStart) || '未开始' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">结束时间：</span>
+                  <span class="value">{{ formatDate(task.actualFinish) || '未完成' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">任务状态：</span>
+                  <el-tag size="mini" :type="getStatusType">{{ getStatusText }}</el-tag>
                 </div>
               </div>
-              
-              <div class="task-operator-details" v-if="task.taskHeadName">
-                <i class="el-icon-user"></i>
-                <span class="label">操作人：</span>
-                <span class="value">{{ task.taskHeadName }}</span>
-              </div>
-              
-              <div class="task-desc" v-if="task.taskDesc">
-                <i class="el-icon-document"></i>
-                <div class="desc-content">{{ task.taskDesc }}</div>
-              </div>
-              
-              <div class="task-info" v-if="task.info">
-                <i class="el-icon-info"></i>
-                <div class="info-content">
-                  <div v-for="(item, key) in parseTaskInfo" :key="key" class="info-item">
-                    <span class="label">{{ item.label }}：</span>
-                    <span class="value">{{ item.value }}</span>
-                  </div>
+
+              <!-- 农资使用信息 -->
+              <div class="resource-section" v-if="task.resources && task.resources.length">
+                <div class="section-title">农资使用：</div>
+                <div class="resource-list">
+                  <el-tag 
+                    v-for="(resource, index) in task.resources" 
+                    :key="index"
+                    size="mini"
+                    class="resource-tag"
+                  >
+                    {{ resource.name }}: {{ resource.amount }}{{ resource.unit }}
+                  </el-tag>
                 </div>
               </div>
-              
-              <div class="task-images" v-if="task.images && task.images.length">
-                <i class="el-icon-picture-outline"></i>
+
+              <!-- 工作照片 -->
+              <div class="images-section" v-if="task.images && task.images.length">
+                <div class="section-title">工作照片：</div>
                 <div class="image-grid">
                   <el-image 
                     v-for="(img, index) in task.images" 
-                    :key="index" 
-                    :src="img" 
-                    fit="cover"
+                    :key="index"
+                    :src="img"
                     :preview-src-list="task.images"
-                    lazy>
-                    <div slot="error" class="image-error">
+                    fit="cover"
+                    class="task-image"
+                  >
+                    <div slot="error" class="image-slot">
                       <i class="el-icon-picture-outline"></i>
                     </div>
                   </el-image>
@@ -146,7 +143,9 @@
     },
     data() {
       return {
-        expanded: this.index === 0 // 默认展开第一个任务
+        expanded: this.index === 0, // 默认展开第一个任务
+        taskDetailsVisible: false,
+        currentTask: null
       }
     },
     computed: {
@@ -204,6 +203,9 @@
         
         // 否则返回原格式
         return dateStr;
+      },
+      showDetails() {
+        this.$emit('show-details', this.task);
       }
     }
   }
@@ -279,6 +281,24 @@
       border: 1px solid #EBEEF5;
       box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
       transition: transform 0.3s, box-shadow 0.3s;
+      position: relative;
+      
+      .details-icon {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        z-index: 2;
+
+        ::v-deep .el-button {
+          padding: 5px;
+          font-size: 16px;
+          color: #909399;
+          
+          &:hover {
+            color: #409EFF;
+          }
+        }
+      }
       
       &:hover {
         transform: translateY(-3px);
@@ -367,7 +387,8 @@
   // 移动端垂直时间轴样式
   .mobile-timeline-item {
     display: flex;
-    width: 100%;
+    margin-left: 20px;
+    position: relative;
     
     .timeline-side {
       display: flex;
@@ -414,29 +435,23 @@
     
     .timeline-card {
       flex: 1;
+      margin-left: 15px;
       background: #fff;
       border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
-      border: 1px solid #EBEEF5;
-      transition: box-shadow 0.3s ease;
+      box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
+      transition: all 0.3s;
       
       &.expanded {
         box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
       }
       
       .card-header {
+        padding: 12px 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px 15px;
-        background: #f9f9f9;
         cursor: pointer;
-        transition: background 0.2s ease;
-        
-        &:hover {
-          background: #f5f7fa;
-        }
+        position: relative;
         
         .header-left {
           display: flex;
@@ -446,185 +461,93 @@
           .task-name {
             font-weight: 500;
             color: #303133;
-            font-size: 14px;
           }
         }
         
         .header-right {
           display: flex;
           align-items: center;
-          gap: 10px;
-          
-          .task-operator {
-            display: flex;
-            align-items: center;
-            font-size: 12px;
-            color: #606266;
-            
-            i {
-              font-size: 14px;
-              margin-right: 3px;
-              color: #909399;
-            }
-          }
-          
-          .task-date {
-            font-size: 12px;
-            color: #909399;
-          }
+          gap: 12px;
           
           .expand-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            
-            i {
-              color: #909399;
-              font-size: 14px;
-              transition: transform 0.3s;
-            }
+            color: #909399;
+            transition: transform 0.3s;
           }
         }
+      }
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px 0 rgba(0,0,0,0.1);
       }
       
       .card-content {
         padding: 15px;
         border-top: 1px solid #EBEEF5;
-        
-        .task-date-range,
-        .task-operator-details,
-        .task-desc,
-        .task-info,
-        .task-images {
-          display: flex;
-          margin-bottom: 15px;
-          font-size: 13px;
-          
-          i {
-            margin-right: 8px;
-            color: #909399;
-            font-size: 16px;
-            margin-top: 2px;
-          }
-        }
-        
-        .task-date-range {
-          align-items: flex-start;
-          
-          .date-content {
-            flex: 1;
-            
-            .date-item {
-              margin-bottom: 4px;
-              
-              &:last-child {
-                margin-bottom: 0;
-              }
-              
-              .label {
-                color: #606266;
-                font-weight: 500;
-                margin-right: 4px;
-              }
-              
-              .value {
-                color: #909399;
-              }
-              
-              &:last-child .value {
-                color: #67C23A;
-              }
-            }
-          }
-        }
-        
-        .task-operator-details {
-          .label {
-            color: #909399;
-            margin-right: 4px;
-          }
-          
-          .value {
-            color: #606266;
-            font-weight: 500;
-          }
-        }
-        
-        .task-desc {
-          align-items: flex-start;
-          
-          .desc-content {
-            flex: 1;
-            color: #606266;
-            line-height: 1.6;
-          }
-        }
-        
-        .task-info {
-          align-items: flex-start;
-          
-          .info-content {
-            flex: 1;
-            
-            .info-item {
-              padding: 8px 12px;
-              background: #f5f7fa;
-              border-radius: 6px;
-              margin-bottom: 8px;
-              
-              &:last-child {
-                margin-bottom: 0;
-              }
-              
-              .label {
-                color: #909399;
-              }
-              
-              .value {
-                color: #606266;
-                font-weight: 500;
-              }
-            }
-          }
-        }
-        
-        .task-images {
-          align-items: flex-start;
-          
-          .image-grid {
-            flex: 1;
+
+        .info-section {
+          margin-bottom: 20px;
+
+          .info-item {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+
+            .label {
+              color: #909399;
+              min-width: 70px;
+            }
+
+            .value {
+              color: #303133;
+            }
+          }
+        }
+
+        .resource-section,
+        .images-section {
+          margin-bottom: 20px;
+
+          .section-title {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 12px;
+            font-weight: 500;
+            border-left: 3px solid #42b983;
+            padding-left: 8px;
+          }
+        }
+
+        .resource-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+
+          .resource-tag {
+            margin: 2px;
+          }
+        }
+
+        .image-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+
+          .task-image {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            overflow: hidden;
             
-            .el-image {
-              width: calc(33.33% - 6px);
-              height: 90px;
-              border-radius: 6px;
-              overflow: hidden;
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-              transition: transform 0.2s;
-              
-              &:active {
-                transform: scale(0.98);
-              }
-              
-              .image-error {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 100%;
-                height: 100%;
-                background-color: #f5f7fa;
-                color: #909399;
-                
-                i {
-                  font-size: 24px;
-                  margin: 0;
-                }
-              }
+            .image-slot {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              width: 100%;
+              height: 100%;
+              background: #f5f7fa;
+              color: #909399;
             }
           }
         }
@@ -648,12 +571,10 @@
     .mobile-timeline-item {
       .timeline-card {
         .card-content {
-          .task-images {
-            .image-grid {
-              .el-image {
-                width: calc(33.33% - 6px);
-                height: 80px;
-              }
+          .image-grid {
+            .el-image {
+              width: calc(33.33% - 6px);
+              height: 80px;
             }
           }
         }
@@ -664,28 +585,9 @@
   @media screen and (max-width: 480px) {
     .mobile-timeline-item {
       .timeline-card {
-        .card-header {
-          flex-wrap: wrap;
-          
-          .header-left {
-            margin-bottom: 5px;
-            width: 100%;
-          }
-          
-          .header-right {
-            width: 100%;
-            justify-content: space-between;
-          }
-        }
-        
         .card-content {
-          .task-images {
-            .image-grid {
-              .el-image {
-                width: calc(50% - 4px);
-                height: 100px;
-              }
-            }
+          .image-grid {
+            grid-template-columns: repeat(2, 1fr); // 在更小的屏幕上改为两列
           }
         }
       }
