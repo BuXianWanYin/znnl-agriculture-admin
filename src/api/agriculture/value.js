@@ -50,3 +50,14 @@ export function delValue(id) {
     method: 'delete'
   })
 }
+
+/**
+ * 根据批次ID和日期范围查询土壤环境数据
+ */
+export function getSoilSensorValuesByBatchIdAndDateRange(batchId, startDate, endDate) {
+  return request({
+    url: '/agriculture/value/range',
+    method: 'get',
+    params: { batchId, startDate, endDate }
+  });
+}
