@@ -48,7 +48,8 @@ export const constantRoutes = [
   },{
     path: '/originIndex',
     name: 'OriginIndex',
-    component: OriginIndex
+    component: OriginIndex,
+  
   },
   {
     path: '/bigScreen',

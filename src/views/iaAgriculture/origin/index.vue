@@ -485,6 +485,9 @@
         mounted() {
             this.checkDeviceType();
             window.addEventListener('resize', this.checkDeviceType);
+            
+            // 添加: 检查 URL 参数
+            this.checkUrlParams();
         },
         beforeDestroy() {
             window.removeEventListener('resize', this.checkDeviceType);
@@ -944,7 +947,19 @@
                     '3': '已完成'
                 };
                 return texts[status] || '未知状态';
-            }
+            },
+            // 添加: 检查 URL 参数的方法
+            checkUrlParams() {
+                // 获取当前 URL 的查询参数
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code'); // 获取名为 'code' 的参数
+                
+                // 如果存在溯源码参数，自动触发查询
+                if (code) {
+                    this.originName = code;
+                    this.originSearch();
+                }
+            },
         },
         computed: {
             // 删除原有的isAquaculture计算属性，因为现在直接使用type

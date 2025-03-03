@@ -81,11 +81,11 @@
               </div>
 
               <!-- 农资使用信息 -->
-              <div class="resource-section" v-if="task.resources && task.resources.length">
+              <div class="resource-section" v-if="displayResources && displayResources.length">
                 <div class="section-title">农资使用：</div>
                 <div class="resource-list">
                   <el-tag 
-                    v-for="(resource, index) in task.resources" 
+                    v-for="(resource, index) in displayResources" 
                     :key="index"
                     size="mini"
                     class="resource-tag"
@@ -96,14 +96,14 @@
               </div>
 
               <!-- 工作照片 -->
-              <div class="images-section" v-if="task.images && task.images.length">
+              <div class="images-section" v-if="displayImages && displayImages.length">
                 <div class="section-title">工作照片：</div>
                 <div class="image-grid">
                   <el-image 
-                    v-for="(img, index) in task.images" 
+                    v-for="(img, index) in displayImages" 
                     :key="index"
                     :src="img"
-                    :preview-src-list="task.images"
+                    :preview-src-list="displayImages"
                     fit="cover"
                     class="task-image"
                   >
@@ -145,7 +145,19 @@
       return {
         expanded: this.index === 0, // 默认展开第一个任务
         taskDetailsVisible: false,
-        currentTask: null
+        currentTask: null,
+        // 添加测试数据
+        mockResources: [
+          { name: '复合肥', amount: '50', unit: 'kg' },
+          { name: '农药', amount: '2', unit: 'L' },
+          { name: '有机肥', amount: '100', unit: 'kg' }
+        ],
+        mockImages: [
+          'https://via.placeholder.com/150',
+          'https://via.placeholder.com/150',
+          'https://via.placeholder.com/150',
+          'https://via.placeholder.com/150'
+        ]
       }
     },
     computed: {
@@ -187,6 +199,13 @@
           console.error('解析任务信息失败:', e);
           return [];
         }
+      },
+      // 添加测试数据的计算属性
+      displayResources() {
+        return this.task.resources || this.mockResources;
+      },
+      displayImages() {
+        return this.task.images || this.mockImages;
       }
     },
     methods: {
