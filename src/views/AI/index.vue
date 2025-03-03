@@ -84,7 +84,7 @@
           </div>
           <div class="suggestions-list">
             <el-tag
-              v-for="(suggestion, index) in aiSuggestions"
+              v-for="(suggestion, index) in fixedSuggestions"
               :key="`suggestion_${index}`"
               size="small"
               effect="plain"
@@ -407,9 +407,6 @@
               <el-button-group>
                 <el-button type="primary" icon="el-icon-document" @click="exportReport">
                   导出报告
-                </el-button>
-                <el-button type="success" icon="el-icon-share">
-                  分享结果
                 </el-button>
                 <el-button icon="el-icon-more" @click="resultView = 'detail'">
                   查看详情
@@ -966,7 +963,12 @@ export default {
         saveReport: { key: 's', ctrl: true, description: '保存报告' },
         clearPrompt: { key: 'Delete', description: '清空描述' },
         openCamera: { key: 'c', description: '打开相机' }
-      }
+      },
+      fixedSuggestions: [
+        "鱼类游动缓慢、食欲不振、体表有白点、经常浮在水面",
+        "叶片发黄卷曲、茎秆腐烂、根部变黑、生长缓慢"
+      ],
+      cameraCleanupTimer: null  // 添加清理定时器
     }
   },
   computed: {
@@ -1729,173 +1731,147 @@ export default {
     },
     // 修改 openCamera 方法
     async openCamera() {
-      // 首先检查浏览器是否支持
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        this.$message.error('您的浏览器不支持摄像头功能，请使用现代浏览器')
-        return
-      }
-
+      // 先确保之前的摄像头已关闭
+      this.stopCamera();
+      
       try {
-        // 先检查权限状态
-        const permissionStatus = await navigator.permissions.query({ name: 'camera' })
-        if (permissionStatus.state === 'denied') {
-          this.$message.error('摄像头权限被拒绝，请在浏览器设置中允许访问摄像头')
-          return
-        }
-
-        // 尝试获取摄像头列表
-        const devices = await navigator.mediaDevices.enumerateDevices()
-        const videoDevices = devices.filter(device => device.kind === 'videoinput')
-        
-        if (videoDevices.length === 0) {
-          this.$message.error('未检测到可用的摄像头设备')
-          return
-        }
-
-        // 配置摄像头参数
-        const constraints = {
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: 'environment', // 优先使用后置摄像头
-            // 如果设备支持，设置更多参数
-            advanced: [{
-              focusMode: 'continuous', // 自动对焦
-              exposureMode: 'continuous', // 自动曝光
-              whiteBalanceMode: 'continuous' // 自动白平衡
-            }]
+            facingMode: 'user'
           }
-        }
+        });
 
-        // 请求摄像头权限并获取流
-        const stream = await navigator.mediaDevices.getUserMedia(constraints)
-        this.cameraStream = stream
-        this.showCamera = true
+        const videoEl = document.createElement('video');
+        videoEl.autoplay = true;
+        videoEl.playsInline = true;
+        videoEl.style.width = '100%';
+        videoEl.style.maxHeight = '60vh';
+        videoEl.srcObject = stream;
 
-        // 创建摄像头预览对话框
-        await this.$confirm('', '实时拍摄', {
-          customClass: 'camera-dialog',
+        this.cameraStream = stream;
+
+        // 设置安全定时器，确保在异常情况下也能清理资源
+        this.cameraCleanupTimer = setTimeout(() => {
+          this.stopCamera();
+        }, 30000); // 30秒后自动清理
+
+        await this.$msgbox({
+          title: '拍照',
+          message: h => h('div', { 
+            class: 'camera-preview'
+          }, [videoEl]),
           showCancelButton: true,
-          cancelButtonText: '关闭',
           confirmButtonText: '拍照',
-          closeOnClickModal: false,
-          closeOnPressEscape: false,
+          cancelButtonText: '取消',
+          closeOnClickModal: false, // 防止点击遮罩层直接关闭
+          closeOnPressEscape: true, // 允许 ESC 关闭
           beforeClose: (action, instance, done) => {
+            clearTimeout(this.cameraCleanupTimer); // 清除定时器
             if (action === 'confirm') {
-              this.takePhoto()
+              this.takePhoto(videoEl);
             }
-            this.stopCamera()
-            done()
+            this.stopCamera();
+            done();
           }
-        }).catch(() => {
-          // 用户取消时确保关闭摄像头
-          this.stopCamera()
-        })
-
-        // 设置视频预览
-        this.$nextTick(() => {
-          const video = document.createElement('video')
-          video.srcObject = stream
-          video.autoplay = true
-          video.playsInline = true // 防止在iOS上全屏播放
-          video.style.width = '100%'
-          video.style.maxHeight = '70vh'
-          
-          // 确保视频加载完成
-          video.onloadedmetadata = () => {
-            video.play().catch(err => {
-              console.error('视频播放失败:', err)
-              this.$message.error('视频预览启动失败')
-              this.stopCamera()
-            })
-          }
-          
-          // 将视频预览添加到对话框
-          const dialogContent = document.querySelector('.camera-dialog .el-message-box__content')
-          if (dialogContent) {
-            dialogContent.appendChild(video)
-          } else {
-            throw new Error('未找到预览容器')
-          }
-        })
+        }).finally(() => {
+          // 确保在对话框关闭时清理资源
+          clearTimeout(this.cameraCleanupTimer);
+          this.stopCamera();
+        });
 
       } catch (error) {
-        console.error('摄像头访问错误:', error)
-        
-        // 根据错误类型显示不同的错误信息
-        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-          this.$message.error('摄像头访问被拒绝，请允许浏览器访问摄像头')
-        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-          this.$message.error('未找到可用的摄像头设备')
-        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
-          this.$message.error('摄像头可能被其他应用程序占用')
-        } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
-          this.$message.error('摄像头不支持请求的分辨率')
-        } else {
-          this.$message.error('摄像头启动失败：' + (error.message || '未知错误'))
-        }
-        
-        // 确保清理资源
-        this.stopCamera()
+        console.error('摄像头访问错误:', error);
+        this.$message.error('无法访问摄像头，请确保允许访问权限');
+        this.stopCamera();
       }
     },
 
-    // 新增拍照方法
-    takePhoto() {
-      if (!this.cameraStream) return
-      
-      // 创建 canvas 用于截图
-      const video = document.querySelector('.camera-dialog video')
-      const canvas = document.createElement('canvas')
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-      
-      // 绘制当前视频帧
-      const ctx = canvas.getContext('2d')
-      ctx.drawImage(video, 0, 0)
-      
-      // 转换为文件
+    // 修改 takePhoto 方法
+    takePhoto(videoEl) {
+      if (!videoEl) return;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = videoEl.videoWidth;
+      canvas.height = videoEl.videoHeight;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(videoEl, 0, 0);
+
       canvas.toBlob(blob => {
-        const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' })
-        
-        // 创建预览 URL
-        const imageUrl = URL.createObjectURL(blob)
-        
-        // 添加到上传图片列表
+        const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+        const imageUrl = URL.createObjectURL(blob);
+
         this.uploadedImages = [{
           url: imageUrl,
           file: file
-        }]
-        this.currentImage = imageUrl
-        
-        this.$message.success('拍照成功')
-      }, 'image/jpeg', 0.8)
+        }];
+        this.currentImage = imageUrl;
+
+        this.$message.success('拍照成功');
+      }, 'image/jpeg', 0.8);
     },
 
-    // 修改 stopCamera 方法，增加更多清理逻辑
+    // 修改 stopCamera 方法，增加更完善的清理
     stopCamera() {
+      // 清除安全定时器
+      if (this.cameraCleanupTimer) {
+        clearTimeout(this.cameraCleanupTimer);
+        this.cameraCleanupTimer = null;
+      }
+
       if (this.cameraStream) {
-        // 停止所有轨道
-        this.cameraStream.getTracks().forEach(track => {
-          track.stop()
-          this.cameraStream.removeTrack(track)
-        })
-        this.cameraStream = null
+        try {
+          // 停止所有轨道
+          this.cameraStream.getTracks().forEach(track => {
+            try {
+              track.stop();
+              this.cameraStream.removeTrack(track);
+            } catch (e) {
+              console.error('停止视频轨道失败:', e);
+            }
+          });
+        } catch (e) {
+          console.error('停止摄像头流失败:', e);
+        }
+        this.cameraStream = null;
       }
-      
-      // 移除视频元素
-      const video = document.querySelector('.camera-dialog video')
-      if (video) {
-        video.srcObject = null
-        video.remove()
+
+      // 清理视频元素
+      try {
+        const videoElements = document.querySelectorAll('.camera-preview video');
+        videoElements.forEach(video => {
+          try {
+            video.srcObject = null;
+            video.remove();
+          } catch (e) {
+            console.error('清理视频元素失败:', e);
+          }
+        });
+      } catch (e) {
+        console.error('查找视频元素失败:', e);
       }
-      
-      this.showCamera = false
+    },
+
+    handleVisibilityChange() {
+      if (document.hidden && this.cameraStream) {
+        // 页面隐藏时关闭摄像头
+        this.stopCamera();
+      }
+    },
+
+    handleBeforeUnload() {
+      // 页面关闭前清理资源
+      this.stopCamera();
     }
   },
   created() {
     // 初始加载历史记录
     this.loadHistoryRecords()
+    
+    // 添加页面可见性变化监听
+    document.addEventListener('visibilitychange', this.handleVisibilityChange);
+    // 添加页面卸载监听
+    window.addEventListener('beforeunload', this.handleBeforeUnload);
   },
   mounted() {
     // 添加键盘事件监听
@@ -1903,8 +1879,11 @@ export default {
   },
   beforeDestroy() {
     // 移除键盘事件监听
-    document.removeEventListener('keydown', this.handleKeydown)
-    this.stopCamera() // 确保在组件销毁时停止摄像头
+    document.removeEventListener('keydown', this.handleKeydown);
+    // 确保在组件销毁时停止摄像头
+    this.stopCamera();
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    window.removeEventListener('beforeunload', this.handleBeforeUnload);
   }
 }
 </script>
@@ -3064,5 +3043,82 @@ kbd {
   font-size: 10px;
   color: #909399;
   opacity: 0.7;
+}
+
+.camera-container {
+  width: 100%;
+  height: 500px;
+  position: relative;
+  background-color: #000;
+}
+
+.camera-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* 在 <style> 部分添加或修改以下样式 */
+
+.camera-container {
+  background: #000;
+  position: relative;
+  width: 100%;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.camera-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.camera-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 修改 Element UI 对话框样式以适应摄像头显示 */
+.el-message-box.camera-dialog {
+  width: 90vw !important;
+  max-width: 800px !important;
+}
+
+.el-message-box.camera-dialog .el-message-box__content {
+  padding: 0;
+  margin: 0;
+}
+
+.el-message-box.camera-dialog .el-message-box__container {
+  padding: 0;
+}
+
+/* 在 style 标签内添加 */
+.camera-preview {
+  background: #000;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.camera-preview video {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
 }
 </style>
