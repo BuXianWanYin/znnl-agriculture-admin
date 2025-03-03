@@ -10,7 +10,7 @@
                 <i class="el-icon-picture"></i>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ totalScans }}</div>
+                <div class="stat-value">{{ statsData.totalDetections }}</div>
                 <div class="stat-label">总检测次数</div>
               </div>
             </div>
@@ -21,7 +21,7 @@
                 <i class="el-icon-check"></i>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ successRate }}%</div>
+                <div class="stat-value">{{ statsData.accuracy }}</div>
                 <div class="stat-label">识别准确率</div>
               </div>
             </div>
@@ -32,7 +32,7 @@
                 <i class="el-icon-time"></i>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ avgProcessTime }}s</div>
+                <div class="stat-value">{{ statsData.avgProcessTime }}</div>
                 <div class="stat-label">平均处理时间</div>
               </div>
             </div>
@@ -278,32 +278,48 @@
 
         <!-- 主图片展示区 -->
         <div class="main-preview-area">
-          <div v-if="currentImage" class="image-preview">
+          <div v-if="currentImage" class="image-preview" :class="{ 'detecting': isDetecting }">
+            <div v-if="isDetecting" class="loading-overlay">
+              <div class="loading-container">
+                <div class="ai-analysis-animation">
+                  <div class="scan-container">
+                    <div class="scan-beam"></div>
+                    <div class="analysis-circles">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                    <div class="analysis-grid">
+                      <div v-for="n in 9" :key="n" class="grid-cell"></div>
+                    </div>
+                    <div class="analysis-dots">
+                      <span v-for="n in 5" :key="n"></span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="loading-status">
+                  <div class="status-text">AI 智能分析中</div>
+                  <div class="processing-time">{{ processingTime.toFixed(1) }}s</div>
+                  <div class="progress-bar">
+                    <div class="progress-inner"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <img :src="currentImage" class="preview-image" />
+            <div class="delete-overlay" v-if="!isDetecting">
+              <el-button
+                type="danger"
+                circle
+                icon="el-icon-delete"
+                @click="removeImage"
+              ></el-button>
+            </div>
           </div>
           <div v-else class="empty-preview">
             <i class="el-icon-picture-outline"></i>
             <p>暂无图片</p>
-          </div>
-        </div>
-
-        <!-- 底部缩略图预览 -->
-        <div v-if="uploadedImages.length" class="thumbnail-list">
-          <div 
-            v-for="(img, index) in uploadedImages"
-            :key="index"
-            class="thumbnail-item"
-            :class="{ active: currentImageIndex === index }"
-            @click="selectImage(index)"
-          >
-            <img :src="img.url" />
-            <el-button 
-              class="delete-btn" 
-              size="mini" 
-              type="danger" 
-              icon="el-icon-delete"
-              @click.stop="removeImage(index)"
-            ></el-button>
           </div>
         </div>
       </div>
@@ -333,77 +349,76 @@
           <!-- 根据视图模式切换显示内容 -->
           <template v-if="resultView === 'summary'">
             <div class="result-summary">
-              <!-- 主要诊断结果 -->
-              <div class="summary-main">
-                <div class="summary-header">
-                  <div class="diagnosis-result">
-                    <i class="el-icon-warning-outline"></i>
-                    <span class="diagnosis-text">{{ detailedResults[0].title }}</span>
-                  </div>
+              <div class="summary-header">
+                <div class="diagnosis-result">
+                  <i class="el-icon-warning-outline"></i>
+                  <span class="diagnosis-text">{{ detailedResults[0].title }}</span>
+                </div>
+                <div class="diagnosis-status">
                   <el-tag type="warning" effect="dark">{{ diagnosisConfidence }}% 可信度</el-tag>
                 </div>
-                
-                <!-- 快速概览卡片 -->
-                <el-row :gutter="20" class="summary-cards">
-                  <el-col :span="8">
-                    <div class="summary-card">
-                      <div class="card-title">
-                        <i class="el-icon-document"></i>
-                        症状概述
-                      </div>
-                      <div class="card-content">{{ detailedResults[0].symptoms }}</div>
-                    </div>
-                  </el-col>
-                  <el-col :span="8">
-                    <div class="summary-card">
-                      <div class="card-title">
-                        <i class="el-icon-warning"></i>
-                        主要原因
-                      </div>
-                      <div class="card-content">
-                        <el-tag 
-                          v-for="(cause, index) in detailedResults[0].causes" 
-                          :key="index"
-                          size="small"
-                          class="cause-tag">
-                          {{ cause }}
-                        </el-tag>
-                      </div>
-                    </div>
-                  </el-col>
-                  <el-col :span="8">
-                    <div class="summary-card">
-                      <div class="card-title">
-                        <i class="el-icon-s-operation"></i>
-                        建议措施
-                      </div>
-                      <div class="card-content">
-                        <div 
-                          v-for="(action, index) in detailedResults[0].actions" 
-                          :key="index"
-                          class="action-item">
-                          {{ action.content }}
-                        </div>
-                      </div>
-                    </div>
-                  </el-col>
-                </el-row>
               </div>
+              
+              <!-- 快速概览卡片 -->
+              <el-row :gutter="20" class="summary-cards">
+                <el-col :span="8">
+                  <div class="summary-card">
+                    <div class="card-title">
+                      <i class="el-icon-document"></i>
+                      症状概述
+                    </div>
+                    <div class="card-content">{{ detailedResults[0].symptoms }}</div>
+                  </div>
+                </el-col>
+                <el-col :span="8">
+                  <div class="summary-card">
+                    <div class="card-title">
+                      <i class="el-icon-warning"></i>
+                      主要原因
+                    </div>
+                    <div class="card-content">
+                      <el-tag 
+                        v-for="(cause, index) in detailedResults[0].causes" 
+                        :key="index"
+                        size="small"
+                        class="cause-tag">
+                        {{ cause }}
+                      </el-tag>
+                    </div>
+                  </div>
+                </el-col>
+                <el-col :span="8">
+                  <div class="summary-card">
+                    <div class="card-title">
+                      <i class="el-icon-s-operation"></i>
+                      建议措施
+                    </div>
+                    <div class="card-content">
+                      <div 
+                        v-for="(action, index) in detailedResults[0].actions" 
+                        :key="index"
+                        class="action-item">
+                        {{ action.content }}
+                      </div>
+                    </div>
+                  </div>
+                </el-col>
+              </el-row>
+            </div>
 
-              <!-- 快速操作按钮 -->
-              <div class="summary-actions">
-                <el-button-group>
-                  <el-button type="primary" icon="el-icon-document">
-                    导出报告
-                  </el-button>
-                  <el-button type="success" icon="el-icon-share">
-                    分享结果
-                  </el-button>
-                  <el-button icon="el-icon-more" @click="resultView = 'detail'">
-                    查看详情
-                  </el-button>
-                </el-button-group>
-              </div>
+            <!-- 快速操作按钮 -->
+            <div class="summary-actions">
+              <el-button-group>
+                <el-button type="primary" icon="el-icon-document">
+                  导出报告
+                </el-button>
+                <el-button type="success" icon="el-icon-share">
+                  分享结果
+                </el-button>
+                <el-button icon="el-icon-more" @click="resultView = 'detail'">
+                  查看详情
+                </el-button>
+              </el-button-group>
             </div>
           </template>
 
@@ -425,8 +440,18 @@
                   <el-tag 
                     v-for="(tag, index) in diagnosisTags" 
                     :key="index"
-                    :type="tag.type">
+                    :type="tag.type"
+                    class="diagnosis-tag"
+                  >
                     {{ tag.name }}
+                  </el-tag>
+                  <el-tag 
+                    v-show="showUrgencyTag" 
+                    type="danger" 
+                    effect="dark"
+                    class="diagnosis-tag urgency-tag"
+                  >
+                    需要处理
                   </el-tag>
                 </div>
               </div>
@@ -554,6 +579,7 @@
 import VueCropper from 'vue-cropper'
 import { saveAs } from 'file-saver'
 import html2pdf from 'html2pdf.js'
+import {botAiIdentify} from '@/api/bot/botai'
 
 export default {
   name: 'AiDetection',
@@ -601,9 +627,9 @@ export default {
         { label: '高精度', value: 'high' }
       ],
       currentPrecision: 'standard',
-      totalScans: 1234,
-      successRate: 95,
-      avgProcessTime: 2.5,
+      totalScans: 0,
+      successRate: 0,
+      avgProcessTime: 0,
       isUploading: false,
       uploadProgress: 0,
       uploadStatus: 'success',
@@ -627,13 +653,9 @@ export default {
           tagType: 'warning'
         }
       ],
-      aiSuggestions: [
-        '叶片边缘发黄卷曲',
-        '茎秆出现褐色斑点',
-        '根部有明显腐烂现象'
-      ],
+      aiSuggestions: [],
       resultView: 'summary',
-      diagnosisConfidence: 85,
+      diagnosisConfidence: 0,
       confidenceColors: [
         {color: '#f56c6c', percentage: 20},
         {color: '#e6a23c', percentage: 40},
@@ -641,44 +663,50 @@ export default {
         {color: '#1989fa', percentage: 80},
         {color: '#67c23a', percentage: 100}
       ],
-      diagnosisTags: [
-        { name: '叶斑病', type: 'danger' },
-        { name: '中度感染', type: 'warning' },
-        { name: '需要处理', type: '' }
-      ],
+      diagnosisTags: [],
       activeResults: [0],
-      detailedResults: [
-        {
-          title: '主要病害诊断',
-          symptoms: '叶片出现褐色斑点，边缘发黄卷曲',
-          causes: ['病菌感染', '环境潮湿', '养分失衡'],
-          actions: [
-            { content: '及时清除病叶', type: 'primary', color: '#409EFF' },
-            { content: '控制环境湿度', type: 'success', color: '#67C23A' },
-            { content: '补充营养元素', type: 'warning', color: '#E6A23C' }
-          ]
-        }
-      ],
+      detailedResults: [],
       similarCases: [
         {
           id: 1,
-          image: 'path/to/image1.jpg',
-          title: '相似案例 #1',
-          description: '类似症状的成功治疗案例'
-        }
-      ],
-      expertAdvice: [
-        {
-          title: '预防建议',
-          type: 'success',
-          content: '建议定期进行预防性喷药，保持通风'
+          image: 'https://placeholder.com/300x200',
+          title: '草鱼细菌性烂鳃病',
+          description: '发病水温20-25℃,死亡率可达30%'
         },
         {
-          title: '注意事项',
-          type: 'warning',
-          content: '处理时注意防护，避免交叉感染'
+          id: 2,
+          image: 'https://placeholder.com/300x200',
+          title: '鲫鱼车轮虫病',
+          description: '体表黏液增多,游动缓慢'
+        },
+        {
+          id: 3,
+          image: 'https://placeholder.com/300x200',
+          title: '鲤鱼肠炎',
+          description: '食欲不振,腹部膨大'
+        },
+        {
+          id: 4,
+          image: 'https://placeholder.com/300x200',
+          title: '罗非鱼链球菌病',
+          description: '眼球突出,体色发黑'
         }
-      ]
+      ],
+      expertAdvice: [],
+      chartInstance: null,
+      processingTime: 0,
+      processingTimer: null,
+      // 统计数据
+      statsData: {
+        totalDetections: 1280,      // 总检测次数
+        accuracy: '90%',            // 识别准确率
+        avgProcessTime: '21.5s'      // 平均处理时间
+      },
+    }
+  },
+  computed: {
+    showUrgencyTag() {
+      return this.results && this.results.length > 0 && this.results[0].needTreatment;
     }
   },
   methods: {
@@ -686,33 +714,42 @@ export default {
       const files = Array.from(e.target.files)
       const maxSize = 5 * 1024 * 1024 // 5MB
       
-      files.forEach(file => {
-        if (!file.type.startsWith('image/')) {
-          this.$message.error(`${file.name} 不是有效的图片文件`)
-          return
-        }
-        
-        if (file.size > maxSize) {
-          this.$message.error(`${file.name} 超过5MB限制`)
-          return
-        }
+      // 如果已经有图片，提示先删除现有图片
+      if (this.uploadedImages.length > 0) {
+        this.$message.warning('请先删除现有图片再上传新图片')
+        e.target.value = '' // 清空input
+        return
+      }
+      
+      // 只处理第一张图片
+      const file = files[0]
+      if (!file) return
 
-        // 压缩图片
-        this.compressImage(file).then(compressedFile => {
-          const reader = new FileReader()
-          reader.onload = e => {
-            this.uploadedImages.push({
-              url: e.target.result,
-              file: compressedFile
-            })
-            if (!this.currentImage) {
-              this.currentImage = e.target.result
-              this.currentImageIndex = 0
-            }
-          }
-          reader.readAsDataURL(compressedFile)
-        })
+      if (!file.type.startsWith('image/')) {
+        this.$message.error(`${file.name} 不是有效的图片文件`)
+        return
+      }
+      
+      if (file.size > maxSize) {
+        this.$message.error(`${file.name} 超过5MB限制`)
+        return
+      }
+
+      // 压缩图片
+      this.compressImage(file).then(compressedFile => {
+        const reader = new FileReader()
+        reader.onload = e => {
+          this.uploadedImages = [{ // 直接替换数组，而不是push
+            url: e.target.result,
+            file: compressedFile
+          }]
+          this.currentImage = e.target.result
+        }
+        reader.readAsDataURL(compressedFile)
       })
+
+      // 清空input值，允许重复选择同一文件
+      e.target.value = ''
     },
     compressImage(file) {
       return new Promise((resolve) => {
@@ -756,36 +793,116 @@ export default {
         }
       })
     },
-    removeImage(index) {
-      this.uploadedImages.splice(index, 1)
-      if (this.uploadedImages.length === 0) {
-        this.currentImage = null
-        this.currentImageIndex = -1
-      } else if (this.currentImageIndex === index) {
-        this.currentImageIndex = 0
-        this.currentImage = this.uploadedImages[0].url
-      }
-    },
-    selectImage(index) {
-      this.currentImageIndex = index
-      this.currentImage = this.uploadedImages[index].url
+    removeImage() {
+      this.uploadedImages = []
+      this.currentImage = null
     },
     async startDetection() {
+      if (!this.prompt.trim()) {
+        this.$message.warning('请输入症状描述')
+        return
+      }
+
       if (!this.uploadedImages.length) {
-        this.$message.warning('请先上传图片')
+        this.$message.warning('请上传至少一张图片')
         return
       }
 
       this.isDetecting = true
+      this.processingTime = 0
+      
+      this.processingTimer = setInterval(() => {
+        this.processingTime = Number(this.processingTime.toFixed(1)) + 0.1
+      }, 100)
+
       try {
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        const formData = new FormData()
+        formData.append('prompt', this.prompt.trim())
+        
+        this.uploadedImages.forEach((image, index) => {
+          formData.append('file', image.file)
+        })
+
+        const response = await botAiIdentify(formData)
+
+        console.log(response)
+        
+        // 转换感染程度
+        const infectionLevelMap = {
+          1: '轻度感染',
+          2: '中度感染',
+          3: '高度感染'
+        }
+        
+        // 更新诊断结果
         this.results = [{
-          name: '示例结果',
-          description: '这是一个示例识别结果'
+          name: response.quick_check.name,
+          description: response.diagnosis.symptoms,
+          confidence: response.diagnosis.confidence,
+          causes: response.diagnosis.primary_causes.split('、').map(cause => cause.replace('。', '')),
+          recommendations: response.diagnosis.recommended_measures
+            .split(/[；,，、]/) // 支持分号、英文逗号和中文逗号
+            .filter(item => item.trim()), // 过滤空字符串
+          needTreatment: response.quick_check.urgency // 添加是否需要处理标志
         }]
+
+        // 更新置信度和标签
+        this.diagnosisConfidence = response.diagnosis.confidence
+        this.diagnosisTags = [
+          { 
+            name: response.quick_check.name, 
+            type: response.quick_check.urgency ? 'danger' : 'warning' 
+          },
+          { 
+            name: `${infectionLevelMap[response.quick_check.infection_level] || '未知'}`, 
+            type: 'warning' 
+          }
+        ]
+        
+        // 更新详细结果
+        this.detailedResults = [{
+          title: '主要病害诊断',
+          symptoms: response.diagnosis.symptoms,
+          causes: response.diagnosis.primary_causes.split('、').map(cause => cause.replace('。', '')),
+          actions: response.diagnosis.recommended_measures.split('；').map(measure => ({
+            content: measure,
+            type: 'primary',
+            color: '#409EFF'
+          }))
+        }]
+
+        // 更新AI建议和专家建议
+        if (response.suggestions) {
+          // AI建议
+          this.aiSuggestions = [
+            response.suggestions.attention_items,
+            response.suggestions.prevention_measures
+          ].filter(Boolean)
+
+          // 专家建议
+          this.expertAdvice = [
+            {
+              title: '注意事项',
+              type: 'warning',
+              content: response.suggestions.attention_items
+            },
+            {
+              title: '预防建议',
+              type: 'success',
+              content: response.suggestions.prevention_measures
+            }
+          ]
+        }
+
+        this.$message.success('识别完成')
       } catch (error) {
-        this.$message.error('检测失败，请重试')
+        console.error('识别失败:', error)
+        this.$message.error('识别失败，请重试')
       } finally {
+        if (this.processingTimer) {
+          clearInterval(this.processingTimer)
+          this.processingTimer = null
+        }
         this.isDetecting = false
       }
     },
@@ -875,6 +992,48 @@ export default {
       } else {
         this.prompt = suggestion
       }
+    },
+    confirmCrop() {
+      if (!this.$refs.cropper) {
+        return
+      }
+      
+      this.$refs.cropper.getCropData(data => {
+        // 获取裁剪后的图片数据
+        const file = this.dataURLtoFile(data, 'cropped.jpg')
+        this.uploadedImages.push({
+          url: data,
+          file: file
+        })
+        this.showCropper = false
+      })
+    },
+    dataURLtoFile(dataurl, filename) {
+      const arr = dataurl.split(',')
+      const mime = arr[0].match(/:(.*?);/)[1]
+      const bstr = atob(arr[1])
+      let n = bstr.length
+      const u8arr = new Uint8Array(n)
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n)
+      }
+      return new File([u8arr], filename, { type: mime })
+    },
+    initChart() {
+      // 确保在创建新实例前销毁旧实例
+      if (this.chartInstance) {
+        this.chartInstance.dispose()
+      }
+      // 初始化图表逻辑...
+    },
+    beforeDestroy() {
+      if (this.chartInstance) {
+        this.chartInstance.dispose()
+        this.chartInstance = null
+      }
+    },
+    handleButtonClick(event) {
+      // 处理点击事件逻辑...
     }
   }
 }
@@ -913,6 +1072,7 @@ export default {
   border: 2px dashed #dcdfe6;
   border-radius: 6px;
   cursor: pointer;
+  margin-bottom: 15px;
 }
 
 .upload-content {
@@ -965,6 +1125,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .preview-image {
@@ -974,66 +1135,24 @@ export default {
   display: block;
 }
 
-.thumbnail-list {
-  display: flex;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 8px;
-  background: #f5f7fa;
-  border-radius: 4px;
-  overflow: hidden;
-  flex-wrap: wrap;
-  min-height: 80px;
-}
-
-.thumbnail-item {
-  position: relative;
-  width: 60px;
-  height: 60px;
-  border: 2px solid transparent;
-  border-radius: 4px;
-  overflow: hidden;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-bottom: 8px;
-}
-
-.thumbnail-item.active {
-  border-color: #409EFF;
-}
-
-.thumbnail-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.delete-btn {
+.delete-overlay {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  padding: 4px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
   opacity: 0;
   transition: opacity 0.3s;
+  pointer-events: none;
 }
 
-.thumbnail-item:hover .delete-btn {
+.image-preview:not(.detecting):hover .delete-overlay {
   opacity: 1;
-}
-
-.recognition-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 200px;
-}
-
-.result-content {
-  flex: 1;
-  border: 1px solid #ebeef5;
-  border-radius: 4px;
-  padding: 15px;
-  overflow-y: auto;
+  pointer-events: auto;
 }
 
 .empty-preview {
@@ -1223,6 +1342,7 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 15px;
 }
 
 .clickable-tag {
@@ -1399,7 +1519,7 @@ export default {
 }
 
 .ai-assistant {
-  margin-top: 15px;
+  margin: 15px 0px;
   padding: 10px;
   background: #f5f7fa;
   border-radius: 6px;
@@ -1472,10 +1592,25 @@ export default {
 }
 
 .diagnosis-tags {
-  margin-top: 10px;
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.diagnosis-tag {
+  margin: 0 !important; /* 覆盖 element-ui 默认边距 */
+}
+
+.diagnosis-tag.urgency-tag {
+  margin-left: 0 !important;
+}
+
+/* 标签颜色自定义 */
+.el-tag--danger.urgency-tag {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  color: white;
 }
 
 .result-detail {
@@ -1622,5 +1757,194 @@ export default {
 
 .summary-main {
   margin-bottom: 20px;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-container {
+  text-align: center;
+  width: 100%;
+  max-width: 300px;
+}
+
+.ai-analysis-animation {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.scan-container {
+  width: 100%;
+  height: 100%;
+  border: 2px solid rgba(64, 158, 255, 0.5);
+  border-radius: 50%;
+  position: relative;
+  animation: rotate 10s linear infinite;
+}
+
+.scan-beam {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent,
+    rgba(64, 158, 255, 0.8),
+    #409EFF,
+    rgba(64, 158, 255, 0.8),
+    transparent
+  );
+  top: 50%;
+  animation: scan 2s ease-in-out infinite;
+}
+
+.analysis-circles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.analysis-circles span {
+  position: absolute;
+  border: 1px solid #409EFF;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.analysis-circles span:nth-child(1) {
+  width: 60%;
+  height: 60%;
+  left: 20%;
+  top: 20%;
+  animation-delay: 0s;
+}
+
+.analysis-circles span:nth-child(2) {
+  width: 80%;
+  height: 80%;
+  left: 10%;
+  top: 10%;
+  animation-delay: 0.5s;
+}
+
+.analysis-circles span:nth-child(3) {
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  animation-delay: 1s;
+}
+
+.analysis-grid {
+  position: absolute;
+  width: 80%;
+  height: 80%;
+  left: 10%;
+  top: 10%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  opacity: 0.5;
+}
+
+.grid-cell {
+  background: rgba(64, 158, 255, 0.2);
+  border: 1px solid rgba(64, 158, 255, 0.3);
+  animation: flicker 3s infinite;
+}
+
+.analysis-dots span {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #409EFF;
+  border-radius: 50%;
+  animation: float 2s ease-in-out infinite;
+}
+
+.loading-status {
+  margin-top: 30px;
+  text-align: center;
+  color: #fff;
+}
+
+.status-text {
+  font-size: 18px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px rgba(64, 158, 255, 0.5);
+}
+
+.processing-time {
+  font-size: 32px;
+  font-weight: bold;
+  color: #409EFF;
+  margin-bottom: 15px;
+}
+
+.progress-bar {
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.progress-inner {
+  width: 50%;
+  height: 100%;
+  background: #409EFF;
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scan {
+  0%, 100% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+  50% { transform: translateY(50px) rotate(180deg); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+.diagnosis-status {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.urgency-tag {
+  margin-left: 10px;
 }
 </style>

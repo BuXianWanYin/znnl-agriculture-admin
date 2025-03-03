@@ -37,3 +37,11 @@ export function botAiMessage(messageData) {
     data: JSON.stringify(messageData)
   })
 }
+
+export function botAiIdentify(data) {
+  return request({
+    url: '/ai/identify',
+    method: 'post',
+    data: data
+  })
+}

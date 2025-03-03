@@ -20,14 +20,14 @@
                 
                 <!-- 搜索和重置按钮 -->
                 <el-form-item>
-                    <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-                    <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
+                    <el-button type="primary"  size="mini" @click="handleQuery"><svg-icon icon-class="ss" />搜索</el-button>
+                    <el-button size="mini" @click="resetQuery"><svg-icon icon-class="cz" />重置</el-button>
                 </el-form-item>
                 
                 <!-- 导出按钮 -->
                 <el-form-item class="fr">
-                    <el-button type="warning" plain icon="el-icon-download" size="mini" @click="handleExport"
-                        v-hasPermi="['agriculture:info:export']">导出</el-button>
+                    <el-button type="warning" plain size="mini" @click="handleExport"
+                        v-hasPermi="['agriculture:info:export']"><svg-icon icon-class="dc" />导出</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
@@ -42,13 +42,6 @@
                         <div class="card-header">
                             <span class="greenhouse-name">{{ item.greenhouse }}</span>
                             <div class="status-controls">
-                                <!-- 只在 status 不为 1 时显示编辑按钮 -->
-                                <el-button
-                                    v-if="item.status !== '1'"
-                                    type="text"
-                                    size="mini"
-                                    @click="handleStatusChange(item)"
-                                >编辑</el-button>
                                 <!-- 只在 status 不为 1 时显示预警/报警标签 -->
                                 <el-tag 
                                     v-if="item.status !== '1'" 
@@ -68,16 +61,16 @@
                         <!-- 卡片内容区：预警详细信息 -->
                         <div class="card-content">
                             <!-- 各项信息条目 -->
-                            <div class="info-item">
+                            <!-- <div class="info-item">
                                 <i class="el-icon-plant"></i>
                                 <span class="label">{{ activeTab === 'fishpond' ? '养殖批次:' : '农作物批次:' }}</span>
                                 <span class="value">{{ item.cropBatch }}</span>
-                            </div>
+                            </div> -->
                             
                             <div class="info-item">
                                 <i class="el-icon-map-location"></i>
                                 <span class="label">预警分区:</span>
-                                <span class="value">{{ item.partitionInfo }}</span>
+                                <span class="value">{{ item.batchName }}</span>
                             </div>
 
                               <div class="info-item">
@@ -130,6 +123,13 @@
                         
                         <!-- 卡片底部：操作按钮区 -->
                         <div class="card-footer">
+                              <!-- 只在 status 不为 1 时显示编辑按钮 -->
+                              <el-button
+                                    v-if="item.status !== '1'"
+                                    type="text"
+                                    size="mini"
+                                    @click="handleStatusChange(item)"
+                                ><svg-icon icon-class="bj" />编辑</el-button>
                             <!-- 预留的编辑和删除按钮位置 -->
                         </div>
                     </el-card>
@@ -208,7 +208,8 @@
                     pageSize: 10,
                     greenhouse: null,
                     cropBatch: null,
-                    partitionInfo: null,
+                    // partitionInfo: null,
+                    batchName: null,
                     type: 'greenhouse'
                 },
                 
@@ -239,9 +240,10 @@
         },
         
         // 生命周期钩子：组件创建时获取列表数据
-        created() {
+        async created() {
+            // 先获取用户列表，再获取预警信息
+            await this.getUserList();
             this.getList();
-            this.getUserList(); // 获取负责人列表
         },
         
         methods: {
@@ -266,7 +268,8 @@
                                 id: item.id,
                                 greenhouse: item.batchName,
                                 cropBatch: item.batchName,
-                                partitionInfo: `${item.batchHead}号池`,
+                                // partitionInfo: `${item.batchHead}号池`,
+                                batchName: item.batchName,
                                 paramName: item.paramName || '水温',
                                 thresholdValue: item.alertMessage,
                                 warningStatus: item.alertLevel === '1' ? '报警' : '预警',
@@ -293,7 +296,7 @@
                                 id: item.id,
                                 greenhouse: item.batchName,
                                 cropBatch: item.batchName,
-                                partitionInfo: `${item.batchHead}号棚`,
+                                batchName: item.batchName,
                                 paramName: item.paramName || '温度',
                                 thresholdValue: item.alertMessage,
                                 warningStatus: item.alertLevel === '1' ? '报警' : '预警',
@@ -302,7 +305,8 @@
                                 // 2. 数据中的 batchHeadName 字段
                                 // 3. 数据中的 pastureHead 字段
                                 // 4. 默认值 "未指定"
-                                responsiblePerson: user ? user.nickName : (item.batchHeadName || item.pastureHead || '未指定'),
+                                // responsiblePerson: user ? user.nickName : (item.batchHeadName || item.pastureHead || '未指定'),
+                                responsiblePerson: user ? user.nickName : item.nickName || '未指定',
                                 startTime: item.alertDate,
                                 endTime: item.alertDate,
                                 updatedAt: item.updateTime || item.alertTime,
@@ -419,10 +423,14 @@
             },
 
             // 添加获取负责人列表方法
-            getUserList() {
-                listUser().then(response => {
+            async getUserList() {
+                try {
+                    const response = await listUser();
                     this.userList = response.rows || [];
-                });
+                } catch (error) {
+                    console.error('获取用户列表失败:', error);
+                    this.userList = [];
+                }
             },
 
             // 处理状态变更按钮点击
@@ -475,6 +483,29 @@
         .el-col {
             padding: 0 12px;
             margin-bottom: 24px;
+            
+            // 添加这个样式来确保每个列的高度一致
+            display: flex;
+            
+            // 添加这个样式来确保卡片占满整个高度
+            .warning-card {
+                width: 100%;
+                min-height: 430px; // 设置一个固定的最小高度
+                display: flex;
+                flex-direction: column;
+                
+                // 让内容区域自动填充剩余空间
+                .card-content {
+                    flex: 1;
+                }
+                
+                // 确保底部按钮区域始终在底部
+                .card-footer {
+                    margin-top: auto;
+                    padding-top: 15px;
+                    border-top: 1px solid rgba(0, 0, 0, 0.05);
+                }
+            }
         }
     }
     
@@ -575,7 +606,8 @@
             display: flex;
             justify-content: flex-end;
             
-            .el-button {
+            // 增加选择器优先级
+            .el-button.el-button--text {
                 &.danger-text {
                     color: #FF3B30;
                     transition: all 0.3s ease;
@@ -584,6 +616,19 @@
                         color: #FF2D55;
                         transform: scale(1.05);
                     }
+                }
+
+                // 编辑按钮样式
+                background-color: rgba(64, 158, 255, 0.1) !important;
+                border: 1px solid rgba(64, 158, 255, 0.2) !important;
+                padding: 6px 15px !important;
+                border-radius: 4px;
+                color: #409EFF;
+
+                &:hover {
+                    background-color: rgba(64, 158, 255, 0.2) !important;
+                    border-color: rgba(64, 158, 255, 0.3) !important;
+                    color: #409EFF !important;
                 }
             }
         }
