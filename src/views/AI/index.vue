@@ -66,8 +66,8 @@
         <!-- 快速选择常见症状 -->
         <div class="quick-symptoms">
           <el-tag 
-            v-for="symptom in commonSymptoms"
-            :key="symptom"
+            v-for="(symptom, index) in commonSymptoms"
+            :key="`symptom_${index}`"
             size="small"
             @click="addSymptom(symptom)"
             class="clickable-tag"
@@ -85,7 +85,7 @@
           <div class="suggestions-list">
             <el-tag
               v-for="(suggestion, index) in aiSuggestions"
-              :key="index"
+              :key="`suggestion_${index}`"
               size="small"
               effect="plain"
               class="suggestion-tag"
@@ -153,10 +153,6 @@
             <i class="el-icon-setting"></i>
             检测设置
           </div>
-          <el-button size="mini" @click="showAdvancedSettings">
-            高级设置
-            <i class="el-icon-arrow-right"></i>
-          </el-button>
         </div>
         <el-form :model="settings" label-width="100px" size="small">
           <el-form-item label="检测模式">
@@ -290,10 +286,10 @@
                       <span></span>
                     </div>
                     <div class="analysis-grid">
-                      <div v-for="n in 9" :key="n" class="grid-cell"></div>
+                      <div v-for="n in 9" :key="`grid_${n}`" class="grid-cell"></div>
                     </div>
                     <div class="analysis-dots">
-                      <span v-for="n in 5" :key="n"></span>
+                      <span v-for="n in 5" :key="`dot_${n}`"></span>
                     </div>
                   </div>
                 </div>
@@ -379,7 +375,7 @@
                     <div class="card-content">
                       <el-tag 
                         v-for="(cause, index) in detailedResults[0].causes" 
-                        :key="index"
+                        :key="`cause_${index}`"
                         size="small"
                         class="cause-tag">
                         {{ cause }}
@@ -396,7 +392,7 @@
                     <div class="card-content">
                       <div 
                         v-for="(action, index) in detailedResults[0].actions" 
-                        :key="index"
+                        :key="`action_${index}`"
                         class="action-item">
                         {{ action.content }}
                       </div>
@@ -409,7 +405,7 @@
             <!-- 快速操作按钮 -->
             <div class="summary-actions">
               <el-button-group>
-                <el-button type="primary" icon="el-icon-document">
+                <el-button type="primary" icon="el-icon-document" @click="exportReport">
                   导出报告
                 </el-button>
                 <el-button type="success" icon="el-icon-share">
@@ -501,7 +497,9 @@
             <div class="similar-cases">
               <div class="section-title">相似案例</div>
               <el-carousel :interval="4000" type="card" height="200px">
-                <el-carousel-item v-for="item in similarCases" :key="item.id">
+                <el-carousel-item 
+                  v-for="(item, index) in filteredSimilarCases" 
+                  :key="`case_${item.id}_${index}`">
                   <el-card shadow="hover">
                     <img :src="item.image" class="case-image">
                     <div class="case-info">
@@ -518,7 +516,7 @@
               <div class="section-title">专家建议</div>
               <el-alert
                 v-for="(advice, index) in expertAdvice"
-                :key="index"
+                :key="`advice_${index}`"
                 :title="advice.title"
                 :type="advice.type"
                 :description="advice.content"
@@ -537,23 +535,104 @@
       direction="rtl"
       size="50%"
     >
-      <el-timeline>
-        <el-timeline-item
-          v-for="(history, index) in detectionHistory"
-          :key="index"
-          :timestamp="history.time"
-          :type="history.status"
-        >
-          <el-card>
-            <h4>{{ history.name }}</h4>
-            <p>诊断结果：{{ history.diagnosis }}</p>
-            <p>处理状态：{{ history.treatment }}</p>
-            <el-button size="mini" @click="loadHistoryResult(history)">
-              查看详情
-            </el-button>
-          </el-card>
-        </el-timeline-item>
-      </el-timeline>
+      <div class="history-container">
+        <!-- 搜索和筛选区域 -->
+        <div class="history-header">
+          <el-input
+            v-model="historySearch"
+            placeholder="搜索历史记录"
+            prefix-icon="el-icon-search"
+            clearable
+            size="small"
+            style="width: 200px"
+          ></el-input>
+          <el-select
+            v-model="historyFilter"
+            placeholder="筛选状态"
+            size="small"
+            style="width: 120px"
+          >
+            <el-option label="全部" value=""></el-option>
+            <el-option label="已处理" value="success"></el-option>
+            <el-option label="未处理" value="warning"></el-option>
+          </el-select>
+          <el-button 
+            type="danger" 
+            size="small" 
+            icon="el-icon-delete"
+            @click="clearHistory"
+          >
+            清除历史
+          </el-button>
+        </div>
+
+        <!-- 历史记录列表 -->
+        <el-timeline v-loading="historyLoading">
+          <el-timeline-item
+            v-for="(history, index) in filteredHistory"
+            :key="`history_${history.id || index}`"
+            :timestamp="history.time"
+            :type="history.status"
+          >
+            <el-card shadow="hover">
+              <div class="history-item">
+                <div class="history-info">
+                  <h4>{{ history.name }}</h4>
+                  <div class="history-details">
+                    <p>
+                      <i class="el-icon-warning-outline"></i>
+                      诊断结果：{{ history.diagnosis }}
+                    </p>
+                    <p>
+                      <i class="el-icon-data-analysis"></i>
+                      可信度：{{ history.confidence }}%
+                    </p>
+                    <p>
+                      <i class="el-icon-finished"></i>
+                      处理状态：
+                      <el-tag size="mini" :type="history.status === 'success' ? 'success' : 'warning'">
+                        {{ history.treatment }}
+                      </el-tag>
+                    </p>
+                  </div>
+                </div>
+                <div class="history-preview" v-if="history.image">
+                  <img :src="history.image" alt="检测图片">
+                </div>
+              </div>
+              <div class="history-actions">
+                <el-button 
+                  type="primary" 
+                  size="mini" 
+                  @click="loadHistoryResult(history)"
+                >
+                  查看详情
+                </el-button>
+                <el-button 
+                  type="success" 
+                  size="mini" 
+                  v-if="history.status === 'warning'"
+                  @click="markAsProcessed(history.id)"
+                >
+                  标记已处理
+                </el-button>
+              </div>
+            </el-card>
+          </el-timeline-item>
+        </el-timeline>
+
+        <!-- 分页 -->
+        <div class="history-pagination">
+          <el-pagination
+            :current-page="historyPagination.currentPage"
+            :page-size="historyPagination.pageSize"
+            :total="historyPagination.total"
+            layout="prev, pager, next"
+            @current-change="handleHistoryPageChange"
+          >
+          </el-pagination>
+        </div>
+      </div>
     </el-drawer>
 
     <!-- 图片裁剪对话框 -->
@@ -571,6 +650,134 @@
         <el-button @click="showCropper = false">取消</el-button>
         <el-button type="primary" @click="confirmCrop">确定</el-button>
       </span>
+    </el-dialog>
+
+    <!-- 在 template 最后添加帮助指南对话框 -->
+    <el-dialog
+      title="使用帮助"
+      :visible.sync="showHelpDialog"
+      width="60%"
+      class="help-dialog"
+    >
+      <div class="help-content">
+        <el-collapse v-model="activeHelp">
+          <el-collapse-item title="基本使用流程" name="1">
+            <div class="help-section">
+              <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                  <h4>描述症状</h4>
+                  <p>在左侧输入框中详细描述观察到的病虫害症状,可以:</p>
+                  <ul>
+                    <li>直接输入文字描述</li>
+                    <li>点击快速选择常见症状</li>
+                    <li>使用语音输入功能</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                  <h4>上传图片</h4>
+                  <p>上传清晰的病害部位图片:</p>
+                  <ul>
+                    <li>支持拖拽或点击上传</li>
+                    <li>可以使用相机实时拍摄</li>
+                    <li>建议图片尺寸不小于800x600</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                  <h4>调整设置</h4>
+                  <p>根据需要调整检测参数:</p>
+                  <ul>
+                    <li>选择检测模式(综合/植物/鱼类)</li>
+                    <li>调整图像质量要求</li>
+                    <li>选择检测精度级别</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="step-item">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                  <h4>开始识别</h4>
+                  <p>点击"开始识别"按钮,等待AI分析结果</p>
+                </div>
+              </div>
+            </div>
+          </el-collapse-item>
+
+          <el-collapse-item title="功能说明" name="2">
+            <div class="features-grid">
+              <div class="feature-card">
+                <i class="el-icon-mic"></i>
+                <h4>语音输入</h4>
+                <p>支持语音识别,快速输入症状描述</p>
+              </div>
+              <div class="feature-card">
+                <i class="el-icon-camera"></i>
+                <h4>实时拍摄</h4>
+                <p>可直接调用相机拍摄病害图片</p>
+              </div>
+              <div class="feature-card">
+                <i class="el-icon-document"></i>
+                <h4>报告导出</h4>
+                <p>支持导出诊断报告PDF文件</p>
+              </div>
+              <div class="feature-card">
+                <i class="el-icon-time"></i>
+                <h4>历史记录</h4>
+                <p>保存检测历史,方便后续查看</p>
+              </div>
+            </div>
+          </el-collapse-item>
+
+          <el-collapse-item title="使用技巧" name="3">
+            <div class="tips-section">
+              <div class="tip-item">
+                <h4><i class="el-icon-info"></i> 提高识别准确率</h4>
+                <ul>
+                  <li>拍摄时保持光线充足</li>
+                  <li>对准病害部位特写拍摄</li>
+                  <li>避免模糊、过暗的图片</li>
+                  <li>尽可能详细描述症状特征</li>
+                </ul>
+              </div>
+              <div class="tip-item">
+                <h4><i class="el-icon-warning"></i> 注意事项</h4>
+                <ul>
+                  <li>建议使用高精度模式进行重要诊断</li>
+                  <li>诊断结果仅供参考,重要决策请咨询专家</li>
+                  <li>定期进行预防性检查</li>
+                </ul>
+              </div>
+            </div>
+          </el-collapse-item>
+
+          <el-collapse-item title="快捷键" name="4">
+            <div class="shortcuts-grid">
+              <div class="shortcut-item">
+                <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                <span>开始识别</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd>Ctrl</kbd> + <kbd>V</kbd>
+                <span>粘贴图片</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd>Ctrl</kbd> + <kbd>S</kbd>
+                <span>保存报告</span>
+              </div>
+              <div class="shortcut-item">
+                <kbd>H</kbd>
+                <span>打开帮助</span>
+              </div>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -610,6 +817,12 @@ export default {
       diseaseMarks: [],
       results: [],
       detectionHistory: [],
+      historyLoading: false,
+      historyPagination: {
+        currentPage: 1,
+        pageSize: 10,
+        total: 0
+      },
       commonSymptoms: [
         '叶片发黄',
         '叶片卷曲',
@@ -666,47 +879,134 @@ export default {
       diagnosisTags: [],
       activeResults: [0],
       detailedResults: [],
-      similarCases: [
-        {
-          id: 1,
-          image: 'https://placeholder.com/300x200',
-          title: '草鱼细菌性烂鳃病',
-          description: '发病水温20-25℃,死亡率可达30%'
-        },
-        {
-          id: 2,
-          image: 'https://placeholder.com/300x200',
-          title: '鲫鱼车轮虫病',
-          description: '体表黏液增多,游动缓慢'
-        },
-        {
-          id: 3,
-          image: 'https://placeholder.com/300x200',
-          title: '鲤鱼肠炎',
-          description: '食欲不振,腹部膨大'
-        },
-        {
-          id: 4,
-          image: 'https://placeholder.com/300x200',
-          title: '罗非鱼链球菌病',
-          description: '眼球突出,体色发黑'
-        }
-      ],
+      similarCases: {
+        fish: [
+          {
+            id: 1,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/c456e339-3b24-4b28-8303-deabe93ebded.png',
+            title: '罗非鱼常见病害',
+            description: '鳃部发炎、体表发白，建议及时隔离治疗'
+          },
+          {
+            id: 2,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/0bd276a8-b1aa-4000-8ce2-4fa8795c3fa1.png',
+            title: '草鱼出血病',
+            description: '体表出血点、行为异常，需要专业治疗'
+          },
+          {
+            id: 3,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/24dc29ca-182e-40db-97fe-4bc9788579d9.png',
+            title: '龙鱼鳞片病',
+            description: '鳞片脱落、食欲下降，建议调整水质'
+          },
+          {
+            id: 4,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/46eef39c-1690-4aab-bfe5-f9430d67d56b.png',
+            title: '黄花鱼寄生虫病',
+            description: '体表有白点、游动缓慢，需要药物治疗'
+          },
+          {
+            id: 5,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/ed279b13-913b-4108-9f44-29fdc2437973.png',
+            title: '鲤鱼水霉病',
+            description: '体表有棉絮状物，及时用药并改善环境'
+          }
+        ],
+        vegetables: [
+          {
+            id: 1,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/87b5365d-f709-4fda-ab7c-88db5c2c7808.png',
+            title: '小白菜根腐病',
+            description: '根部发黑腐烂，需要改良土壤并施药'
+          },
+          {
+            id: 2,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/e346c20b-6931-4c17-a459-fb39bab95984.png',
+            title: '番茄早疫病',
+            description: '叶片褐斑、果实腐烂，及时喷施药剂'
+          },
+          {
+            id: 3,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/07fd276f-bc55-4798-8bb3-b8f52baa6a9e.png',
+            title: '胡萝卜根结线虫病',
+            description: '根部畸形、生长缓慢，需要土壤消毒'
+          },
+          {
+            id: 4,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/52db8e60-b3be-4a5a-9c19-68c10e6eb53e.png',
+            title: '生菜灰霉病',
+            description: '叶片腐烂发灰，控制湿度并用药防治'
+          },
+          {
+            id: 5,
+            image: 'http://192.168.1.153:81/dev-api/profile/upload/2025/03/01/08696a0d-966b-4fc4-931c-8937ceda7812.png',
+            title: '西兰花黑腐病',
+            description: '花球变黑、叶片黄化，需要综合防治'
+          }
+        ]
+      },
       expertAdvice: [],
       chartInstance: null,
       processingTime: 0,
       processingTimer: null,
-      // 统计数据
       statsData: {
-        totalDetections: 1280,      // 总检测次数
-        accuracy: '90%',            // 识别准确率
-        avgProcessTime: '21.5s'      // 平均处理时间
+        totalDetections: 1280,
+        accuracy: '90%',
+        avgProcessTime: '21.5s'
       },
+      historySearch: '',
+      historyFilter: '',
+      showHelpDialog: false,
+      activeHelp: ['1'], // 默认展开第一项
+      cameraStream: null,
+      showCamera: false,
+      shortcuts: {
+        startDetection: { key: 'Enter', ctrl: true, description: '开始识别' },
+        openHelp: { key: 'h', description: '打开帮助' },
+        saveReport: { key: 's', ctrl: true, description: '保存报告' },
+        clearPrompt: { key: 'Delete', description: '清空描述' },
+        openCamera: { key: 'c', description: '打开相机' }
+      }
     }
   },
   computed: {
     showUrgencyTag() {
       return this.results && this.results.length > 0 && this.results[0].needTreatment;
+    },
+    filteredSimilarCases() {
+      if (this.settings.mode === 'all') {
+        return [...this.similarCases.fish, ...this.similarCases.vegetables];
+      } else if (this.settings.mode === 'fish') {
+        return this.similarCases.fish;
+      } else {
+        return this.similarCases.vegetables;
+      }
+    },
+    filteredHistory() {
+      let filtered = [...this.detectionHistory]
+      
+      // 搜索过滤
+      if (this.historySearch) {
+        const search = this.historySearch.toLowerCase()
+        filtered = filtered.filter(item => 
+          item.name.toLowerCase().includes(search) ||
+          item.diagnosis.toLowerCase().includes(search)
+        )
+      }
+      
+      // 状态过滤
+      if (this.historyFilter) {
+        filtered = filtered.filter(item => item.status === this.historyFilter)
+      }
+      
+      // 更新总数
+      this.historyPagination.total = filtered.length
+      
+      // 分页处理
+      const start = (this.historyPagination.currentPage - 1) * this.historyPagination.pageSize
+      const end = start + this.historyPagination.pageSize
+      
+      return filtered.slice(start, end)
     }
   },
   methods: {
@@ -811,8 +1111,9 @@ export default {
       this.isDetecting = true
       this.processingTime = 0
       
+      // 开始计时
       this.processingTimer = setInterval(() => {
-        this.processingTime = Number(this.processingTime.toFixed(1)) + 0.1
+        this.processingTime += 0.1
       }, 100)
 
       try {
@@ -839,11 +1140,14 @@ export default {
           name: response.quick_check.name,
           description: response.diagnosis.symptoms,
           confidence: response.diagnosis.confidence,
-          causes: response.diagnosis.primary_causes.split('、').map(cause => cause.replace('。', '')),
+          // 优化分割逻辑，支持更多中文分隔符
+          causes: response.diagnosis.primary_causes
+            .split(/[。；,，、\s]+/)  // 支持句号、分号、逗号、顿号和空格
+            .filter(cause => cause.trim()),
           recommendations: response.diagnosis.recommended_measures
-            .split(/[；,，、]/) // 支持分号、英文逗号和中文逗号
-            .filter(item => item.trim()), // 过滤空字符串
-          needTreatment: response.quick_check.urgency // 添加是否需要处理标志
+            .split(/[。；,，、\s]+/)  // 使用相同的分隔符规则
+            .filter(item => item.trim()),
+          needTreatment: response.quick_check.urgency
         }]
 
         // 更新置信度和标签
@@ -863,12 +1167,18 @@ export default {
         this.detailedResults = [{
           title: '主要病害诊断',
           symptoms: response.diagnosis.symptoms,
-          causes: response.diagnosis.primary_causes.split('、').map(cause => cause.replace('。', '')),
-          actions: response.diagnosis.recommended_measures.split('；').map(measure => ({
-            content: measure,
-            type: 'primary',
-            color: '#409EFF'
-          }))
+          // 使用相同的分割逻辑保持一致性
+          causes: response.diagnosis.primary_causes
+            .split(/[。；,，、\s]+/)
+            .filter(cause => cause.trim()),
+          actions: response.diagnosis.recommended_measures
+            .split(/[。；,，、\s]+/)
+            .filter(measure => measure.trim())
+            .map(measure => ({
+              content: measure,
+              type: 'primary',
+              color: '#409EFF'
+            }))
         }]
 
         // 更新AI建议和专家建议
@@ -895,6 +1205,10 @@ export default {
         }
 
         this.$message.success('识别完成')
+
+        // 识别完成后执行高级设置功能
+        await this.executeAdvancedSettings()
+
       } catch (error) {
         console.error('识别失败:', error)
         this.$message.error('识别失败，请重试')
@@ -904,6 +1218,37 @@ export default {
           this.processingTimer = null
         }
         this.isDetecting = false
+      }
+    },
+    // 添加新方法处理高级设置功能
+    async executeAdvancedSettings() {
+      const { enableMark, saveHistory, autoReport } = this.settings
+
+      try {
+        // 1. 启用病害标注
+        if (enableMark && this.results[0]?.marks) {
+          this.diseaseMarks = this.results[0].marks
+        }
+
+        // 2. 保存检测历史
+        if (saveHistory) {
+          await this.saveDetectionHistory()
+        }
+
+        // 3. 自动生成报告
+        if (autoReport) {
+          await this.exportReport()
+        }
+
+        // 如果有多个设置项被启用，显示执行成功提示
+        const enabledSettings = [enableMark, saveHistory, autoReport].filter(Boolean).length
+        if (enabledSettings > 1) {
+          this.$message.success('高级功能执行完成')
+        }
+
+      } catch (error) {
+        console.error('执行高级设置功能失败:', error)
+        this.$message.error('部分高级功能执行失败')
       }
     },
     getMarkStyle(mark) {
@@ -919,27 +1264,135 @@ export default {
       if (confidence >= 70) return 'warning'
       return 'exception'
     },
-    toggleHistory() {
+    async toggleHistory() {
       this.showHistory = !this.showHistory
-    },
-    loadHistoryResult(history) {
-      // 实现历史结果加载逻辑
-    },
-    async exportReport() {
-      const element = document.querySelector('.detection-results')
-      const opt = {
-        margin: 1,
-        filename: '病害检测报告.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      if (this.showHistory) {
+        await this.loadHistoryRecords()
       }
+    },
+    async loadHistoryRecords() {
+      this.historyLoading = true
+      try {
+        const stored = localStorage.getItem('detectionHistory')
+        if (stored) {
+          this.detectionHistory = JSON.parse(stored)
+        }
+      } catch (error) {
+        console.error('加载历史记录失败:', error)
+        this.$message.error('加载历史记录失败')
+      } finally {
+        this.historyLoading = false
+      }
+    },
+    async loadHistoryResult(history) {
+      try {
+        // 更新当前图片
+        this.currentImage = history.image
+        
+        // 更新诊断结果
+        this.results = [{
+          name: history.diagnosis,
+          description: history.results[0]?.description || '',
+          confidence: history.confidence,
+          causes: history.results[0]?.causes || [],
+          recommendations: history.results[0]?.recommendations || [],
+          needTreatment: history.status === 'warning'
+        }]
+
+        // 更新置信度
+        this.diagnosisConfidence = history.confidence
+
+        // 更新标签
+        this.diagnosisTags = [
+          { 
+            name: history.diagnosis,
+            type: history.status === 'warning' ? 'danger' : 'warning'
+          }
+        ]
+
+        // 更新详细结果
+        this.detailedResults = [{
+          title: '历史诊断记录',
+          symptoms: history.results[0]?.description || '',
+          causes: history.results[0]?.causes || [],
+          actions: (history.results[0]?.recommendations || []).map(rec => ({
+            content: rec,
+            type: 'primary',
+            color: '#409EFF'
+          }))
+        }]
+
+        // 更新专家建议
+        this.expertAdvice = [
+          {
+            title: '注意事项',
+            type: 'warning',
+            content: history.results[0]?.attention_items || history.results[0]?.description || ''
+          },
+          {
+            title: '预防建议',
+            type: 'success',
+            content: history.results[0]?.prevention_measures || history.results[0]?.recommendations?.join('；') || ''
+          }
+        ]
+
+        // 更新症状描述
+        this.prompt = history.prompt
+
+        // 更新上传的图片
+        if (history.image) {
+          this.uploadedImages = [{
+            url: history.image,
+            file: null // 历史记录中可能没有原始文件
+          }]
+        }
+
+        // 关闭历史记录抽屉
+        this.showHistory = false
+        
+        this.$message.success('已加载历史记录')
+      } catch (error) {
+        console.error('加载历史结果失败:', error)
+        this.$message.error('加载历史结果失败')
+      }
+    },
+    async saveDetectionHistory() {
+      if (!this.settings.saveHistory) return
       
       try {
-        await html2pdf().set(opt).from(element).save()
-        this.$message.success('报告导出成功')
+        const historyData = {
+          id: Date.now(),
+          time: new Date().toLocaleString(),
+          name: `${this.settings.mode === 'fish' ? '鱼类' : '植物'}疾病检测`,
+          diagnosis: this.results[0]?.name || '未知',
+          treatment: '未处理',
+          status: 'warning',
+          image: this.currentImage,
+          prompt: this.prompt,
+          results: this.results.map(result => ({
+            name: result.name,
+            description: result.description,
+            causes: result.causes,
+            recommendations: result.recommendations,
+            attention_items: this.expertAdvice[0]?.content,  // 保存注意事项
+            prevention_measures: this.expertAdvice[1]?.content  // 保存预防建议
+          })),
+          confidence: this.diagnosisConfidence
+        }
+        
+        // 限制最多保存50条记录
+        if (this.detectionHistory.length > 50) {
+          this.detectionHistory = this.detectionHistory.slice(0, 50)
+        }
+        
+        // 添加到历史记录
+        this.detectionHistory.unshift(historyData)
+        
+        // 保存到本地存储
+        localStorage.setItem('detectionHistory', JSON.stringify(this.detectionHistory))
+        
       } catch (error) {
-        this.$message.error('报告导出失败')
+        console.error('保存历史记录失败:', error)
       }
     },
     addSymptom(symptom) {
@@ -972,7 +1425,7 @@ export default {
       // 实现高级设置对话框的显示逻辑
     },
     showHelp() {
-      // 实现帮助指南对话框的显示逻辑
+      this.showHelpDialog = true
     },
     selectModel(modelId) {
       this.selectedModel = modelId
@@ -1034,7 +1487,424 @@ export default {
     },
     handleButtonClick(event) {
       // 处理点击事件逻辑...
+    },
+    handleHistoryPageChange(page) {
+      this.historyPagination.currentPage = page
+    },
+    async markAsProcessed(id) {
+      const index = this.detectionHistory.findIndex(item => item.id === id)
+      if (index !== -1) {
+        this.detectionHistory[index].status = 'success'
+        this.detectionHistory[index].treatment = '已处理'
+        
+        // 更新本地存储
+        localStorage.setItem('detectionHistory', JSON.stringify(this.detectionHistory))
+        
+        this.$message.success('已标记为处理完成')
+      }
+    },
+    clearHistory() {
+      this.$confirm('确定要清除所有历史记录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.detectionHistory = []
+        localStorage.removeItem('detectionHistory')
+        this.$message.success('历史记录已清除')
+      }).catch(() => {})
+    },
+    async exportReport() {
+      // 创建报告内容
+      const reportContent = document.createElement('div')
+      reportContent.className = 'report-container'
+      
+      // 添加报告头部
+      reportContent.innerHTML = `
+        <div class="report-header">
+          <h1>病害智能诊断报告</h1>
+          <div class="report-meta">
+            <p>检测时间：${new Date().toLocaleString()}</p>
+            <p>报告编号：${Date.now().toString(36).toUpperCase()}</p>
+          </div>
+        </div>
+
+        <div class="report-summary">
+          <h2>诊断概要</h2>
+          <div class="summary-content">
+            <div class="diagnosis-result">
+              <h3>主要病害：${this.results[0]?.name || '未知'}</h3>
+              <p class="confidence">诊断可信度：${this.diagnosisConfidence}%</p>
+            </div>
+            <div class="image-section">
+              <img src="${this.currentImage}" alt="检测图片" style="max-width: 300px;"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="report-details">
+          <h2>详细分析</h2>
+          
+          <div class="analysis-section">
+            <h3>症状描述</h3>
+            <p>${this.results[0]?.description || '无'}</p>
+          </div>
+
+          <div class="analysis-section">
+            <h3>病因分析</h3>
+            <ul>
+              ${this.results[0]?.causes?.map(cause => `<li>${cause}</li>`).join('') || '<li>无数据</li>'}
+            </ul>
+          </div>
+
+          <div class="analysis-section">
+            <h3>建议措施</h3>
+            <ul>
+              ${this.results[0]?.recommendations?.map(rec => `<li>${rec}</li>`).join('') || '<li>无数据</li>'}
+            </ul>
+          </div>
+        </div>
+
+        <div class="report-footer">
+          <p>注意：本报告由AI智能系统生成，仅供参考。如有疑问，请咨询专业人员。</p>
+        </div>
+      `
+
+      // 添加报告样式
+      const style = document.createElement('style')
+      style.textContent = `
+        .report-container {
+          padding: 40px;
+          font-family: Arial, sans-serif;
+        }
+        .report-header {
+          text-align: center;
+          margin-bottom: 30px;
+          border-bottom: 2px solid #333;
+          padding-bottom: 20px;
+        }
+        .report-header h1 {
+          color: #333;
+          margin-bottom: 15px;
+        }
+        .report-meta {
+          color: #666;
+          font-size: 14px;
+        }
+        .report-summary {
+          margin: 30px 0;
+          padding: 20px;
+          background: #f8f9fa;
+          border-radius: 8px;
+        }
+        .summary-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-top: 20px;
+        }
+        .diagnosis-result {
+          flex: 1;
+        }
+        .confidence {
+          color: #409EFF;
+          font-weight: bold;
+        }
+        .analysis-section {
+          margin: 20px 0;
+        }
+        .analysis-section h3 {
+          color: #333;
+          margin-bottom: 10px;
+        }
+        .analysis-section ul {
+          padding-left: 20px;
+        }
+        .analysis-section li {
+          margin-bottom: 8px;
+          line-height: 1.5;
+        }
+        .report-footer {
+          margin-top: 40px;
+          padding-top: 20px;
+          border-top: 1px solid #ddd;
+          font-size: 12px;
+          color: #666;
+          text-align: center;
+        }
+      `
+      
+      reportContent.appendChild(style)
+
+      // 配置PDF导出选项
+      const opt = {
+        margin: 1,
+        filename: `病害诊断报告_${new Date().toLocaleDateString()}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: false
+        },
+        jsPDF: { 
+          unit: 'cm', 
+          format: 'a4', 
+          orientation: 'portrait'
+        }
+      }
+
+      try {
+        const loadingMessage = this.$message({
+          message: '正在生成报告，请稍候...',
+          type: 'info',
+          duration: 0
+        })
+
+        // 等待图片加载完成
+        await new Promise(resolve => {
+          const img = new Image()
+          img.onload = resolve
+          img.src = this.currentImage
+        })
+
+        // 生成PDF
+        await html2pdf().from(reportContent).set(opt).save()
+        
+        // 关闭加载消息
+        loadingMessage.close()
+        
+        // 显示成功消息
+        this.$message({
+          message: '报告导出成功！',
+          type: 'success',
+          duration: 3000  // 3秒后自动关闭
+        })
+      } catch (error) {
+        console.error('报告导出失败:', error)
+        this.$message.error('报告导出失败，请重试')
+      }
+    },
+    // 添加快捷键支持
+    handleKeydown(e) {
+      // 如果在输入框中，只响应 Ctrl 组合键
+      const isInInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA'
+      
+      // 检查快捷键
+      for (const [action, config] of Object.entries(this.shortcuts)) {
+        const keyMatch = e.key.toLowerCase() === config.key.toLowerCase()
+        const ctrlMatch = config.ctrl ? e.ctrlKey : true
+        
+        if (keyMatch && ctrlMatch) {
+          // 在输入框中且不是 Ctrl 组合键时不触发
+          if (isInInput && !config.ctrl) continue
+          
+          e.preventDefault()
+          
+          switch (action) {
+            case 'startDetection':
+              if (this.isDetecting) return
+              this.startDetection()
+              break
+            case 'openHelp':
+              this.showHelp()
+              break
+            case 'saveReport':
+              if (this.results.length) {
+                this.exportReport()
+              }
+              break
+            case 'clearPrompt':
+              if (!isInInput) return
+              this.clearPrompt()
+              break
+            case 'openCamera':
+              if (!this.showCamera) {
+                this.openCamera()
+              }
+              break
+          }
+          break
+        }
+      }
+    },
+    // 修改 openCamera 方法
+    async openCamera() {
+      // 首先检查浏览器是否支持
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        this.$message.error('您的浏览器不支持摄像头功能，请使用现代浏览器')
+        return
+      }
+
+      try {
+        // 先检查权限状态
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' })
+        if (permissionStatus.state === 'denied') {
+          this.$message.error('摄像头权限被拒绝，请在浏览器设置中允许访问摄像头')
+          return
+        }
+
+        // 尝试获取摄像头列表
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        const videoDevices = devices.filter(device => device.kind === 'videoinput')
+        
+        if (videoDevices.length === 0) {
+          this.$message.error('未检测到可用的摄像头设备')
+          return
+        }
+
+        // 配置摄像头参数
+        const constraints = {
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'environment', // 优先使用后置摄像头
+            // 如果设备支持，设置更多参数
+            advanced: [{
+              focusMode: 'continuous', // 自动对焦
+              exposureMode: 'continuous', // 自动曝光
+              whiteBalanceMode: 'continuous' // 自动白平衡
+            }]
+          }
+        }
+
+        // 请求摄像头权限并获取流
+        const stream = await navigator.mediaDevices.getUserMedia(constraints)
+        this.cameraStream = stream
+        this.showCamera = true
+
+        // 创建摄像头预览对话框
+        await this.$confirm('', '实时拍摄', {
+          customClass: 'camera-dialog',
+          showCancelButton: true,
+          cancelButtonText: '关闭',
+          confirmButtonText: '拍照',
+          closeOnClickModal: false,
+          closeOnPressEscape: false,
+          beforeClose: (action, instance, done) => {
+            if (action === 'confirm') {
+              this.takePhoto()
+            }
+            this.stopCamera()
+            done()
+          }
+        }).catch(() => {
+          // 用户取消时确保关闭摄像头
+          this.stopCamera()
+        })
+
+        // 设置视频预览
+        this.$nextTick(() => {
+          const video = document.createElement('video')
+          video.srcObject = stream
+          video.autoplay = true
+          video.playsInline = true // 防止在iOS上全屏播放
+          video.style.width = '100%'
+          video.style.maxHeight = '70vh'
+          
+          // 确保视频加载完成
+          video.onloadedmetadata = () => {
+            video.play().catch(err => {
+              console.error('视频播放失败:', err)
+              this.$message.error('视频预览启动失败')
+              this.stopCamera()
+            })
+          }
+          
+          // 将视频预览添加到对话框
+          const dialogContent = document.querySelector('.camera-dialog .el-message-box__content')
+          if (dialogContent) {
+            dialogContent.appendChild(video)
+          } else {
+            throw new Error('未找到预览容器')
+          }
+        })
+
+      } catch (error) {
+        console.error('摄像头访问错误:', error)
+        
+        // 根据错误类型显示不同的错误信息
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+          this.$message.error('摄像头访问被拒绝，请允许浏览器访问摄像头')
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+          this.$message.error('未找到可用的摄像头设备')
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+          this.$message.error('摄像头可能被其他应用程序占用')
+        } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
+          this.$message.error('摄像头不支持请求的分辨率')
+        } else {
+          this.$message.error('摄像头启动失败：' + (error.message || '未知错误'))
+        }
+        
+        // 确保清理资源
+        this.stopCamera()
+      }
+    },
+
+    // 新增拍照方法
+    takePhoto() {
+      if (!this.cameraStream) return
+      
+      // 创建 canvas 用于截图
+      const video = document.querySelector('.camera-dialog video')
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      
+      // 绘制当前视频帧
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(video, 0, 0)
+      
+      // 转换为文件
+      canvas.toBlob(blob => {
+        const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' })
+        
+        // 创建预览 URL
+        const imageUrl = URL.createObjectURL(blob)
+        
+        // 添加到上传图片列表
+        this.uploadedImages = [{
+          url: imageUrl,
+          file: file
+        }]
+        this.currentImage = imageUrl
+        
+        this.$message.success('拍照成功')
+      }, 'image/jpeg', 0.8)
+    },
+
+    // 修改 stopCamera 方法，增加更多清理逻辑
+    stopCamera() {
+      if (this.cameraStream) {
+        // 停止所有轨道
+        this.cameraStream.getTracks().forEach(track => {
+          track.stop()
+          this.cameraStream.removeTrack(track)
+        })
+        this.cameraStream = null
+      }
+      
+      // 移除视频元素
+      const video = document.querySelector('.camera-dialog video')
+      if (video) {
+        video.srcObject = null
+        video.remove()
+      }
+      
+      this.showCamera = false
     }
+  },
+  created() {
+    // 初始加载历史记录
+    this.loadHistoryRecords()
+  },
+  mounted() {
+    // 添加键盘事件监听
+    document.addEventListener('keydown', this.handleKeydown)
+  },
+  beforeDestroy() {
+    // 移除键盘事件监听
+    document.removeEventListener('keydown', this.handleKeydown)
+    this.stopCamera() // 确保在组件销毁时停止摄像头
   }
 }
 </script>
@@ -1946,5 +2816,253 @@ export default {
 
 .urgency-tag {
   margin-left: 10px;
+}
+
+.history-container {
+  padding: 20px;
+}
+
+.history-header {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.history-item {
+  display: flex;
+  gap: 15px;
+}
+
+.history-info {
+  flex: 1;
+}
+
+.history-info h4 {
+  margin: 0 0 10px 0;
+  color: #303133;
+}
+
+.history-details {
+  color: #606266;
+  font-size: 13px;
+}
+
+.history-details p {
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.history-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.history-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.history-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.history-pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* 帮助对话框样式 */
+.help-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.help-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 10px;
+}
+
+.step-item {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  background: #409EFF;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-content h4 {
+  margin: 0 0 8px 0;
+  color: #303133;
+}
+
+.step-content ul {
+  margin: 5px 0;
+  padding-left: 20px;
+  color: #606266;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 10px;
+}
+
+.feature-card {
+  padding: 15px;
+  border-radius: 8px;
+  background: #f5f7fa;
+  text-align: center;
+}
+
+.feature-card i {
+  font-size: 24px;
+  color: #409EFF;
+  margin-bottom: 10px;
+}
+
+.feature-card h4 {
+  margin: 10px 0;
+  color: #303133;
+}
+
+.feature-card p {
+  color: #606266;
+  font-size: 13px;
+}
+
+.tips-section {
+  padding: 10px;
+}
+
+.tip-item {
+  margin-bottom: 20px;
+}
+
+.tip-item h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #303133;
+  margin-bottom: 10px;
+}
+
+.tip-item i {
+  color: #409EFF;
+}
+
+.tip-item ul {
+  padding-left: 20px;
+  color: #606266;
+}
+
+.shortcuts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  padding: 10px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  background: #f5f7fa;
+  border-radius: 4px;
+}
+
+kbd {
+  background: #fff;
+  border: 1px solid #d8dce5;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: monospace;
+  font-size: 12px;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+.shortcut-item span {
+  color: #606266;
+  font-size: 13px;
+}
+
+/* 深色模式适配 */
+.dark-mode .help-dialog {
+  background: #2c2c2c;
+}
+
+.dark-mode .feature-card,
+.dark-mode .shortcut-item {
+  background: #363636;
+}
+
+.dark-mode kbd {
+  background: #2c2c2c;
+  border-color: #4a4a4a;
+}
+
+.dark-mode .tip-item ul,
+.dark-mode .shortcut-item span {
+  color: #a6a6a6;
+}
+
+/* 添加摄像头对话框样式 */
+.camera-dialog {
+  width: 90vw !important;
+  max-width: 800px !important;
+}
+
+.camera-dialog .el-message-box__content {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.camera-dialog .el-message-box__btns {
+  padding: 12px;
+  background: #f5f7fa;
+}
+
+.camera-dialog video {
+  display: block;
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+/* 添加快捷键提示样式 */
+.shortcut-hint {
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  font-size: 10px;
+  color: #909399;
+  opacity: 0.7;
 }
 </style>
