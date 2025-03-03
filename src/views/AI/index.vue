@@ -776,6 +776,30 @@
         </el-collapse>
       </div>
     </el-dialog>
+
+    <!-- 在 template 中添加摄像头对话框 -->
+    <el-dialog
+      title="拍照"
+      :visible.sync="showCamera"
+      width="50%"
+      @close="stopCamera"
+    >
+      <div class="camera-container">
+        <video
+          ref="cameraPreview"
+          autoplay
+          playsinline
+          style="width: 100%; max-height: 60vh;"
+        ></video>
+        <el-button
+          type="primary"
+          class="camera-button"
+          @click="takePhoto"
+        >
+          拍照
+        </el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -1731,52 +1755,22 @@ export default {
     },
     // 修改 openCamera 方法
     async openCamera() {
-      // 先确保之前的摄像头已关闭
-      this.stopCamera();
-      
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'user'
           }
         });
-
-        const videoEl = document.createElement('video');
-        videoEl.autoplay = true;
-        videoEl.playsInline = true;
-        videoEl.style.width = '100%';
-        videoEl.style.maxHeight = '60vh';
-        videoEl.srcObject = stream;
-
-        this.cameraStream = stream;
-
-        // 设置安全定时器，确保在异常情况下也能清理资源
-        this.cameraCleanupTimer = setTimeout(() => {
-          this.stopCamera();
-        }, 30000); // 30秒后自动清理
-
-        await this.$msgbox({
-          title: '拍照',
-          message: h => h('div', { 
-            class: 'camera-preview'
-          }, [videoEl]),
-          showCancelButton: true,
-          confirmButtonText: '拍照',
-          cancelButtonText: '取消',
-          closeOnClickModal: false, // 防止点击遮罩层直接关闭
-          closeOnPressEscape: true, // 允许 ESC 关闭
-          beforeClose: (action, instance, done) => {
-            clearTimeout(this.cameraCleanupTimer); // 清除定时器
-            if (action === 'confirm') {
-              this.takePhoto(videoEl);
-            }
-            this.stopCamera();
-            done();
+        
+        this.showCamera = true;
+        
+        // 等待 DOM 更新后再设置视频流
+        this.$nextTick(() => {
+          const videoEl = this.$refs.cameraPreview;
+          if (videoEl) {
+            videoEl.srcObject = stream;
+            this.cameraStream = stream;
           }
-        }).finally(() => {
-          // 确保在对话框关闭时清理资源
-          clearTimeout(this.cameraCleanupTimer);
-          this.stopCamera();
         });
 
       } catch (error) {
@@ -1786,8 +1780,8 @@ export default {
       }
     },
 
-    // 修改 takePhoto 方法
-    takePhoto(videoEl) {
+    takePhoto() {
+      const videoEl = this.$refs.cameraPreview;
       if (!videoEl) return;
 
       const canvas = document.createElement('canvas');
@@ -1808,48 +1802,17 @@ export default {
         this.currentImage = imageUrl;
 
         this.$message.success('拍照成功');
+        this.showCamera = false; // 拍照成功后关闭对话框
+        this.stopCamera();
       }, 'image/jpeg', 0.8);
     },
 
-    // 修改 stopCamera 方法，增加更完善的清理
     stopCamera() {
-      // 清除安全定时器
-      if (this.cameraCleanupTimer) {
-        clearTimeout(this.cameraCleanupTimer);
-        this.cameraCleanupTimer = null;
-      }
-
       if (this.cameraStream) {
-        try {
-          // 停止所有轨道
-          this.cameraStream.getTracks().forEach(track => {
-            try {
-              track.stop();
-              this.cameraStream.removeTrack(track);
-            } catch (e) {
-              console.error('停止视频轨道失败:', e);
-            }
-          });
-        } catch (e) {
-          console.error('停止摄像头流失败:', e);
-        }
+        this.cameraStream.getTracks().forEach(track => track.stop());
         this.cameraStream = null;
       }
-
-      // 清理视频元素
-      try {
-        const videoElements = document.querySelectorAll('.camera-preview video');
-        videoElements.forEach(video => {
-          try {
-            video.srcObject = null;
-            video.remove();
-          } catch (e) {
-            console.error('清理视频元素失败:', e);
-          }
-        });
-      } catch (e) {
-        console.error('查找视频元素失败:', e);
-      }
+      this.showCamera = false;
     },
 
     handleVisibilityChange() {
@@ -3120,5 +3083,22 @@ kbd {
   width: 100%;
   max-height: 60vh;
   object-fit: contain;
+}
+
+/* 添加相关样式 */
+.camera-container {
+  position: relative;
+  width: 100%;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.camera-button {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
 }
 </style>
