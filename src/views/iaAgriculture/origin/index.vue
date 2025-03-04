@@ -688,7 +688,7 @@
             async getStepsList(id) {
                 try {
                     const batchId = await this.getProcessList(id);
-                    console.log('Got batchId:', batchId);
+                  
                     this.currentBatchId = batchId; // 保存 batchId
 
                     // 根据type选择不同的接口
@@ -697,6 +697,8 @@
                         pageSize: 100,
                         batchId,
                     });
+                            
+
                     console.log('Batch tasks response:', response);
 
                     const { rows, total } = response;
