@@ -6,7 +6,7 @@
           <i class="el-icon-check" v-if="isCompleted"></i>
           <i class="el-icon-loading" v-else-if="isInProgress"></i>
         </div>
-        <div class="timeline-connector" :class="{'active-connector': isCompleted || isInProgress}" v-if="index !== tasks.length - 1"></div>
+        <div class="timeline-connector" :class="{'active-connector': isCompleted || isInProgress}"></div>
         <div class="timeline-content">
           <div class="details-icon" @click="showDetails">
             <el-button type="text" icon="el-icon-info" circle></el-button>
@@ -195,6 +195,10 @@
       // 添加测试数据的计算属性
       displayResources() {
         return this.task.resources || this.mockResources;
+      },
+      // 添加新的计算属性
+      isLastItem() {
+        return this.index === this.tasks.length - 1;
       }
     },
     methods: {

@@ -90,6 +90,7 @@
                             </div>
                         </div>
                     </div>
+                    
                     <div class="trace-items">
                         <div class="trace-item" v-for="(item, index) in traceItems" :key="index"
                             :class="{ 'traced': progress >= item.threshold }" 
@@ -158,10 +159,6 @@
                                     <div class="label">{{ type === 1 ? '养殖日期' : '种植日期' }}</div>
                                     <div class="value">{{ iaPartitionInfo.dateT }}</div>
                                 </div>
-                                <!-- <div class="info-item">
-                                    <div class="label">{{ type === 1 ? '养殖面积' : '种植面积' }}</div>
-                                    <div class="value">{{ iaPartitionInfo.cropArea }}平方米</div>
-                                </div> -->
                             </div>
                         </el-card>
                     </el-col>
@@ -581,11 +578,11 @@
                                         const matches = partitionInfo.match(/value\d+=([^,}]+)/g);
                                         if (matches) {
                                             this.iaPartitionInfo = {
-                                                name: matches[2]?.split('=')[1] || '', // value3 (暂时设置，后续会被batchName覆盖)
-                                                variety: '', // 这个会在getStepsList中通过品种接口获取
-                                                dateT: matches[5]?.split('=')[1] || '', // value6
-                                                id: matches[0]?.split('=')[1] || '', // value1
-                                                greenhouseAddress: matches[6]?.split('=')[1] || '' // value7
+                                                name: matches[2]?.split('=')[1] || '', 
+                                                variety: '', 
+                                                dateT: matches[5]?.split('=')[1] || '',
+                                                id: matches[0]?.split('=')[1] || '', 
+                                                greenhouseAddress: matches[6]?.split('=')[1] || '' 
                                             };
                                         }
                                     } catch (error) {
@@ -2726,6 +2723,35 @@
         .soil-grid {
             grid-template-columns: repeat(2, 1fr);
         }
+    }
+}
+
+.loading-circle {
+    .blockchain-image {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 70%;  // 稍微调大一点以展示区块链图片的细节
+        height: auto;
+        z-index: 2;
+        filter: drop-shadow(0 0 8px rgba(66, 185, 131, 0.2)); // 添加发光效果
+        animation: pulse 2s infinite; // 添加脉冲动画
+    }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+    100% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(0.95);
     }
 }
 </style>
