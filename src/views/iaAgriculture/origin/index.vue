@@ -386,7 +386,7 @@
                 </div>
                 
                 <!-- 农资使用信息 -->
-                <div class="resource-section">
+                <div class="resource-section" v-if="mockResources && mockResources.length > 0">
                     <div class="section-title">农资使用：</div>
                     <div class="resource-list">
                         <el-tag 
@@ -399,20 +399,18 @@
                     </div>
                 </div>
 
-                <!-- Only show images section if taskImages exists -->
-                <div v-if="currentTask.taskImages" class="images-section">
+                <!-- Only show images section if taskImages exists and is not empty -->
+                <div v-if="currentTask.taskImages && currentTask.taskImages.trim() && currentTask.taskImages !== '加载失败'" class="images-section">
                     <div class="section-title">工作照片：</div>
                     <div class="image-list">
                         <el-image 
-                            :src="getImageUrl(currentTask.taskImages)"
-                            :preview-src-list="[getImageUrl(currentTask.taskImages)]"
+                            v-for="(image, index) in currentTask.taskImages.split(',')"
+                            :key="index"
+                            :src="getImageUrl(image)"
+                            :preview-src-list="currentTask.taskImages.split(',').map(img => getImageUrl(img))"
                             fit="cover"
                             class="task-image"
-                        >
-                            <div slot="error" class="image-slot">
-                                <i class="el-icon-picture-outline"></i>
-                            </div>
-                        </el-image>
+                        />
                     </div>
                 </div>
             </div>
@@ -437,6 +435,8 @@
     import { getGermplasm as getFishGermplasm } from "@/api/fishingGround/species";
     import http from "@/utils/request";
     import { getSoilSensorValuesByBatchIdAndDateRange } from "@/api/agriculture/value"; // 导入新方法
+    import { listCostMaterial } from "@/api/agriculture/costMaterial"; 
+    import { getMaterialInfo } from '@/api/agriculture/materialInfo' // Add this import
     export default {
         data() {
             return {
@@ -498,11 +498,7 @@
                 dialogVisible: false,
                 currentTask: null,
                 // 模拟数据
-                mockResources: [
-                    { name: '有机肥', amount: '50', unit: 'kg' },
-                    { name: '农药', amount: '2', unit: 'L' },
-                    { name: '水', amount: '100', unit: 'L' }
-                ],
+                mockResources: [], // Remove mock data, we'll use real data
                 mockImages: [
                     require('@/assets/avatar.png'),
                     require('@/assets/avatar.png'),
@@ -558,7 +554,6 @@
                         if (res.data.code === 0) {
                             this.showResult = true;
                             this.type = res.data.data.type;
-                            console.log('Type value:', this.type);
 
                             // 处理鱼棚/大棚信息
                             this.ivPastureInfo = this.mapInfo(res.data.data.ivPastureInfo, {
@@ -641,7 +636,7 @@
                             this.showResult = false;
                             this.$message.error(res.data.msg);
                         }
-                        console.log( res.data.data.iaPartitionInfo[0])
+              
                         const data = {
                             "name":this.shopInfo.name,
                             "type":this.type,
@@ -667,9 +662,9 @@
                 try {
                     if (this.type === 1) {
                         // 鱼的处理逻辑
-                        console.log('Requesting fish partition food detail for id:', id);
+                       
                         const response = await http.post('/fishPasture/fishPartitionFood/detail', {}, { params: { id } });
-                        console.log('Fish Partition Food Detail response:', response);
+               
                         
                         // 直接从响应对象中获取 fishPartitionId
                         return response.data.fishPartitionId;
@@ -688,38 +683,47 @@
             async getStepsList(id) {
                 try {
                     const batchId = await this.getProcessList(id);
-                  
-                    this.currentBatchId = batchId; // 保存 batchId
+                    this.currentBatchId = batchId;
 
-                    // 根据type选择不同的接口
                     const response = await (this.type === 1 ? listFishBatchTask : listBatchTask)({
                         pageNum: 1,
                         pageSize: 100,
                         batchId,
                     });
-                            
 
-                    console.log('Batch tasks response:', response);
+                    if (response.rows) {
+                        // 处理每个任务的农资信息
+                        const tasksWithResources = await Promise.all(response.rows.map(async (task) => {
+                            try {
+                                const costMaterialResponse = await listCostMaterial({
+                                    pageNum: 1,
+                                    pageSize: 10,
+                                    taskId: task.taskId
+                                });
 
-                    const { rows, total } = response;
-                    this.taskList = rows;
-            
-                    // 如果有任务数据,自动选择第一个任务
-                    if (this.taskList && this.taskList.length > 0) {
-                        this.selectedTaskId = this.taskList[0].taskId;
-                        // 触发任务选择变更,加载对应的环境数据
-                        await this.handleTaskChange(this.selectedTaskId);
+                                if (costMaterialResponse.rows) {
+                                    const resources = await Promise.all(costMaterialResponse.rows.map(async (material) => {
+                                        const materialDetails = await getMaterialInfo(material.materialId);
+                                        return {
+                                            name: materialDetails.data.materialName,
+                                            amount: material.materialCount,
+                                            unit: material.measureUnit
+                                        };
+                                    }));
+                                    return { ...task, resources };
+                                }
+                                return task;
+                            } catch (error) {
+                                console.error('Error processing task resources:', error);
+                                return task;
+                            }
+                        }));
+
+                        this.taskList = tasksWithResources;
                     }
 
-                    this.total = total;
-                    this.loading = false;
-                    this.tasks.data = this.taskList.map((item) => ({
-                        text: item.taskName,
-                        id: item.taskId,
-                        start_date: new Date(`${item.planStart} 00:00:00`),
-                        end_date: new Date(`${item.planFinish} 00:00:00`),
-                        color: "#2b7",
-                    }));
+                    // ... 其余代码保持不变 ...
+
                 } catch (error) {
                     console.error("getStepsList error details:", error);
                     this.$message.error("任务列表加载失败，请稍后再试");
@@ -868,8 +872,7 @@
                 const startDate = selectedTask.actualStart;
                 const endDate = selectedTask.actualFinish;
 
-                // 打印请求参数
-                console.log('请求参数:', { batchId: this.currentBatchId, startDate, endDate });
+
 
                 try {
                     // 调用新接口获取土壤环境数据
@@ -883,8 +886,6 @@
                     // 计算不同环境数据的平均值
                     const averages = this.calculateAverages(soilData);
 
-                    // 打印计算的平均值
-                    console.log('计算的平均值:', averages);
 
                     // 更新环境数据
                     this.environmentData = {
@@ -910,8 +911,6 @@
                     acc.soilPh += parseFloat(item.soilPh) || 0;
                     acc.soilConductivity += parseFloat(item.soilConductivity) || 0;
 
-                    // 打印每个数据项的值
-                    console.log('当前数据项:', item);
 
                     return acc;
                 }, {
@@ -958,10 +957,46 @@
                     await this.afterGetTaskList();
                 }
             },
-            handleShowDetails(task) {
-                console.log('显示任务详情:', task);  // 用于调试
+            async handleShowDetails(task) {
+                console.log('Task details opened for taskId:', task.taskId);
                 this.currentTask = task;
                 this.dialogVisible = true;
+                
+                try {
+                    console.log('Fetching cost materials for taskId:', task.taskId);
+                    const response = await listCostMaterial({
+                        pageNum: 1,
+                        pageSize: 10,
+                        taskId: task.taskId
+                    });
+                    
+                    console.log('Cost materials API response:', response);
+                    
+                    if (response.rows) {
+                        // Create an array to store the processed materials
+                        const processedMaterials = [];
+                        
+                        // Process each material
+                        for (const material of response.rows) {
+                            try {
+                                const materialDetails = await getMaterialInfo(material.materialId);
+                                processedMaterials.push({
+                                    name: materialDetails.data.materialName, // 使用getMaterialInfo返回的名称
+                                    amount: material.materialCount, // 使用materialCount作为用量
+                                    unit: material.measureUnit // 使用measureUnit作为单位
+                                });
+                            } catch (error) {
+                                console.error('Error fetching material details for ID', material.materialId, ':', error);
+                            }
+                        }
+
+                        this.mockResources = processedMaterials;
+                        console.log('Processed materials:', this.mockResources);
+                    }
+                } catch (error) {
+                    console.error('Error details:', error);
+                    this.$message.error('获取农资使用信息失败');
+                }
             },
             handleClose(done) {
                 this.currentTask = null;
@@ -1003,6 +1038,29 @@
                 }
                 // Otherwise, prepend the base URL
                 return process.env.VUE_APP_BASE_API + path;
+            },
+            async fetchCostMaterials(taskId) {
+                try {
+                    const response = await listCostMaterial({
+                        pageNum: 1,
+                        pageSize: 10,
+                        taskId
+                    });
+                    
+                    console.log('Cost materials response:', response);
+                    
+                    // Update resources with real data
+                    if (response.rows) {
+                        this.mockResources = response.rows.map(material => ({
+                            name: material.materialName,
+                            amount: material.amount,
+                            unit: material.unit || '个' // Default unit if none provided
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Error fetching cost materials:', error);
+                    this.$message.error('获取农资使用信息失败');
+                }
             },
         },
         computed: {
@@ -2757,3 +2815,4 @@
     }
 }
 </style>
+
