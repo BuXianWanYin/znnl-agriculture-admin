@@ -257,10 +257,16 @@
             // 获取预警信息列表
             getList() {
                 this.loading = true;
+                // 构建查询参数
+                const params = {
+                    pageNum: this.queryParams.pageNum,
+                    pageSize: this.queryParams.pageSize
+                };
+                
                 // 根据不同标签页获取不同数据
                 if (this.activeTab === 'fishpond') {
                     // 获取养殖池数据
-                    listByPastureType(1).then(response => {
+                    listByPastureType(1, params).then(response => {
                         this.infoList = response.rows.map(item => {
                             // 查找对应的负责人信息
                             const user = this.userList.find(user => user.userId === item.batchHead);
@@ -288,7 +294,7 @@
                     });
                 } else {
                     // 获取蔬菜大棚数据
-                    listVegetable(0).then(response => {
+                    listVegetable(0, params).then(response => {
                         this.infoList = response.rows.map(item => {
                             // 使用 batchHead 查找对应的负责人信息
                             const user = this.userList.find(user => user.userId === item.batchHead);

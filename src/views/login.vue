@@ -212,8 +212,19 @@ export default {
     } else {
       this.redirectLogin(loginId);
     }
+    // 添加回车键监听
+    document.addEventListener('keyup', this.handleEnterPress);
+  },
+  beforeDestroy() {
+    // 移除回车键监听
+    document.removeEventListener('keyup', this.handleEnterPress);
   },
   methods: {
+    handleEnterPress(e) {
+      if (e.key === 'Enter' && !this.loading) {
+        this.handleLogin();
+      }
+    },
     redirectLogin(loginId) {
       this.loading = true;
       this.$store
