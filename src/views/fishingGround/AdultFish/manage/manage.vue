@@ -85,6 +85,9 @@
                             <el-button size="small" plain type="warning" icon="el-icon-s-claim"
                                 @click="showStandardJob(item)" 
                                 v-hasPermi="['fishPasture:species:jobProcess']">作业流程</el-button>
+                            <el-button size="small" plain type="success" icon="el-icon-s-data"
+                                @click="showAIReport(item)"
+                                v-hasPermi="['fishPasture:species:aiReport']">智能分析</el-button>
                         </div>
                     </el-card>
                 </el-col>
@@ -142,6 +145,11 @@
         <el-dialog :title="image.title" :visible.sync="image.open" width="240px">
             <img style="width:200px;height:200px;" :src="image.imgUrl" />
         </el-dialog>
+        <!-- 添加 AI 报告组件 -->
+        <ai-report 
+            :visible.sync="aiReportVisible"
+            :fish-data="currentFishData"
+        />
     </div>
 </template>
 
@@ -154,11 +162,13 @@
         updateGermplasm
     } from "@/api/fishingGround/species";
     import GrowthProcess from "@/views/fishingGround/AdultFish/manage/GrowthProcess.vue"
+    import AIReport from '@/components/AI/AIReport.vue'
 
     export default {
         name: "Germplasm",
         components: {
-            'standard-job': GrowthProcess
+            'standard-job': GrowthProcess,
+            'ai-report': AIReport
         },
         data() {
             return {
@@ -232,7 +242,9 @@
                     }],
                 },
                 fishName: '', // 鱼名称
-                fishSpeciesName: '' // 鱼类名称 
+                fishSpeciesName: '', // 鱼类名称 
+                aiReportVisible: false,
+                currentFishData: null,
             };
         },
         created() {
@@ -354,7 +366,12 @@
             validateField(field) {
                 // 手动触发特定字段的验证
                 this.$refs.form.validateField(field);
-            }
+            },
+            /** AI报告按钮操作 */
+            showAIReport(row) {
+                this.currentFishData = row
+                this.aiReportVisible = true
+            },
         }
     };
 </script>
@@ -522,6 +539,19 @@
                     box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
                 }
             }
+            
+            &.el-button--success {
+                background-color: #f0f9eb;
+                border-color: transparent;
+                color: #67c23a;
+                
+                &:hover {
+                    background-color: #67c23a;
+                    color: #ffffff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(103, 194, 58, 0.2);
+                }
+            }
         }
     }
 
@@ -547,6 +577,162 @@
 @media screen and (max-width: 768px) {
     .el-col {
         width: 100% !important;
+    }
+}
+
+.ai-report-dialog {
+    .ai-report-content {
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #EBEEF5;
+
+            .fish-info {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+
+                .fish-avatar {
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 8px;
+                    object-fit: cover;
+                }
+
+                .fish-details {
+                    h2 {
+                        margin: 0 0 8px;
+                        font-size: 24px;
+                        color: #303133;
+                    }
+                    p {
+                        margin: 0;
+                        color: #909399;
+                    }
+                }
+            }
+
+            .report-meta {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                color: #909399;
+                font-size: 14px;
+            }
+        }
+
+        .data-overview {
+            margin-bottom: 24px;
+
+            .data-card {
+                background: #F8F9FB;
+                border-radius: 8px;
+                padding: 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                i {
+                    font-size: 24px;
+                    color: #409EFF;
+                }
+
+                .data-info {
+                    display: flex;
+                    flex-direction: column;
+
+                    .label {
+                        font-size: 14px;
+                        color: #909399;
+                    }
+
+                    .value {
+                        font-size: 18px;
+                        color: #303133;
+                        font-weight: 600;
+                    }
+                }
+            }
+        }
+
+        .report-sections {
+            .report-section {
+                margin-bottom: 32px;
+
+                .section-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 16px;
+
+                    i {
+                        font-size: 20px;
+                        color: #409EFF;
+                    }
+
+                    h3 {
+                        margin: 0;
+                        font-size: 18px;
+                        color: #303133;
+                    }
+                }
+
+                .section-content {
+                    background: #F8F9FB;
+                    border-radius: 8px;
+                    padding: 20px;
+
+                    .growth-indicators {
+                        margin-top: 16px;
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 16px;
+
+                        .indicator {
+                            .indicator-label {
+                                display: block;
+                                margin-bottom: 8px;
+                                color: #606266;
+                            }
+                        }
+                    }
+
+                    .market-analysis {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 20px;
+
+                        h4 {
+                            margin: 0 0 12px;
+                            color: #303133;
+                        }
+
+                        p {
+                            margin: 0;
+                            color: #606266;
+                            line-height: 1.6;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .ai-report-dialog {
+        .ai-report-content {
+            .report-sections {
+                .section-content {
+                    .market-analysis {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            }
+        }
     }
 }
 </style>
