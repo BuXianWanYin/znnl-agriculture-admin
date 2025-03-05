@@ -82,6 +82,9 @@
                             <el-button size="small" plain type="warning" icon="el-icon-s-claim"
                                 @click="showStandardJob(item)" 
                                 v-hasPermi="['agriculture:germplasm:jobProcess']">作业流程</el-button>
+                            <el-button size="small" plain type="success" icon="el-icon-s-data"
+                                @click="showAIReport(item)"
+                                v-hasPermi="['agriculture:germplasm:aiReport']">智能分析</el-button>
                         </div>
                     </el-card>
                 </el-col>
@@ -139,6 +142,11 @@
         <el-dialog :title="image.title" :visible.sync="image.open" width="240px">
             <img style="width:200px;height:200px;" :src="image.imgUrl" />
         </el-dialog>
+        <!-- 添加 AI 报告组件 -->
+        <ai-report 
+            :visible.sync="aiReportVisible"
+            :vegetable-data="currentVegetableData"
+        />
     </div>
 </template>
 
@@ -151,11 +159,13 @@
         updateGermplasm
     } from "@/api/agriculture/germplasm";
     import StandardJob from "./components/StandardJob";
+    import AIReport from '@/components/AI/AIReport.vue'
 
     export default {
         name: "Germplasm",
         components: {
-            StandardJob
+            StandardJob,
+            'ai-report': AIReport
         },
         data() {
             return {
@@ -229,7 +239,9 @@
                     }],
                 },
                 cropName: '', // 作物名称
-                germplasmName: '' // 种质名称
+                germplasmName: '', // 种质名称
+                aiReportVisible: false,
+                currentVegetableData: null,
             };
         },
         created() {
@@ -351,7 +363,12 @@
             validateField(field) {
                 // 手动触发特定字段的验证
                 this.$refs.form.validateField(field);
-            }
+            },
+            /** AI报告按钮操作 */
+            showAIReport(row) {
+                this.currentVegetableData = row
+                this.aiReportVisible = true
+            },
         }
     };
 </script>
@@ -517,6 +534,19 @@
                     color: #ffffff;
                     transform: translateY(-2px);
                     box-shadow: 0 2px 8px rgba(230, 162, 60, 0.2);
+                }
+            }
+            
+            &.el-button--success {
+                background-color: #f0f9eb;
+                border-color: transparent;
+                color: #67c23a;
+                
+                &:hover {
+                    background-color: #67c23a;
+                    color: #ffffff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 2px 8px rgba(103, 194, 58, 0.2);
                 }
             }
         }
