@@ -212,6 +212,7 @@
                             :tasks="taskList" 
                             :index="index" 
                             :task="item" 
+                            :type="type"
                             :is-mobile="isMobile"
                             :key="index"
                             @show-details="handleShowDetails"
@@ -247,10 +248,11 @@
                         {{ physicalNetworkMsg }}
                     </div>
 
-                    <div class="monitor-section">
+                    <!-- 水产养殖环境 -->
+                    <div v-if="type === 1" class="monitor-section">
                         <div class="section-title">
                             <i class="el-icon-monitor"></i>
-                            环境监测
+                            水质检测
                         </div>
                         <div class="monitor-grid">
                             <div class="monitor-item temperature">
@@ -259,100 +261,173 @@
                                         <path d="M45,20v40.5c-4.1,2.4-7,6.9-7,12c0,7.7,6.3,14,14,14s14-6.3,14-14c0-5.1-2.9-9.6-7-12V20c0-5.5-4.5-10-10-10 S45,14.5,45,20z M52,65.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S47.9,65.5,52,65.5z"/>
                                     </svg>
                                 </div>
-                                <div class="item-label">环境温度</div>
+                                <div class="item-label">水温</div>
                                 <div class="item-value">
-                                    <span class="number">{{ environmentData.temperature || 0 }}</span>
+                                    <span class="number">{{ environmentData.waterTemperature || 0 }}</span>
                                     <span class="unit">℃</span>
                                 </div>
                             </div>
-                            <div class="monitor-item humidity">
-                                <div class="item-bg">
-                                    <svg viewBox="0 0 100 100" class="bg-icon">
-                                        <path d="M50,15L35.7,36.9C29,47.5,29,54.5,29,58.2C29,71.9,38.3,83,50,83s21-11.1,21-24.8c0-3.7,0-10.7-6.7-21.3L50,15z"/>
-                                    </svg>
-                                </div>
-                                <div class="item-label">环境湿度</div>
-                                <div class="item-value">
-                                    <span class="number">{{ environmentData.humidity || 0 }}</span>
-                                    <span class="unit">%</span>
-                                </div>
-                            </div>
-                            <div class="monitor-item light">
-                                <div class="item-bg">
-                                    <svg viewBox="0 0 100 100" class="bg-icon">
-                                        <circle cx="50" cy="50" r="20"/>
-                                        <path d="M50,25V10 M50,90V75 M75,50H90 M10,50H25 M75,75L85,85 M15,15L25,25 M75,25L85,15 M15,85L25,75"/>
-                                    </svg>
-                                </div>
-                                <div class="item-label">光照强度</div>
-                                <div class="item-value">
-                                    <span class="number">{{ environmentData.lightLux || 0 }}</span>
-                                    <span class="unit">lux</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="soil-section">
-                        <div class="section-title">
-                            <i class="el-icon-odometer"></i>
-                            土壤检测
-                        </div>
-                        <div class="soil-grid">
-                            <div class="soil-item ph">
+                            <div class="monitor-item ph">
                                 <div class="item-bg">
                                     <svg viewBox="0 0 100 100" class="bg-icon">
                                         <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" stroke-width="6"/>
                                         <text x="50" y="58" text-anchor="middle" font-size="24" fill="currentColor">pH</text>
                                     </svg>
                                 </div>
-                                <div class="item-label">土壤PH</div>
+                                <div class="item-label">pH值</div>
                                 <div class="item-value">
-                                    <span class="number">{{ environmentData.soilPh || 0 }}</span>
-                                    <span class="unit">pH</span>
+                                    <span class="number">{{ environmentData.waterPh || 0 }}</span>
                                 </div>
                             </div>
-                            <div class="soil-item temperature">
+                            <div class="monitor-item oxygen">
                                 <div class="item-bg">
                                     <svg viewBox="0 0 100 100" class="bg-icon">
-                                        <path d="M40,10v50c-8,4-12,15-8,24s15,12,24,8s12-15,8-24c-1.4-3-3.8-5.6-7-7V10c0-5.5-4.5-10-10-10S40,4.5,40,10z"/>
-                                        <circle cx="50" cy="70" r="6"/>
+                                        <circle cx="50" cy="50" r="30"/>
+                                        <text x="50" y="58" text-anchor="middle" font-size="24" fill="#fff">O₂</text>
                                     </svg>
                                 </div>
-                                <div class="item-label">土壤温度</div>
+                                <div class="item-label">溶解氧</div>
                                 <div class="item-value">
-                                    <span class="number">{{ environmentData.soilTemperature || 0 }}</span>
-                                    <span class="unit">℃</span>
+                                    <span class="number">{{ environmentData.dissolvedOxygen || 0 }}</span>
+                                    <span class="unit">mg/L</span>
                                 </div>
                             </div>
-                            <div class="soil-item humidity">
+                            <div class="monitor-item ammonia">
                                 <div class="item-bg">
                                     <svg viewBox="0 0 100 100" class="bg-icon">
-                                        <path d="M50,15L35.7,36.9C29,47.5,29,54.5,29,58.2C29,71.9,38.3,83,50,83s21-11.1,21-24.8c0-3.7,0-10.7-6.7-21.3L50,15z"/>
+                                        <text x="50" y="58" text-anchor="middle" font-size="24" fill="currentColor">NH₄</text>
                                     </svg>
                                 </div>
-                                <div class="item-label">土壤湿度</div>
+                                <div class="item-label">氨氮含量</div>
                                 <div class="item-value">
-                                    <span class="number">{{ environmentData.soilMoisture || 0 }}</span>
-                                    <span class="unit">%</span>
+                                    <span class="number">{{ environmentData.ammoniaNitrogen || 0 }}</span>
+                                    <span class="unit">mg/L</span>
                                 </div>
                             </div>
-                            <div class="soil-item conductivity">
+                            <div class="monitor-item nitrite">
                                 <div class="item-bg">
                                     <svg viewBox="0 0 100 100" class="bg-icon">
-                                        <path d="M20,50h15 M65,50h15"/>
-                                        <path d="M35,50c0-8.3,6.7-15,15-15s15,6.7,15,15s-6.7,15-15,15S35,58.3,35,50z"/>
-                                        <path d="M38,35l-8-8 M62,65l8,8 M62,35l8-8 M38,65l-8,8" stroke-width="2"/>
+                                        <text x="50" y="58" text-anchor="middle" font-size="24" fill="currentColor">NO₂</text>
                                     </svg>
                                 </div>
-                                <div class="item-label">电导率</div>
+                                <div class="item-label">亚硝酸盐</div>
                                 <div class="item-value">
-                                    <span class="number">{{ environmentData.soilConductivity || 0 }}</span>
-                                    <span class="unit">mS/cm</span>
+                                    <span class="number">{{ environmentData.nitriteNitrogen || 0 }}</span>
+                                    <span class="unit">mg/L</span>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- 蔬菜种植环境(环境检测和土壤检测) -->
+                    <template v-else>
+                        <div class="monitor-section">
+                            <div class="section-title">
+                                <i class="el-icon-monitor"></i>
+                                环境监测
+                            </div>
+                            <div class="monitor-grid">
+                                <div class="monitor-item temperature">
+                                    <div class="item-bg">
+                                        <svg viewBox="0 0 100 100" class="bg-icon">
+                                            <path d="M45,20v40.5c-4.1,2.4-7,6.9-7,12c0,7.7,6.3,14,14,14s14-6.3,14-14c0-5.1-2.9-9.6-7-12V20c0-5.5-4.5-10-10-10 S45,14.5,45,20z M52,65.5c4.1,0,7.5,3.4,7.5,7.5s-3.4,7.5-7.5,7.5s-7.5-3.4-7.5-7.5S47.9,65.5,52,65.5z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="item-label">环境温度</div>
+                                    <div class="item-value">
+                                        <span class="number">{{ environmentData.temperature || 0 }}</span>
+                                        <span class="unit">℃</span>
+                                    </div>
+                                </div>
+                                <div class="monitor-item humidity">
+                                    <div class="item-bg">
+                                        <svg viewBox="0 0 100 100" class="bg-icon">
+                                            <path d="M50,15L35.7,36.9C29,47.5,29,54.5,29,58.2C29,71.9,38.3,83,50,83s21-11.1,21-24.8c0-3.7,0-10.7-6.7-21.3L50,15z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="item-label">环境湿度</div>
+                                    <div class="item-value">
+                                        <span class="number">{{ environmentData.humidity || 0 }}</span>
+                                        <span class="unit">%</span>
+                                    </div>
+                                </div>
+                                <div class="monitor-item light">
+                                    <div class="item-bg">
+                                        <svg viewBox="0 0 100 100" class="bg-icon">
+                                            <circle cx="50" cy="50" r="20"/>
+                                            <path d="M50,25V10 M50,90V75 M75,50H90 M10,50H25 M75,75L85,85 M15,15L25,25 M75,25L85,15 M15,85L25,75"/>
+                                        </svg>
+                                    </div>
+                                    <div class="item-label">光照强度</div>
+                                    <div class="item-value">
+                                        <span class="number">{{ environmentData.lightLux || 0 }}</span>
+                                        <span class="unit">lux</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="soil-section">
+                            <div class="section-title">
+                                <i class="el-icon-odometer"></i>
+                                土壤检测
+                            </div>
+                            <div class="soil-grid">
+                                <div class="soil-item ph">
+                                    <div class="item-bg">
+                                        <svg viewBox="0 0 100 100" class="bg-icon">
+                                            <circle cx="50" cy="50" r="35" fill="none" stroke="currentColor" stroke-width="6"/>
+                                            <text x="50" y="58" text-anchor="middle" font-size="24" fill="currentColor">pH</text>
+                                        </svg>
+                                    </div>
+                                    <div class="item-label">土壤PH</div>
+                                    <div class="item-value">
+                                        <span class="number">{{ environmentData.soilPh || 0 }}</span>
+                                        <span class="unit">pH</span>
+                                    </div>
+                                </div>
+                                <div class="soil-item temperature">
+                                    <div class="item-bg">
+                                        <svg viewBox="0 0 100 100" class="bg-icon">
+                                            <path d="M40,10v50c-8,4-12,15-8,24s15,12,24,8s12-15,8-24c-1.4-3-3.8-5.6-7-7V10c0-5.5-4.5-10-10-10S40,4.5,40,10z"/>
+                                            <circle cx="50" cy="70" r="6"/>
+                                        </svg>
+                                    </div>
+                                    <div class="item-label">土壤温度</div>
+                                    <div class="item-value">
+                                        <span class="number">{{ environmentData.soilTemperature || 0 }}</span>
+                                        <span class="unit">℃</span>
+                                    </div>
+                                </div>
+                                <div class="soil-item humidity">
+                                    <div class="item-bg">
+                                        <svg viewBox="0 0 100 100" class="bg-icon">
+                                            <path d="M50,15L35.7,36.9C29,47.5,29,54.5,29,58.2C29,71.9,38.3,83,50,83s21-11.1,21-24.8c0-3.7,0-10.7-6.7-21.3L50,15z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="item-label">土壤湿度</div>
+                                    <div class="item-value">
+                                        <span class="number">{{ environmentData.soilMoisture || 0 }}</span>
+                                        <span class="unit">%</span>
+                                    </div>
+                                </div>
+                                <div class="soil-item conductivity">
+                                    <div class="item-bg">
+                                        <svg viewBox="0 0 100 100" class="bg-icon">
+                                            <path d="M20,50h15 M65,50h15"/>
+                                            <path d="M35,50c0-8.3,6.7-15,15-15s15,6.7,15,15s-6.7,15-15,15S35,58.3,35,50z"/>
+                                            <path d="M38,35l-8-8 M62,65l8,8 M62,35l8-8 M38,65l-8,8" stroke-width="2"/>
+                                        </svg>
+                                    </div>
+                                    <div class="item-label">电导率</div>
+                                    <div class="item-value">
+                                        <span class="number">{{ environmentData.soilConductivity || 0 }}</span>
+                                        <span class="unit">mS/cm</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </el-card>
 
@@ -376,7 +451,7 @@
                 </div>
                 <div class="detail-item">
                     <span class="label">时间：</span>
-                    <span>{{ currentTask.planStart }} 至 {{ currentTask.planFinish }}</span>
+                    <span>{{ currentTask.actualStart }} 至 {{ currentTask.actualFinish }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="label">状态：</span>
@@ -385,9 +460,9 @@
                     </el-tag>
                 </div>
                 
-                <!-- 农资使用信息 -->
+                <!-- 农资/饵料使用信息 -->
                 <div class="resource-section" v-if="mockResources && mockResources.length > 0">
-                    <div class="section-title">农资使用：</div>
+                    <div class="section-title">{{ type === 1 ? '饵料使用' : '农资使用' }}：</div>
                     <div class="resource-list">
                         <el-tag 
                             v-for="(resource, index) in mockResources" 
@@ -395,6 +470,21 @@
                             class="resource-tag"
                         >
                             {{ resource.name }}: {{ resource.amount }}{{ resource.unit }}
+                        </el-tag>
+                    </div>
+                </div>
+
+                <!-- 用药记录（仅鱼类显示） -->
+                <div class="resource-section" v-if="type === 1 && mockMedicineData && mockMedicineData.length > 0">
+                    <div class="section-title">用药记录：</div>
+                    <div class="resource-list">
+                        <el-tag 
+                            v-for="(medicine, index) in mockMedicineData" 
+                            :key="index"
+                            class="resource-tag"
+                            type="warning"
+                        >
+                            {{ medicine.medicineName }}: {{ medicine.dosage }}{{ medicine.unit }}
                         </el-tag>
                     </div>
                 </div>
@@ -434,9 +524,17 @@
     import { getBatch as getFishBatch } from "@/api/fishingGround/batch";
     import { getGermplasm as getFishGermplasm } from "@/api/fishingGround/species";
     import http from "@/utils/request";
-    import { getSoilSensorValuesByBatchIdAndDateRange } from "@/api/agriculture/value"; // 导入新方法
+    import { getSoilSensorValuesByBatchIdAndDateRange } from "@/api/agriculture/value"; //土壤环境 环境
+    import { selectFishWaterQualityByBatchIdAndDateRange } from "@/api/fishingGround/quality"; //水质数据
     import { listCostMaterial } from "@/api/agriculture/costMaterial"; 
-    import { getMaterialInfo } from '@/api/agriculture/materialInfo' // Add this import
+    import { getMaterialInfo } from '@/api/agriculture/materialInfo'; 
+    import { listCostBait } from '@/api/fishingGround/costBait';       //饵料用量
+    import { getBaitInfo } from '@/api/fishingGround/BaitInfo';       //饵料详细
+    import { listCostMedicine } from '@/api/fishingGround/costMedicine';       //药品用量
+    import { getMedicineInfo } from '@/api/fishingGround/MedicineInfo'       //药品详细
+
+
+
     export default {
         data() {
             return {
@@ -485,13 +583,11 @@
                 isMobile: false,
                 selectedTaskId: '', // 选中的任务ID
                 environmentData: {
-                    temperature: 0,
-                    humidity: 0,
-                    light: 0,
-                    soilPh: 0,
-                    soilTemperature: 0,
-                    soilMoisture: 0,
-                    conductivity: 0
+                    waterTemperature: 0,
+                    waterPh: 0,
+                    dissolvedOxygen: 0,
+                    ammoniaNitrogen: 0,
+                    nitriteNitrogen: 0
                 },
                 physicalNetworkMsg: '',
                 currentBatchId: null, // 添加一个属性来存储当前的 batchId
@@ -503,6 +599,22 @@
                     require('@/assets/avatar.png'),
                     require('@/assets/avatar.png'),
                     require('@/assets/avatar.png')
+                ],
+                mockMedicineData: [
+                    {
+                        medicineName: "测试药品1",
+                        dosage: "100",
+                        unit: "ml",
+                        useTime: "2024-03-20",
+                        operator: "张三"
+                    },
+                    {
+                        medicineName: "测试药品2",
+                        dosage: "200",
+                        unit: "g",
+                        useTime: "2024-03-21",
+                        operator: "李四"
+                    }
                 ]
             };
         },
@@ -684,7 +796,26 @@
                 try {
                     const batchId = await this.getProcessList(id);
                     this.currentBatchId = batchId;
+                  
+                    // 获取批次和品种信息
+                    try {
+                        const [batchResponse, germplasmResponse] = await this.getBatchAndGermplasmInfo(batchId);
+                        
+                        // 更新种植/养殖信息
+                        if (batchResponse?.data && germplasmResponse?.data) {
+                            this.iaPartitionInfo = {
+                                ...this.iaPartitionInfo,
+                                variety: this.type === 1 
+                                    ? germplasmResponse.data.fishSpeciesName 
+                                    : germplasmResponse.data.germplasmName || '',
+                                dateT: batchResponse.data.startTime || '',
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`获取${this.type === 1 ? '水产' : '蔬菜'}信息失败:`, error);
+                    }
 
+                    // 获取任务列表
                     const response = await (this.type === 1 ? listFishBatchTask : listBatchTask)({
                         pageNum: 1,
                         pageSize: 100,
@@ -692,42 +823,196 @@
                     });
 
                     if (response.rows) {
-                        // 处理每个任务的农资信息
-                        const tasksWithResources = await Promise.all(response.rows.map(async (task) => {
-                            try {
-                                const costMaterialResponse = await listCostMaterial({
+                        // 预加载每个任务的详细信息
+                        this.taskList = await Promise.all(response.rows.map(async (task) => {
+                            // 预加载资源信息
+                            const taskWithResources = await this.processTaskResources([task]);
+                            const enrichedTask = taskWithResources[0];
+                            
+                            if (this.type === 1) {
+                                // 预加载水产养殖特定信息
+                                const [baitResponse, medicineResponse] = await Promise.all([
+                                    listCostBait({
+                                        pageNum: 1,
+                                        pageSize: 10,
+                                        taskId: task.taskId
+                                    }),
+                                    listCostMedicine({
+                                        pageNum: 1,
+                                        pageSize: 10,
+                                        taskId: task.taskId
+                                    })
+                                ]);
+
+                                // 处理饵料信息
+                                const baitDetails = await Promise.all((baitResponse.rows || []).map(async (bait) => {
+                                    const baitInfo = await getBaitInfo(bait.baitId);
+                                    return {
+                                        name: baitInfo.data.baitName,
+                                        amount: bait.baitCount,
+                                        unit: bait.measureUnit
+                                    };
+                                }));
+
+                                // 处理药品信息
+                                const medicineDetails = await Promise.all((medicineResponse.rows || []).map(async (medicine) => {
+                                    const medicineInfo = await getMedicineInfo(medicine.medicineId);
+                                    return {
+                                        medicineName: medicineInfo.data.medicineName,
+                                        dosage: medicine.medicineCount,
+                                        unit: medicine.measureUnit
+                                    };
+                                }));
+
+                                return {
+                                    ...enrichedTask,
+                                    baitDetails,
+                                    medicineDetails
+                                };
+                            } else {
+                                // 预加载农资信息
+                                const materialResponse = await listCostMaterial({
                                     pageNum: 1,
                                     pageSize: 10,
                                     taskId: task.taskId
                                 });
 
-                                if (costMaterialResponse.rows) {
-                                    const resources = await Promise.all(costMaterialResponse.rows.map(async (material) => {
-                                        const materialDetails = await getMaterialInfo(material.materialId);
-                                        return {
-                                            name: materialDetails.data.materialName,
-                                            amount: material.materialCount,
-                                            unit: material.measureUnit
-                                        };
-                                    }));
-                                    return { ...task, resources };
-                                }
-                                return task;
-                            } catch (error) {
-                                console.error('Error processing task resources:', error);
-                                return task;
+                                const materialDetails = await Promise.all((materialResponse.rows || []).map(async (material) => {
+                                    const materialInfo = await getMaterialInfo(material.materialId);
+                                    return {
+                                        name: materialInfo.data.materialName,
+                                        amount: material.materialCount,
+                                        unit: material.measureUnit
+                                    };
+                                }));
+
+                                return {
+                                    ...enrichedTask,
+                                    materialDetails
+                                };
                             }
                         }));
 
-                        this.taskList = tasksWithResources;
+                        // 默认选中第一个任务
+                        if (this.taskList.length > 0) {
+                            this.selectedTaskId = this.taskList[0].taskId;
+                            await this.handleTaskChange(this.selectedTaskId);
+                        }
                     }
-
-                    // ... 其余代码保持不变 ...
 
                 } catch (error) {
                     console.error("getStepsList error details:", error);
                     this.$message.error("任务列表加载失败，请稍后再试");
                 }
+            },
+
+            // 获取批次和品种信息
+            async getBatchAndGermplasmInfo(batchId) {
+                if (this.type === 1) {
+                    // 水产养殖
+                    const batchResponse = await getFishBatch(batchId);
+                  
+                    let germplasmResponse = null;
+                    if (batchResponse.data?.speciesId) {
+                        germplasmResponse = await getFishGermplasm(batchResponse.data.speciesId);
+                
+                    }
+                    
+                    return [batchResponse, germplasmResponse];
+                } else {
+                    // 蔬菜种植
+                    const batchResponse = await getBatch(batchId);
+                   
+                    
+                    let germplasmResponse = null;
+                    if (batchResponse.data?.germplasmId) {
+                        germplasmResponse = await getGermplasm(batchResponse.data.germplasmId);
+                    
+                    }
+                    
+                    return [batchResponse, germplasmResponse];
+                }
+            },
+
+            // 处理任务资源信息
+            async processTaskResources(tasks) {
+                return Promise.all(tasks.map(async (task) => {
+                    try {
+                        if (this.type === 1) {
+                            // 水产养殖 - 获取饵料使用信息
+                            const baitResponse = await listCostBait({
+                                pageNum: 1,
+                                pageSize: 10,
+                                taskId: task.taskId
+                            });
+                            
+                            let resources = [];
+                            if (baitResponse.rows) {
+                                for (const bait of baitResponse.rows) {
+                                    try {
+                                        const baitDetails = await getBaitInfo(bait.baitId);
+                                        resources.push({
+                                            name: baitDetails.data.baitName,
+                                            amount: bait.baitCount,
+                                            unit: bait.measureUnit,
+                                            type: 'bait' // 标记为饵料
+                                        });
+                                    } catch (error) {
+                                        console.error('获取饵料详情失败:', error);
+                                    }
+                                }
+                            }
+                            
+                            // 获取药品使用信息
+                            const medicineResponse = await listCostMedicine({
+                                pageNum: 1,
+                                pageSize: 10,
+                                taskId: task.taskId
+                            });
+
+                            if (medicineResponse.rows) {
+                                for (const medicine of medicineResponse.rows) {
+                                    try {
+                                        const medicineDetails = await getMedicineInfo(medicine.medicineId);
+                                        resources.push({
+                                            name: medicineDetails.data.medicineName,
+                                            amount: medicine.medicineCount,
+                                            unit: medicine.measureUnit,
+                                            type: 'medicine' // 标记为药品
+                                        });
+                                    } catch (error) {
+                                        console.error('获取药品详情失败:', error);
+                                    }
+                                }
+                            }
+
+                            return { ...task, resources };
+                        } else {
+                            // 蔬菜种植 - 获取农资使用信息
+                            const costMaterialResponse = await listCostMaterial({
+                                pageNum: 1,
+                                pageSize: 10,
+                                taskId: task.taskId
+                            });
+
+                            if (costMaterialResponse.rows) {
+                                const resources = await Promise.all(costMaterialResponse.rows.map(async (material) => {
+                                    const materialDetails = await getMaterialInfo(material.materialId);
+                                    return {
+                                        name: materialDetails.data.materialName,
+                                        amount: material.materialCount,
+                                        unit: material.measureUnit
+                                    };
+                                }));
+                                return { ...task, resources };
+                            }
+                        }
+                        return task;
+                    } catch (error) {
+                        console.error('处理任务资源信息失败:', error);
+                        return task;
+                    }
+                }));
             },
 
             getStatusText(status) {
@@ -861,76 +1146,189 @@
             // 修改 handleTaskChange 方法
             async handleTaskChange(taskId) {
                 if (!this.currentBatchId) {
-                    console.error('No batch ID available');
+                    console.error('当前批次ID不存在');
                     return;
                 }
 
                 const selectedTask = this.taskList.find(task => task.taskId === taskId);
                 if (!selectedTask) return;
 
-                // 使用实际开始和结束时间
-                const startDate = selectedTask.actualStart;
-                const endDate = selectedTask.actualFinish;
-
-
-
                 try {
-                    // 调用新接口获取土壤环境数据
-                    const soilDataResponse = await getSoilSensorValuesByBatchIdAndDateRange(
-                        this.currentBatchId, 
-                        startDate, 
-                        endDate
-                    );
-                    const soilData = soilDataResponse.rows || [];
+                    if (this.type === 1) {
+                        // 水产养殖数据
+                     
+                        const response = await selectFishWaterQualityByBatchIdAndDateRange(
+                            this.currentBatchId,
+                            selectedTask.actualStart,
+                            selectedTask.actualFinish
+                        );
+                        
+                       
+                        
+                        // 检查响应数据结构
+                        if (response && response.data && response.data.rows) {
+                            
+                            const averages = this.calculateFishEnvironmentAverages(response.data.rows);
+                            
+                            
+                            this.environmentData = {
+                                ...this.environmentData,
+                                waterTemperature: averages.waterTemperature,
+                                waterPh: averages.waterPh,
+                                dissolvedOxygen: averages.waterOxygenContent,
+                                ammoniaNitrogen: averages.waterAmmoniaNitrogen,
+                                nitriteNitrogen: averages.waterNitriteContent
+                            };
+                        } else if (response && Array.isArray(response)) {
+                            // 如果响应直接是数组
+                          
+                            const averages = this.calculateFishEnvironmentAverages(response);
+                           
+                            
+                            this.environmentData = {
+                                ...this.environmentData,
+                                waterTemperature: averages.waterTemperature,
+                                waterPh: averages.waterPh,
+                                dissolvedOxygen: averages.waterOxygenContent,
+                                ammoniaNitrogen: averages.waterAmmoniaNitrogen,
+                                nitriteNitrogen: averages.waterNitriteContent
+                            };
+                        } else {
 
-                    // 计算不同环境数据的平均值
-                    const averages = this.calculateAverages(soilData);
+                            if (response) {
+                              
+                            }
+                        }
+                     
+                    } else {
+                        // 蔬菜环境数据
+                        const response = await getSoilSensorValuesByBatchIdAndDateRange(
+                            this.currentBatchId,
+                            selectedTask.actualStart,
+                            selectedTask.actualFinish
+                        );
 
-
-                    // 更新环境数据
-                    this.environmentData = {
-                        ...this.environmentData,
-                        ...averages
-                    };
+                        if (response.rows && response.rows.length > 0) {
+                            // 计算蔬菜环境数据平均值
+                            const averages = this.calculatePlantEnvironmentAverages(response.rows);
+                            this.environmentData = {
+                                ...this.environmentData, // 保留其他数据
+                                temperature: averages.temperature,
+                                humidity: averages.humidity,
+                                lightLux: averages.lightLux,
+                                soilPh: averages.soilPh,
+                                soilTemperature: averages.soilTemperature,
+                                soilMoisture: averages.soilMoisture,
+                                soilConductivity: averages.soilConductivity
+                            };
+                        }
+                    }
                 } catch (error) {
                     console.error('获取环境数据失败:', error);
+                    console.error('错误详情:', {
+                        message: error.message,
+                        stack: error.stack
+                    });
                     this.$message.error('获取环境数据失败');
                 }
             },
 
-            calculateAverages(data) {
-                const total = data.length;
-                if (total === 0) return {}; // 如果没有数据，返回空对象
+            // 计算水产环境数据平均值
+            calculateFishEnvironmentAverages(data) {
+              
+                if (!Array.isArray(data) || data.length === 0) {
+                   
+                    return {
+                        waterTemperature: '0',
+                        waterPh: '0',
+                        waterOxygenContent: '0',
+                        waterAmmoniaNitrogen: '0',
+                        waterNitriteContent: '0'
+                    };
+                }
 
-                const sums = data.reduce((acc, item) => {
-                    acc.temperature += parseFloat(item.temperature) || 0;
-                    acc.humidity += parseFloat(item.humidity) || 0;
-                    acc.lightLux += parseFloat(item.lightLux) || 0;
-                    acc.soilMoisture += parseFloat(item.soilMoisture) || 0;
-                    acc.soilTemperature += parseFloat(item.soilTemperature) || 0;
-                    acc.soilPh += parseFloat(item.soilPh) || 0;
-                    acc.soilConductivity += parseFloat(item.soilConductivity) || 0;
+                try {
+                    const sum = data.reduce((acc, item) => {
+                       
+                        return {
+                            waterTemperature: acc.waterTemperature + parseFloat(item.waterTemperature || 0),
+                            waterPh: acc.waterPh + parseFloat(item.waterPhValue || 0),
+                            waterOxygenContent: acc.waterOxygenContent + parseFloat(item.waterOxygenContent || 0),
+                            waterAmmoniaNitrogen: acc.waterAmmoniaNitrogen + parseFloat(item.waterAmmoniaNitrogenContent || 0),
+                            waterNitriteContent: acc.waterNitriteContent + parseFloat(item.waterNitriteContent || 0)
+                        };
+                    }, {
+                        waterTemperature: 0,
+                        waterPh: 0,
+                        waterOxygenContent: 0,
+                        waterAmmoniaNitrogen: 0,
+                        waterNitriteContent: 0
+                    });
 
+                    const count = data.length;
+                    const averages = {
+                        waterTemperature: (sum.waterTemperature / count).toFixed(1),
+                        waterPh: (sum.waterPh / count).toFixed(2),
+                        waterOxygenContent: (sum.waterOxygenContent / count).toFixed(2),
+                        waterAmmoniaNitrogen: (sum.waterAmmoniaNitrogen / count).toFixed(3),
+                        waterNitriteContent: (sum.waterNitriteContent / count).toFixed(2)
+                    };
 
-                    return acc;
-                }, {
+                  
+                    return averages;
+                } catch (error) {
+                    console.error('计算平均值时出错:', error);
+                    return {
+                        waterTemperature: '0',
+                        waterPh: '0',
+                        waterOxygenContent: '0',
+                        waterAmmoniaNitrogen: '0',
+                        waterNitriteContent: '0'
+                    };
+                }
+            },
+
+            // 计算蔬菜环境数据平均值
+            calculatePlantEnvironmentAverages(data) {
+                if (!Array.isArray(data) || data.length === 0) {
+                    return {
+                        temperature: 0,
+                        humidity: 0,
+                        lightLux: 0,
+                        soilPh: 0,
+                        soilTemperature: 0,
+                        soilMoisture: 0,
+                        soilConductivity: 0
+                    };
+                }
+
+                const sum = data.reduce((acc, item) => ({
+                    temperature: acc.temperature + parseFloat(item.temperature || 0),
+                    humidity: acc.humidity + parseFloat(item.humidity || 0),
+                    lightLux: acc.lightLux + parseFloat(item.lightLux || 0),
+                    soilPh: acc.soilPh + parseFloat(item.soilPh || 0),
+                    soilTemperature: acc.soilTemperature + parseFloat(item.soilTemperature || 0),
+                    soilMoisture: acc.soilMoisture + parseFloat(item.soilMoisture || 0),
+                    soilConductivity: acc.soilConductivity + parseFloat(item.soilConductivity || 0)
+                }), {
                     temperature: 0,
                     humidity: 0,
                     lightLux: 0,
-                    soilMoisture: 0,
-                    soilTemperature: 0,
                     soilPh: 0,
+                    soilTemperature: 0,
+                    soilMoisture: 0,
                     soilConductivity: 0
                 });
 
+                const count = data.length;
                 return {
-                    temperature: (sums.temperature / total).toFixed(2),
-                    humidity: (sums.humidity / total).toFixed(2),
-                    lightLux: (sums.lightLux / total).toFixed(2),
-                    soilMoisture: (sums.soilMoisture / total).toFixed(2),
-                    soilTemperature: (sums.soilTemperature / total).toFixed(2),
-                    soilPh: (sums.soilPh / total).toFixed(2),
-                    soilConductivity: (sums.soilConductivity / total).toFixed(2)
+                    temperature: (sum.temperature / count).toFixed(1),
+                    humidity: (sum.humidity / count).toFixed(1),
+                    lightLux: (sum.lightLux / count).toFixed(0),
+                    soilPh: (sum.soilPh / count).toFixed(1),
+                    soilTemperature: (sum.soilTemperature / count).toFixed(1),
+                    soilMoisture: (sum.soilMoisture / count).toFixed(1),
+                    soilConductivity: (sum.soilConductivity / count).toFixed(0)
                 };
             },
 
@@ -958,45 +1356,11 @@
                 }
             },
             async handleShowDetails(task) {
-                console.log('Task details opened for taskId:', task.taskId);
-                this.currentTask = task;
+                // 直接使用预加载的数据
+                this.currentTask = this.taskList.find(t => t.taskId === task.taskId);
+                this.mockResources = this.type === 1 ? task.baitDetails : task.materialDetails;
+                this.mockMedicineData = this.type === 1 ? task.medicineDetails : [];
                 this.dialogVisible = true;
-                
-                try {
-                    console.log('Fetching cost materials for taskId:', task.taskId);
-                    const response = await listCostMaterial({
-                        pageNum: 1,
-                        pageSize: 10,
-                        taskId: task.taskId
-                    });
-                    
-                    console.log('Cost materials API response:', response);
-                    
-                    if (response.rows) {
-                        // Create an array to store the processed materials
-                        const processedMaterials = [];
-                        
-                        // Process each material
-                        for (const material of response.rows) {
-                            try {
-                                const materialDetails = await getMaterialInfo(material.materialId);
-                                processedMaterials.push({
-                                    name: materialDetails.data.materialName, // 使用getMaterialInfo返回的名称
-                                    amount: material.materialCount, // 使用materialCount作为用量
-                                    unit: material.measureUnit // 使用measureUnit作为单位
-                                });
-                            } catch (error) {
-                                console.error('Error fetching material details for ID', material.materialId, ':', error);
-                            }
-                        }
-
-                        this.mockResources = processedMaterials;
-                        console.log('Processed materials:', this.mockResources);
-                    }
-                } catch (error) {
-                    console.error('Error details:', error);
-                    this.$message.error('获取农资使用信息失败');
-                }
             },
             handleClose(done) {
                 this.currentTask = null;
@@ -1018,7 +1382,7 @@
                 };
                 return texts[status] || '未知状态';
             },
-            // 添加: 检查 URL 参数的方法
+            // 检查 URL 参数的方法
             checkUrlParams() {
                 // 获取当前 URL 的查询参数
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1030,41 +1394,18 @@
                     this.originSearch();
                 }
             },
-            // Add new method to handle image URLs
+          
             getImageUrl(path) {
-                // If path starts with http or https, return as is
+
                 if (path.startsWith('http://') || path.startsWith('https://')) {
                     return path;
                 }
-                // Otherwise, prepend the base URL
+            
                 return process.env.VUE_APP_BASE_API + path;
-            },
-            async fetchCostMaterials(taskId) {
-                try {
-                    const response = await listCostMaterial({
-                        pageNum: 1,
-                        pageSize: 10,
-                        taskId
-                    });
-                    
-                    console.log('Cost materials response:', response);
-                    
-                    // Update resources with real data
-                    if (response.rows) {
-                        this.mockResources = response.rows.map(material => ({
-                            name: material.materialName,
-                            amount: material.amount,
-                            unit: material.unit || '个' // Default unit if none provided
-                        }));
-                    }
-                } catch (error) {
-                    console.error('Error fetching cost materials:', error);
-                    this.$message.error('获取农资使用信息失败');
-                }
             },
         },
         computed: {
-            // 删除原有的isAquaculture计算属性，因为现在直接使用type
+          
         },
     };
 </script>
@@ -2391,15 +2732,6 @@
         margin-bottom: 15px;
         padding: 0 10px;
     }
-
-    .warning-msg {
-        // ... existing styles ...
-    }
-
-    .monitor-section,
-    .soil-section {
-        // ... existing styles ...
-    }
 }
 
 .task-detail {
@@ -2545,50 +2877,84 @@
             }
 
             &.temperature {
-                background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
-                
-                &::before {
-                    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+                background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%);
+                .item-bg {
+                    color: #ff6b6b;
                 }
-
-                .item-value .number {
-                    color: #f56c6c;
-                }
-
-                .bg-icon {
-                    fill: #f56c6c;
+                .item-value {
+                    .number {
+                        color: #ff6b6b;
+                    }
                 }
             }
 
-            &.humidity {
-                background: linear-gradient(135deg, #f0f7ff 0%, #fff 100%);
-                
-                &::before {
-                    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            &.ph {
+                background: linear-gradient(135deg, rgba(64, 158, 255, 0.1) 0%, rgba(64, 158, 255, 0.05) 100%);
+                .item-bg {
+                    color: #409eff;
                 }
-
-                .item-value .number {
-                    color: #409EFF;
-                }
-
-                .bg-icon {
-                    fill: #409EFF;
+                .item-value {
+                    .number {
+                        color: #409eff;
+                    }
                 }
             }
 
-            &.light {
-                background: linear-gradient(135deg, #fffbf0 0%, #fff 100%);
-                
-                &::before {
-                    background: linear-gradient(135deg, #ffd86f 0%, #ffc371 100%);
+            &.oxygen {
+                background: linear-gradient(135deg, rgba(103, 194, 58, 0.1) 0%, rgba(103, 194, 58, 0.05) 100%);
+                .item-bg {
+                    color: #67c23a;
                 }
+                .item-value {
+                    .number {
+                        color: #67c23a;
+                    }
+                }
+            }
 
-                .item-value .number {
+            &.ammonia {
+                background: linear-gradient(135deg, rgba(230, 162, 60, 0.1) 0%, rgba(230, 162, 60, 0.05) 100%);
+                .item-bg {
                     color: #e6a23c;
                 }
+                .item-value {
+                    .number {
+                        color: #e6a23c;
+                    }
+                }
+            }
 
-                .bg-icon {
-                    fill: #e6a23c;
+            &.nitrite {
+                background: linear-gradient(135deg, rgba(144, 147, 153, 0.1) 0%, rgba(144, 147, 153, 0.05) 100%);
+                .item-bg {
+                    color: #909399;
+                }
+                .item-value {
+                    .number {
+                        color: #909399;
+                    }
+                }
+            }
+
+            .item-label {
+                color: #606266;
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+
+            .item-value {
+                display: flex;
+                align-items: baseline;
+                gap: 4px;
+
+                .number {
+                    font-size: 24px;
+                    font-weight: 500;
+                }
+
+                .unit {
+                    font-size: 12px;
+                    color: #909399;
                 }
             }
         }
@@ -2813,6 +3179,347 @@
         opacity: 0.8;
         transform: translate(-50%, -50%) scale(0.95);
     }
+}
+
+.medicine-section {
+    margin-top: 20px;
+    
+    .section-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .medicine-list {
+        margin-top: 10px;
+    }
+}
+
+// 添加鱼类特定的样式
+.info-card {
+    &.fish-card {
+        background: linear-gradient(to bottom right, #ffffff, #f8fcff);
+        border: 1px solid #e6f3ff;
+        
+        .card-header {
+            background: linear-gradient(to right, #ecf5ff, #ffffff);
+            border-bottom: 1px solid #e6f3ff;
+            
+            i {
+                color: #409EFF;
+                
+                &.el-icon-house {
+                    color: #67C23A; // 鱼棚图标使用绿色
+                }
+                
+                &.el-icon-menu {
+                    color: #409EFF; // 养殖信息图标使用蓝色
+                }
+                
+                &.el-icon-goods {
+                    color: #E6A23C; // 食品信息图标使用橙色
+                }
+            }
+        }
+
+        .card-content {
+            .info-item {
+                position: relative;
+                padding: 12px;
+                margin-bottom: 15px;
+                background: rgba(236, 245, 255, 0.3);
+                border-radius: 8px;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    background: rgba(236, 245, 255, 0.5);
+                }
+
+                .label {
+                    color: #606266;
+                    font-size: 13px;
+                    margin-bottom: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+
+                    &::before {
+                        content: '';
+                        display: inline-block;
+                        width: 4px;
+                        height: 4px;
+                        background: #409EFF;
+                        border-radius: 50%;
+                    }
+                }
+
+                .value {
+                    color: #303133;
+                    font-size: 14px;
+                    font-weight: 500;
+
+                    &.address {
+                        font-family: monospace;
+                        color: #409EFF;
+                        font-size: 13px;
+                        word-break: break-all;
+                        padding: 8px;
+                        background: rgba(255, 255, 255, 0.8);
+                        border-radius: 4px;
+                        border: 1px solid #e6f3ff;
+                        
+                        &:hover {
+                            background: #ffffff;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 养殖环节时间线样式
+.timeline-card.fish-timeline {
+    .horizontal-timeline {
+        &::before {
+            background: linear-gradient(to right, #409EFF, #67C23A);
+        }
+    }
+
+    ::v-deep .timeline-item {
+        .timeline-content {
+            background: linear-gradient(to bottom right, #ffffff, #f8fcff);
+            border: 1px solid #e6f3ff;
+            
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(64, 158, 255, 0.1);
+            }
+
+            .timeline-header {
+                background: linear-gradient(to right, #ecf5ff, #ffffff);
+                border-bottom: 1px solid #e6f3ff;
+                padding: 12px 15px;
+                
+                .timeline-title {
+                    color: #409EFF;
+                    font-weight: 500;
+                }
+            }
+
+            .timeline-body {
+                padding: 12px 15px;
+                
+                .timeline-info {
+                    margin-bottom: 8px;
+                    color: #606266;
+                    
+                    &:last-child {
+                        margin-bottom: 0;
+                    }
+                }
+            }
+        }
+
+        .timeline-dot {
+            background: #409EFF;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.3);
+        }
+    }
+}
+
+// 水质监测卡片样式优化
+.monitor-section {
+    .monitor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 20px;
+
+        .monitor-item {
+            background: linear-gradient(to bottom right, #ffffff, #f8fcff);
+            border: 1px solid #e6f3ff;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(64, 158, 255, 0.1);
+
+                .item-bg {
+                    transform: scale(1.05);
+                }
+            }
+
+            .item-bg {
+                position: absolute;
+                right: -20px;
+                bottom: -20px;
+                width: 100px;
+                height: 100px;
+                opacity: 0.1;
+                transition: all 0.3s ease;
+
+                .bg-icon {
+                    width: 100%;
+                    height: 100%;
+                    fill: currentColor;
+                }
+            }
+
+            .item-label {
+                font-size: 14px;
+                color: #606266;
+                margin-bottom: 10px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .item-value {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                align-items: baseline;
+                gap: 4px;
+
+                .number {
+                    font-size: 24px;
+                    font-weight: 600;
+                    color: #409EFF;
+                }
+
+                .unit {
+                    font-size: 12px;
+                    color: #909399;
+                }
+            }
+
+            // 为不同类型的监测项添加特定颜色
+            &.temperature {
+                color: #E6A23C;
+                .number { color: #E6A23C; }
+            }
+
+            &.ph {
+                color: #409EFF;
+                .number { color: #409EFF; }
+            }
+
+            &.oxygen {
+                color: #67C23A;
+                .number { color: #67C23A; }
+            }
+
+            &.ammonia {
+                color: #F56C6C;
+                .number { color: #F56C6C; }
+            }
+
+            &.nitrite {
+                color: #909399;
+                .number { color: #909399; }
+            }
+        }
+    }
+}
+
+// 任务详情对话框样式
+.task-detail {
+    .detail-item {
+        margin-bottom: 20px;
+        
+        .label {
+            color: #606266;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+    }
+
+    .resource-section {
+        margin-top: 20px;
+        
+        .section-title {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 12px;
+        }
+
+        .resource-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+
+            .resource-tag {
+                margin: 0;
+            }
+        }
+    }
+
+    .images-section {
+        margin-top: 20px;
+
+        .section-title {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 12px;
+        }
+
+        .image-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+
+            .task-image {
+                width: 100%;
+                height: 120px;
+                border-radius: 4px;
+                object-fit: cover;
+                cursor: pointer;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    transform: scale(1.05);
+                }
+            }
+        }
+    }
+}
+
+// 响应式调整
+@media screen and (max-width: 768px) {
+    .monitor-section {
+        .monitor-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10px;
+
+            .monitor-item {
+                padding: 15px;
+
+                .item-value {
+                    .number {
+                        font-size: 20px;
+                    }
+                }
+            }
+        }
+    }
+
+    .task-detail {
+        .images-section {
+            .image-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    }
+}
+
+// 添加全局样式
+:global(body.el-popup-parent--hidden) {
+    padding-right: 17px; // 滚动条的宽度
 }
 </style>
 

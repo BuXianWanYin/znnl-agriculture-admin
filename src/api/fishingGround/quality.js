@@ -42,3 +42,15 @@ export function delQuality(id) {
     method: 'delete'
   })
 }
+
+
+/**
+ * 根据批次ID和日期范围查询水质环境数据
+ */
+export function selectFishWaterQualityByBatchIdAndDateRange(batchId, startDate, endDate) {
+  return request({
+    url: '/agriculture/quality/range',
+    method: 'get',
+    params: { batchId, startDate, endDate }
+  });
+}
