@@ -9,18 +9,18 @@
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" size="small" @click="equipmentSearch" class="search-btn">
-                        <svg-icon icon-class="ss" />
+                        <i class="el-icon-search"></i>
                         搜索
                     </el-button>
                     <el-button  size="small" @click="equipmentReset" class="reset-btn">
-                        <svg-icon icon-class="cz" />
+                        <i class="el-icon-refresh"></i>
                         重置
                     </el-button>
                 </el-form-item>
                 <el-form-item class="fr">
                     <el-button type="primary" plain  size="small" @click="equipmentEditAdd('新增')"
                                class="add-btn">
-                        <svg-icon icon-class="xz" />
+                        <i class="el-icon-plus"></i>
                         新增
                     </el-button>
                 </el-form-item>
@@ -41,32 +41,32 @@
                             </div>
                             <div class="card-content">
                                 <div class="info-item">
-                                    <svg-icon icon-class="shebeiid"></svg-icon>
+                                    <i class="el-icon-monitor"></i>
                                     <span class="label">设备ID</span>
                                     <span class="value">{{ item.id }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="fenqu"></svg-icon>
+                                    <i class="el-icon-location"></i>
                                     <span class="label">场区/分区</span>
                                     <span class="value">{{ item.pastureName || '-' }}/{{ item.batchName || '-' }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="cgqxh"></svg-icon>
+                                    <i class="el-icon-cpu"></i>
                                     <span class="label">传感器序号</span>
                                     <span class="value">{{ item.sensorType || '-' }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="cgqzl"></svg-icon>
+                                    <i class="el-icon-setting"></i>
                                     <span class="label">传感器指令</span>
                                     <span class="value">{{ item.sensorCommand || '-' }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="hydz"></svg-icon>
+                                    <i class="el-icon-link"></i>
                                     <span class="label">合约地址</span>
                                     <span class="value">{{ item.address }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="bz"></svg-icon>
+                                    <i class="el-icon-document"></i>
                                     <span class="label">备注</span>
                                     <span class="value">{{ item.remark || '暂无备注' }}</span>
                                 </div>

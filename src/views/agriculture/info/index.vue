@@ -20,14 +20,14 @@
                 
                 <!-- 搜索和重置按钮 -->
                 <el-form-item>
-                    <el-button type="primary"  size="mini" @click="handleQuery"><svg-icon icon-class="ss" />搜索</el-button>
-                    <el-button size="mini" @click="resetQuery"><svg-icon icon-class="cz" />重置</el-button>
+                    <el-button type="primary" size="mini" @click="handleQuery"><i class="el-icon-search" />搜索</el-button>
+                    <el-button size="mini" @click="resetQuery"><i class="el-icon-refresh" />重置</el-button>
                 </el-form-item>
                 
                 <!-- 导出按钮 -->
                 <el-form-item class="fr">
                     <el-button type="warning" plain size="mini" @click="handleExport"
-                        v-hasPermi="['agriculture:info:export']"><svg-icon icon-class="dc" />导出</el-button>
+                        v-hasPermi="['agriculture:info:export']"><i class="el-icon-download" />导出</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
@@ -68,13 +68,13 @@
                             </div> -->
                             
                             <div class="info-item">
-                                <i class="el-icon-map-location"></i>
+                                <i class="el-icon-location"></i>
                                 <span class="label">预警分区:</span>
                                 <span class="value">{{ item.batchName }}</span>
                             </div>
 
-                              <div class="info-item">
-                                <i class="el-icon-bell"></i>
+                            <div class="info-item">
+                                <i class="el-icon-warning"></i>
                                 <span class="label">预警名称:</span>
                                 <span class="value">{{ item.paramName }}</span>
                             </div>
@@ -92,7 +92,7 @@
                             </div>
 
                             <div class="info-item">
-                                <i class="el-icon-bell"></i>
+                                <i class="el-icon-timer"></i>
                                 <span class="label">预警时间:</span>
                                 <span class="value">{{ item.alertTime }}</span>
                             </div>
@@ -104,7 +104,7 @@
                             </div>
                             
                             <div class="info-item">
-                                <i class="el-icon-user"></i>
+                                <i class="el-icon-document"></i>
                                 <span class="label">备注:</span>
                                 <span class="value">{{ item.remark || '/' }}</span>  
                             </div>
@@ -129,7 +129,7 @@
                                     type="text"
                                     size="mini"
                                     @click="handleStatusChange(item)"
-                                ><svg-icon icon-class="bj" />编辑</el-button>
+                                ><i class="el-icon-edit" />编辑</el-button>
                             <!-- 预留的编辑和删除按钮位置 -->
                         </div>
                     </el-card>
