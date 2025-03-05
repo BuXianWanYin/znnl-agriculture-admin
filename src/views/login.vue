@@ -362,6 +362,12 @@ export default {
         font-family: "Microsoft YaHei", "微软雅黑";
         text-shadow: 0 0 10px rgba(255,255,255,0.8);
         animation: shine 3s ease-in-out infinite;
+        @media screen and (max-width: 1200px) {
+          font-size: 40px;
+        }
+        @media screen and (max-width: 768px) {
+          font-size: 30px;
+        }
       }
     }
     .login-subTitle {
@@ -371,6 +377,12 @@ export default {
       padding-bottom: 26px;
       color: #fff;
       font-size: 20px;
+      @media screen and (max-width: 1200px) {
+        font-size: 18px;
+      }
+      @media screen and (max-width: 768px) {
+        font-size: 16px;
+      }
 
       .word {
         display: inline-block;
@@ -410,6 +422,9 @@ export default {
       img {
         width: 75%;
         animation: float 3s ease-in-out infinite;
+      }
+      @media screen and (max-width: 768px) {
+        display: none;
       }
     }
   }
@@ -490,6 +505,10 @@ export default {
       font-size: 30px;
       font-weight: bold;
       margin-top: 20vh;
+      @media screen and (max-width: 768px) {
+        font-size: 24px;
+        margin-top: 15vh;
+      }
     }
     .loginForm-subTitle {
       display: flex;
@@ -500,9 +519,21 @@ export default {
       white-space: nowrap;
       letter-spacing: 2px;
       margin-top:-10px;
+      @media screen and (max-width: 768px) {
+        font-size: 18px;
+      }
     }
     .loginForm-form {
         padding:0 25%;
+        @media screen and (max-width: 1400px) {
+          padding: 0 15%;
+        }
+        @media screen and (max-width: 1200px) {
+          padding: 0 10%;
+        }
+        @media screen and (max-width: 768px) {
+          padding: 0 5%;
+        }
     }
 
     .login-captchaBox{
@@ -530,6 +561,11 @@ export default {
           padding-left: 40px;
           font-size: 20px;
           color:#000;
+          @media screen and (max-width: 768px) {
+            height: 40px;
+            font-size: 16px;
+            padding-left: 35px;
+          }
         }
         .el-input__inner:focus{
           background: rgba(255, 255, 255, 0.8);
@@ -559,6 +595,10 @@ export default {
           box-shadow: 0 4px 15px rgba(16, 155, 94, 0.2);
           transition: all 0.5s ease;
           animation: gradientMove 3s ease infinite;
+          @media screen and (max-width: 768px) {
+            height: 40px;
+            font-size: 16px;
+          }
 
           &::before {
             content: '';
@@ -671,6 +711,36 @@ export default {
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+
+// Add new responsive layout rules
+@media screen and (max-width: 768px) {
+  .login {
+    .el-row {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .el-col {
+      width: 100% !important;
+    }
+
+    .left {
+      height: 30vh;
+      min-height: 200px;
+    }
+
+    .right {
+      height: 70vh;
+      margin-left: 0;
+      padding-left: 0;
+
+      &::before {
+        border-radius: 30px 30px 0 0;
+        top: -30px;
+      }
+    }
   }
 }
 </style>

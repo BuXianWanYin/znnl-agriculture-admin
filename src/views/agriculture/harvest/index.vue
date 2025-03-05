@@ -173,57 +173,70 @@
 
 
         <el-dialog :title='processData.length?"采摘详情":"采摘"' :visible.sync="processDialogVisible" width="70%">
+    <div style="display: flex; justify-content: flex-end; padding-bottom: 10px">
+        <el-button v-if="!processData.length" type="success" size="mini" plain @click="addProcess('新增')">&nbsp;
+            新增
+            &nbsp;</el-button>
+    </div>
 
-            <div style="display: flex; justify-content: flex-end; padding-bottom: 10px">
-                <el-button v-if="!processData.length" type="success" size="mini" plain @click="addProcess('新增')">&nbsp;
-                    新增
-                    &nbsp;</el-button>
-            </div>
-
-            <el-table :data="processData" :stripe="true" tooltip-effect="dark" border size="mini"
-                :header-cell-style="{ background: 'rgba(239, 249, 243, 1)', color: '#000' }" class="table-content"
-                @selection-change="handleProcessSelectionChange">
-                <el-table-column type="selection" width="55">
-                </el-table-column>
-                <el-table-column prop="id" label="ID溯源码"></el-table-column>
-                <el-table-column prop="name" label="食品名称" align="center"></el-table-column>
-                <el-table-column label="二维码" align="center">
-                    <template slot-scope="scope">
-                        <img :src="scope.row.barcode" style="width: 100%">
-                    </template>
-                </el-table-column>
-                <el-table-column prop="date" label="采摘日期"></el-table-column>
-                <el-table-column prop="weight" label="重量" width="60" align="center"></el-table-column>
-                <el-table-column prop="status" label="食品质量" width="100" align="center">
-                    <template slot-scope="scope">
-                        {{ statusDict[scope.row.status] }}
-                    </template>
-                </el-table-column>
-                <el-table-column prop="iaPartitionId" label="分区ID"></el-table-column>
-                <el-table-column prop="description" label="备注"></el-table-column>
-                <!-- <el-table-column label="操作" v-if="processDialogTitle !== '加工详情'">
-                    <template slot-scope="scope">
-                        <div class="do-text">
-                            <el-link class="txt-btn" type="success"
-                                @click="handleProcess(scope.row.id, '加工管理')">修改</el-link>
-                            <el-link class="txt-btn" type="success"
-                                @click="handleProcessDetail(scope.row.id, '加工详情')">详情</el-link>
-                            <el-link class="txt-btn" type="danger" @click="deleteProcess(scope.row.id)">删除</el-link>
+    <div class="harvest-card-grid">
+        <el-row :gutter="20">
+            <el-col :span="24" v-for="item in processData" :key="item.id">
+                <el-card class="harvest-card" shadow="hover">
+                    <div class="harvest-card-content">
+                        <!-- 左侧二维码 -->
+                        <div class="qr-code-section">
+                            <div class="qr-code">
+                                <img :src="item.barcode" alt="二维码"/>
+                            </div>
+                            <div class="id-code">ID溯源码: {{ item.id }}</div>
                         </div>
-                    </template>
-                </el-table-column> -->
-            </el-table>
-            <div class="page-block" v-if="processData.length">
-                <el-pagination @current-change="handleProcessCurrentChange" :current-page="processPager.page"
-                    :page-size="processPager.size" :page-count="processPager.pages"
-                    layout="total, prev, pager, next, jumper">
-                </el-pagination>
-            </div>
 
-            <div slot="footer" class="dialog-footer">
-                <el-button size="small" @click="processDialogVisible = false">关闭</el-button>
-            </div>
-        </el-dialog>
+                        <!-- 中间信息区域 -->
+                        <div class="info-section">
+                            <div class="header-title">
+                                <span class="food-name">{{ item.name }}</span>
+                                <el-tag :type="getQualityTagType(item.status)" size="small">
+                                    {{ statusDict[item.status] }}
+                                </el-tag>
+                            </div>
+                            
+                            <div class="harvest-info">
+                                <div class="info-row">
+                                    <div class="info-item">
+                                        <i class="el-icon-date"></i>
+                                        <span class="label">采摘日期：</span>
+                                        <span>{{ item.date }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-shopping-cart-full"></i>
+                                        <span class="label">重量：</span>
+                                        <span>{{ item.weight }}kg</span>
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <div class="info-item">
+                                        <i class="el-icon-location"></i>
+                                        <span class="label">分区ID：</span>
+                                        <span>{{ item.iaPartitionId }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-notebook-2"></i>
+                                        <span class="label">备注：</span>
+                                        <span>{{ item.description || '暂无备注' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </el-card>
+            </el-col>
+        </el-row>
+    </div>
+    <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="processDialogVisible = false">关闭</el-button>
+    </div>
+</el-dialog>
 
         <!-- 新增/修改弹框 -->
         <el-dialog :title="processManagementDialogTitle" :visible.sync="processManagementDialogVisible" width="30%">
@@ -938,7 +951,16 @@
                 this.batchTask.open = true;
                 this.batchTask.title = '种植计划';
                 this.batchTask.batchId = row.batchId;
-            }
+            },
+            // 添加新方法用于获取质量标签类型
+            getQualityTagType(status) {
+                const types = {
+                    '0': 'danger',   // 不及格
+                    '1': 'warning',  // 及格
+                    '2': 'success'   // 优秀
+                };
+                return types[status] || 'info';
+            },
         },
         components: {
             Task
@@ -1205,6 +1227,107 @@
     @media screen and (max-width: 992px) {
         .el-col {
             width: 100% !important;
+        }
+    }
+
+    .harvest-card-grid {
+    .el-row {
+        margin: -10px;
+    }
+    
+    .el-col {
+        padding: 10px;
+    }
+}
+
+.harvest-card {
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .harvest-card-content {
+        display: flex;
+        align-items: stretch;
+        gap: 20px;
+        
+        .qr-code-section {
+            flex: 0 0 180px;
+            text-align: center;
+            padding: 10px;
+            border-right: 1px solid #ebeef5;
+            
+            .qr-code {
+                margin-bottom: 10px;
+                
+                img {
+                    width: 150px;
+                    height: 150px;
+                    object-fit: contain;
+                }
+            }
+            
+            .id-code {
+                font-size: 12px;
+                color: #909399;
+            }
+        }
+        
+        .info-section {
+            flex: 1;
+            padding: 10px;
+            
+            .header-title {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 20px;
+                
+                .food-name {
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: #303133;
+                }
+            }
+            
+            .harvest-info {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                
+                .info-row {
+                    display: flex;
+                    gap: 30px;
+                    
+                    .info-item {
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        font-size: 14px;
+                        
+                        i {
+                            color: #409EFF;
+                            margin-right: 8px;
+                            font-size: 16px;
+                        }
+                        
+                        .label {
+                            color: #606266;
+                            margin-right: 8px;
+                            min-width: 70px;
+                        }
+                        
+                        span:last-child {
+                            color: #303133;
+                            flex: 1;
+                            word-break: break-all;
+                        }
+                    }
+                }
+                }
+            }
         }
     }
 </style>
