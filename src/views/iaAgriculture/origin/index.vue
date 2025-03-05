@@ -796,8 +796,7 @@
                 try {
                     const batchId = await this.getProcessList(id);
                     this.currentBatchId = batchId;
-                    console.log('当前批次ID:', batchId, '类型:', this.type === 1 ? '水产养殖' : '蔬菜种植');
-
+                  
                     // 获取批次和品种信息
                     try {
                         const [batchResponse, germplasmResponse] = await this.getBatchAndGermplasmInfo(batchId);
@@ -849,19 +848,19 @@
                     let germplasmResponse = null;
                     if (batchResponse.data?.speciesId) {
                         germplasmResponse = await getFishGermplasm(batchResponse.data.speciesId);
-                        console.log('水产品种信息:', germplasmResponse);
+                
                     }
                     
                     return [batchResponse, germplasmResponse];
                 } else {
                     // 蔬菜种植
                     const batchResponse = await getBatch(batchId);
-                    console.log('蔬菜批次信息:', batchResponse);
+                   
                     
                     let germplasmResponse = null;
                     if (batchResponse.data?.germplasmId) {
                         germplasmResponse = await getGermplasm(batchResponse.data.germplasmId);
-                        console.log('蔬菜品种信息:', germplasmResponse);
+                    
                     }
                     
                     return [batchResponse, germplasmResponse];
@@ -1090,20 +1089,20 @@
                 try {
                     if (this.type === 1) {
                         // 水产养殖数据
-                        console.log('正在获取水产养殖环境数据...');
+                     
                         const response = await selectFishWaterQualityByBatchIdAndDateRange(
                             this.currentBatchId,
                             selectedTask.actualStart,
                             selectedTask.actualFinish
                         );
                         
-                        console.log('原始响应数据:', response);
+                       
                         
                         // 检查响应数据结构
                         if (response && response.data && response.data.rows) {
-                            console.log('获取到水产养殖数据：', response.data.rows.length, '条');
+                            
                             const averages = this.calculateFishEnvironmentAverages(response.data.rows);
-                            console.log('计算得到的平均值：', averages);
+                            
                             
                             this.environmentData = {
                                 ...this.environmentData,
@@ -1115,9 +1114,9 @@
                             };
                         } else if (response && Array.isArray(response)) {
                             // 如果响应直接是数组
-                            console.log('获取到水产养殖数据（数组格式）：', response.length, '条');
+                          
                             const averages = this.calculateFishEnvironmentAverages(response);
-                            console.log('计算得到的平均值：', averages);
+                           
                             
                             this.environmentData = {
                                 ...this.environmentData,
@@ -1128,14 +1127,12 @@
                                 nitriteNitrogen: averages.waterNitriteContent
                             };
                         } else {
-                            console.log('未能识别的数据格式:', response);
-                            console.log('数据类型:', typeof response);
+
                             if (response) {
-                                console.log('数据结构:', Object.keys(response));
+                              
                             }
                         }
-                        
-                        console.log('更新后的环境数据：', this.environmentData);
+                     
                     } else {
                         // 蔬菜环境数据
                         const response = await getSoilSensorValuesByBatchIdAndDateRange(
@@ -1171,9 +1168,9 @@
 
             // 计算水产环境数据平均值
             calculateFishEnvironmentAverages(data) {
-                console.log('开始计算水产环境数据平均值，数据:', data);
+              
                 if (!Array.isArray(data) || data.length === 0) {
-                    console.log('数据为空或不是数组，返回默认值');
+                   
                     return {
                         waterTemperature: '0',
                         waterPh: '0',
@@ -1185,7 +1182,7 @@
 
                 try {
                     const sum = data.reduce((acc, item) => {
-                        console.log('处理数据项:', item);
+                       
                         return {
                             waterTemperature: acc.waterTemperature + parseFloat(item.waterTemperature || 0),
                             waterPh: acc.waterPh + parseFloat(item.waterPhValue || 0),
@@ -1210,7 +1207,7 @@
                         waterNitriteContent: (sum.waterNitriteContent / count).toFixed(2)
                     };
 
-                    console.log('计算完成的平均值：', averages);
+                  
                     return averages;
                 } catch (error) {
                     console.error('计算平均值时出错:', error);
@@ -1304,7 +1301,7 @@
                             taskId: task.taskId
                         });
                         
-                        console.log('饵料使用信息:', baitResponse);
+                       
                         
                         if (baitResponse.rows) {
                             // 处理饵料信息
@@ -1332,8 +1329,6 @@
                             pageSize: 10,
                             taskId: task.taskId
                         });
-
-                        console.log('药品使用信息:', medicineResponse);
 
                         if (medicineResponse.rows) {
                             // 处理药品信息
