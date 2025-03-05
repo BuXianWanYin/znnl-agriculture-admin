@@ -7,11 +7,11 @@
                     <el-input v-model="mcName" placeholder="请输入名称" size="small" class="search-input"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary"  size="small" @click="houseSearch"><svg-icon icon-class="ss"></svg-icon>搜索</el-button>
-                    <el-button size="small" @click="resetName"><svg-icon icon-class="cz"></svg-icon>重置</el-button>
+                    <el-button type="primary"  size="small" @click="houseSearch"><i class="el-icon-search"></i>搜索</el-button>
+                    <el-button size="small" @click="resetName"><i class="el-icon-refresh"></i>重置</el-button>
                 </el-form-item>
                 <el-form-item class="fr">
-                    <el-button type="primary" plain size="small" @click="addHouse()"><svg-icon icon-class="xz"></svg-icon>新增</el-button>
+                    <el-button type="primary" plain size="small" @click="addHouse()"><i class="el-icon-plus"></i>新增</el-button>
                 </el-form-item>
             </el-form>
         </el-card>
@@ -26,25 +26,25 @@
                                 <div class="header-actions">
                                     <el-button size="mini" type="primary" 
                                         @click="addHouse(item.id)"
-                                        v-hasPermi="['agriculture:batch:edit']"><svg-icon icon-class="xg"></svg-icon>修改</el-button>
+                                        v-hasPermi="['agriculture:batch:edit']"><i class="el-icon-edit"></i>修改</el-button>
                                     <el-button size="mini" type="danger" 
                                         @click="deleteData(item.id)"
-                                        v-hasPermi="['agriculture:batch:remove']"><svg-icon icon-class="sc"></svg-icon>删除</el-button>
+                                        v-hasPermi="['agriculture:batch:remove']"><i class="el-icon-delete"></i>删除</el-button>
                                 </div>
                             </div>
                             <div class="card-content">
                                 <div class="info-item">
-                                    <svg-icon icon-class="hydz"></svg-icon>
+                                    <i class="el-icon-location"></i>
                                     <span class="label">合约地址</span>
                                     <span class="value">{{ item.contractAddr }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="mj"></svg-icon>
+                                    <i class="el-icon-full-screen"></i>
                                     <span class="label">面积</span>
                                     <span class="value">{{ item.area }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="sl"></svg-icon>
+                                    <i class="el-icon-s-grid"></i>
                                     <span class="label">最大区分数量</span>
                                     <span class="value">{{ item.bigBreedingQuantity }}</span>
                                 </div>
@@ -59,7 +59,7 @@
                                     <span class="value">{{ getTodayAverage(item.id).humidity }}{{ getTodayAverage(item.id).humidity !== '/' ? '%' : '' }}</span>
                                 </div> -->
                                 <div class="info-item">
-                                    <svg-icon icon-class="fenqu"></svg-icon>
+                                    <i class="el-icon-map-location"></i>
                                     <span class="label">位置</span>
                                     <span class="value">{{ item.address }}</span>
                                 </div>
@@ -67,7 +67,7 @@
                             <div class="card-footer">
                                 <el-button size="small" type="warning" plain 
                                     @click="houseCheck(item.id)"
-                                    v-hasPermi="['agriculture:batch:edit']"><svg-icon icon-class="hjxq"></svg-icon>环境详情</el-button>
+                                    v-hasPermi="['agriculture:batch:edit']"><i class="el-icon-view"></i>环境详情</el-button>
                             </div>
                         </div>
                     </el-col>
