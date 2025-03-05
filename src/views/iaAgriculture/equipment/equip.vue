@@ -42,7 +42,6 @@
                                 </div>
                                 <div class="info-item">
                                     <i class="el-icon-location"></i>
-                                    <i class="el-icon-location"></i>
                                     <span class="label">场区/分区</span>
                                     <span class="value">{{ item.pastureName || '-' }}/{{ item.batchName || '-' }}</span>
                                 </div>
@@ -57,7 +56,6 @@
                                     <span class="value">{{ item.sensorCommand || '-' }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <i class="el-icon-link"></i>
                                     <i class="el-icon-link"></i>
                                     <span class="label">合约地址</span>
                                     <span class="value">{{ item.address }}</span>
