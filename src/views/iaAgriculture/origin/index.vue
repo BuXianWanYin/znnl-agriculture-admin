@@ -212,6 +212,7 @@
                             :tasks="taskList" 
                             :index="index" 
                             :task="item" 
+                            :type="type"
                             :is-mobile="isMobile"
                             :key="index"
                             @show-details="handleShowDetails"
@@ -844,8 +845,7 @@
                 if (this.type === 1) {
                     // 水产养殖
                     const batchResponse = await getFishBatch(batchId);
-                    console.log('水产批次信息:', batchResponse);
-                    
+                  
                     let germplasmResponse = null;
                     if (batchResponse.data?.speciesId) {
                         germplasmResponse = await getFishGermplasm(batchResponse.data.speciesId);
@@ -872,22 +872,74 @@
             async processTaskResources(tasks) {
                 return Promise.all(tasks.map(async (task) => {
                     try {
-                        const costMaterialResponse = await listCostMaterial({
-                            pageNum: 1,
-                            pageSize: 10,
-                            taskId: task.taskId
-                        });
+                        if (this.type === 1) {
+                            // 水产养殖 - 获取饵料使用信息
+                            const baitResponse = await listCostBait({
+                                pageNum: 1,
+                                pageSize: 10,
+                                taskId: task.taskId
+                            });
+                            
+                            let resources = [];
+                            if (baitResponse.rows) {
+                                for (const bait of baitResponse.rows) {
+                                    try {
+                                        const baitDetails = await getBaitInfo(bait.baitId);
+                                        resources.push({
+                                            name: baitDetails.data.baitName,
+                                            amount: bait.baitCount,
+                                            unit: bait.measureUnit,
+                                            type: 'bait' // 标记为饵料
+                                        });
+                                    } catch (error) {
+                                        console.error('获取饵料详情失败:', error);
+                                    }
+                                }
+                            }
+                            
+                            // 获取药品使用信息
+                            const medicineResponse = await listCostMedicine({
+                                pageNum: 1,
+                                pageSize: 10,
+                                taskId: task.taskId
+                            });
 
-                        if (costMaterialResponse.rows) {
-                            const resources = await Promise.all(costMaterialResponse.rows.map(async (material) => {
-                                const materialDetails = await getMaterialInfo(material.materialId);
-                                return {
-                                    name: materialDetails.data.materialName,
-                                    amount: material.materialCount,
-                                    unit: material.measureUnit
-                                };
-                            }));
+                            if (medicineResponse.rows) {
+                                for (const medicine of medicineResponse.rows) {
+                                    try {
+                                        const medicineDetails = await getMedicineInfo(medicine.medicineId);
+                                        resources.push({
+                                            name: medicineDetails.data.medicineName,
+                                            amount: medicine.medicineCount,
+                                            unit: medicine.measureUnit,
+                                            type: 'medicine' // 标记为药品
+                                        });
+                                    } catch (error) {
+                                        console.error('获取药品详情失败:', error);
+                                    }
+                                }
+                            }
+
                             return { ...task, resources };
+                        } else {
+                            // 蔬菜种植 - 获取农资使用信息
+                            const costMaterialResponse = await listCostMaterial({
+                                pageNum: 1,
+                                pageSize: 10,
+                                taskId: task.taskId
+                            });
+
+                            if (costMaterialResponse.rows) {
+                                const resources = await Promise.all(costMaterialResponse.rows.map(async (material) => {
+                                    const materialDetails = await getMaterialInfo(material.materialId);
+                                    return {
+                                        name: materialDetails.data.materialName,
+                                        amount: material.materialCount,
+                                        unit: material.measureUnit
+                                    };
+                                }));
+                                return { ...task, resources };
+                            }
                         }
                         return task;
                     } catch (error) {

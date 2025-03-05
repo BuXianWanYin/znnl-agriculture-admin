@@ -80,8 +80,39 @@
                 </div>
               </div>
 
+              <!-- 饵料使用信息 -->
+              <div class="resource-section" v-if="type === 1 && task.resources && getBaitResources.length > 0">
+                <div class="section-title">饵料使用：</div>
+                <div class="resource-list">
+                  <el-tag 
+                    v-for="(resource, index) in getBaitResources" 
+                    :key="index"
+                    size="mini"
+                    class="resource-tag"
+                  >
+                    {{ resource.name }}: {{ resource.amount }}{{ resource.unit }}
+                  </el-tag>
+                </div>
+              </div>
+
+              <!-- 用药记录 -->
+              <div class="resource-section" v-if="type === 1 && task.resources && getMedicineResources.length > 0">
+                <div class="section-title">用药记录：</div>
+                <div class="resource-list">
+                  <el-tag 
+                    v-for="(resource, index) in getMedicineResources" 
+                    :key="index"
+                    size="mini"
+                    type="warning"
+                    class="resource-tag"
+                  >
+                    {{ resource.name }}: {{ resource.amount }}{{ resource.unit }}
+                  </el-tag>
+                </div>
+              </div>
+
               <!-- 农资使用信息 -->
-              <div class="resource-section" v-if="displayResources && displayResources.length">
+              <div class="resource-section" v-if="type === 0 && displayResources && displayResources.length">
                 <div class="section-title">农资使用：</div>
                 <div class="resource-list">
                   <el-tag 
@@ -96,19 +127,17 @@
               </div>
 
               <!-- 工作照片 -->
-              <div class="images-section" v-if="task.taskImages">
+              <div v-if="task.taskImages && task.taskImages.trim()" class="images-section">
                 <div class="section-title">工作照片：</div>
-                <div class="image-grid">
+                <div class="image-list">
                   <el-image 
-                    :src="getImageUrl(task.taskImages)"
-                    :preview-src-list="[getImageUrl(task.taskImages)]"
+                    v-for="(image, index) in getImageArray(task.taskImages)"
+                    :key="index"
+                    :src="getImageUrl(image)"
+                    :preview-src-list="getImageArray(task.taskImages).map(img => getImageUrl(img))"
                     fit="cover"
                     class="task-image"
-                  >
-                    <div slot="error" class="image-slot">
-                      <i class="el-icon-picture-outline"></i>
-                    </div>
-                  </el-image>
+                  />
                 </div>
               </div>
             </div>
@@ -137,6 +166,10 @@
       isMobile: {
         type: Boolean,
         default: false
+      },
+      type: {
+        type: Number,
+        required: true
       }
     },
     data() {
@@ -194,11 +227,32 @@
       },
       // 添加测试数据的计算属性
       displayResources() {
-        return this.task.resources || this.mockResources;
+        if (this.task.resources) {
+          return this.task.resources;
+        }
+        return [];
+      },
+      displayMedicines() {
+        if (this.type === 1 && this.task.medicines) {
+          return this.task.medicines;
+        }
+        return [];
       },
       // 添加新的计算属性
       isLastItem() {
         return this.index === this.tasks.length - 1;
+      },
+      getBaitResources() {
+        if (this.task.resources) {
+          return this.task.resources.filter(r => r.type === 'bait');
+        }
+        return [];
+      },
+      getMedicineResources() {
+        if (this.task.resources) {
+          return this.task.resources.filter(r => r.type === 'medicine');
+        }
+        return [];
       }
     },
     methods: {
@@ -219,15 +273,30 @@
       showDetails() {
         this.$emit('show-details', this.task);
       },
-      // 添加处理图片URL的方法
-      getImageUrl(path) {
-        if (!path) return '';
-        // 如果是完整的URL，直接返回
-        if (path.startsWith('http://') || path.startsWith('https://')) {
-          return path;
+      getImageArray(images) {
+        if (!images) return [];
+        // 处理可能包含完整URL的图片路径
+        return images.split(',').map(img => {
+          img = img.trim();
+          // 如果图片路径已经包含完整URL，需要移除它再处理
+          if (img.startsWith(process.env.VUE_APP_BASE_API)) {
+            img = img.replace(process.env.VUE_APP_BASE_API, '');
+          }
+          return img;
+        }).filter(img => img);
+      },
+      getImageUrl(image) {
+        if (!image) return '';
+        // 移除可能存在的基础URL前缀
+        let cleanPath = image;
+        if (cleanPath.startsWith(process.env.VUE_APP_BASE_API)) {
+          cleanPath = cleanPath.replace(process.env.VUE_APP_BASE_API, '');
         }
-        // 否则添加基础API路径
-        return process.env.VUE_APP_BASE_API + path;
+        // 确保路径以 /profile 开头
+        if (!cleanPath.startsWith('/profile')) {
+          cleanPath = '/profile' + cleanPath;
+        }
+        return process.env.VUE_APP_BASE_API + cleanPath;
       }
     }
   }
@@ -551,15 +620,14 @@
           }
         }
 
-        .image-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr); // 改为两列显示
+        .image-list {
+          display: flex;
+          flex-wrap: wrap;
           gap: 8px;
-          padding: 8px 0;
-          
+
           .task-image {
             width: 100%;
-            height: 120px; // 调整高度更合理
+            height: 120px;
             border-radius: 4px;
             overflow: hidden;
             
@@ -567,20 +635,6 @@
               object-fit: cover;
               width: 100%;
               height: 100%;
-            }
-            
-            .image-slot {
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              width: 100%;
-              height: 100%;
-              background: #f5f7fa;
-              color: #909399;
-              
-              i {
-                font-size: 24px;
-              }
             }
           }
         }
@@ -602,20 +656,22 @@
   
   // 针对不同屏幕尺寸优化显示
   @media screen and (max-width: 480px) {
-    .image-grid {
-      grid-template-columns: repeat(2, 1fr); // 小屏幕保持两列
+    .image-list {
+      flex-wrap: wrap;
       
       .task-image {
-        height: 100px; // 更小屏幕上稍微降低高度
+        width: 100%;
+        height: 100px;
       }
     }
   }
   
   @media screen and (min-width: 481px) and (max-width: 768px) {
-    .image-grid {
-      grid-template-columns: repeat(3, 1fr); // 中等屏幕显示三列
+    .image-list {
+      flex-wrap: wrap;
       
       .task-image {
+        width: 100%;
         height: 110px;
       }
     }
