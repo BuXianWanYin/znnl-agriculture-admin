@@ -1238,8 +1238,8 @@ export default {
             title: '预警提示',
             message: alert.alertMessage,
             type: 'warning',
-            showClose: false,
-            duration: 15000
+            showClose: true,
+            duration: 0
           });
         };
 
@@ -1284,8 +1284,8 @@ export default {
             title: '严重警告',
             message: alert.alertMessage,
             type: 'error',
-            showClose: false,
-            duration: 15000,
+            showClose: true,
+            duration: 0,
             position: 'top-right'
           });
         };
