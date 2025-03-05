@@ -1,10 +1,11 @@
 import request from '@/utils/request'
 
 // 根据类型获取蔬菜大棚预警信息列表
-export function listByPastureType(type) {
+export function listByPastureType(type, query) {
   return request({
     url: `/agriculture/alert/listByPastureType/${type}`,
-    method: 'get'
+    method: 'get',
+    params: query
   })
 }
 
