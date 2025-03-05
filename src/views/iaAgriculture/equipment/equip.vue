@@ -211,45 +211,43 @@ export default {
                     }
                 });
 
-                // 获取场区和分区的名称
-                const pasturePromises = data.records.map(async item => {
-                    let pastureName, batchName;
+                // 收集所有需要查询的 ID
+                const pastureIds = new Set();
+                const fishPastureIds = new Set();
+                data.records.forEach(item => {
+                    if (item.fishPastureId) {
+                        fishPastureIds.add(item.fishPastureId);
+                    } else if (item.pastureId) {
+                        pastureIds.add(item.pastureId);
+                    }
+                });
+
+                // 批量获取场区数据
+                const [pastureData, fishPastureData] = await Promise.all([
+                    pastureIds.size > 0 ? this.batchGetPastureData(Array.from(pastureIds)) : {},
+                    fishPastureIds.size > 0 ? this.batchGetFishPastureData(Array.from(fishPastureIds)) : {}
+                ]);
+
+                // 映射数据
+                this.equipmentData = data.records.map(item => {
+                    let pastureName = '-', batchName = '-';
                     
                     if (item.fishPastureId) {
-                        // 获取鱼塘名称 - 修改为使用 params 方式传参
-                        const fishRes = await this.$http.post("/dev-api/fishPasture/detail", null, {
-                            params: {
-                                id: item.fishPastureId
-                            }
-                        });
-                        pastureName = fishRes.data.data?.name;
-                        
-                        // 获取鱼塘分区名称
-                        const fishBatchRes = await fishBatch({ landId: item.fishPastureId });
-                        const batch = fishBatchRes.rows?.find(b => b.batchId === item.fishPastureBatchId);
-                        batchName = batch?.batchName;
+                        pastureName = fishPastureData[item.fishPastureId]?.name || '-';
+                        batchName = fishPastureData[item.fishPastureId]?.batches?.[item.fishPastureBatchId] || '-';
                     } else {
-                        // 获取大棚名称
-                        const pastureRes = await getHouse(item.pastureId);
-                        pastureName = pastureRes.data?.name;
-                        // 获取大棚分区名称
-                        const batchRes = await iaBatch({ landId: item.pastureId });
-                        // 修改匹配逻辑，确保类型一致
-                        const batch = batchRes.rows?.find(b => String(b.batchId) === String(item.batchId));
-                        batchName = batch?.batchName;
-                        
+                        pastureName = pastureData[item.pastureId]?.name || '-';
+                        batchName = pastureData[item.pastureId]?.batches?.[item.batchId] || '-';
                     }
 
                     return {
                         ...item,
-                        pastureName: pastureName || '-',
-                        batchName: batchName || '-',
+                        pastureName,
+                        batchName,
                         areaType: item.fishPastureId ? 'fishPasture' : 'pasture'
                     };
                 });
 
-                this.equipmentData = await Promise.all(pasturePromises);
-                
                 this.pager = {
                     page: data.current,
                     pageSize: data.size,
@@ -311,6 +309,8 @@ export default {
 
                     // 根据场区类型设置不同的字段
                     if (this.equipmentForm.areaIds && this.equipmentForm.areaIds.length === 2) {
+                        console.log('areaIds',this.equipmentForm.areaIds);
+                        
                         const areaType = this.getAreaType(this.equipmentForm.areaIds[0]);
                         if (areaType === 'pasture') {
                             submitData.pastureId = this.equipmentForm.areaIds[0];
@@ -323,8 +323,9 @@ export default {
 
                     // 根据是否有id判断是新增还是编辑
                     const url = this.equipmentForm.id ? '/device/update' : '/device/add';
+                    const method = this.equipmentForm.id ? 'put' : 'post';
                     
-                    http.post(url, submitData).then(res => {
+                    http[method](url, submitData).then(res => {
                         this.$message.success(this.dialogTitle + '成功');
                         this.getListData();
                         this.equipmentEditDialog = false;
@@ -336,7 +337,9 @@ export default {
         },
         // 获取场区类型的辅助方法
         getAreaType(areaId) {
-            const area = this.areaOptions.find(option => option.id === areaId);
+            console.log('areaId',areaId);
+            console.log('areaOptions',this.areaOptions);
+            const area = this.areaOptions.find(option => option.id == areaId);
             return area ? area.type : null;
         },
         deleteData(id) {
@@ -407,6 +410,7 @@ export default {
                                 parentType: 'pasture'
                             }))
                         };
+                        
                         this.areaOptions.push(option);
                     } catch (error) {
                         console.error(`获取大棚 ${house.name} 的分区数据失败:`, error);
@@ -434,6 +438,8 @@ export default {
                         console.error(`获取鱼塘 ${fish.name} 的分区数据失败:`, error);
                     }
                 }
+
+                console.log('this.areaOptions',this.areaOptions);
             } catch (error) {
                 console.error('初始化场区数据失败:', error);
                 this.$message.error('初始化场区数据失败');
@@ -512,35 +518,106 @@ export default {
                 const houses = [...iaPastureRes.data.data, ...fishPastureRes.data.data];
                 
                 // 转换数据结构为级联选择器格式
-                this.areaOptions = await Promise.all(houses.map(async house => {
-                    const queryParams = { landId: house.id };
-                    try {
-                        const [iaRes, fishRes] = await Promise.all([
-                            iaBatch(queryParams),
-                            fishBatch(queryParams)
-                        ]);
+                // this.areaOptions = await Promise.all(houses.map(async house => {
+                //     const queryParams = { landId: house.id };
+                //     try {
+                //         const [iaRes, fishRes] = await Promise.all([
+                //             iaBatch(queryParams),
+                //             fishBatch(queryParams)
+                //         ]);
                         
-                        const batches = [...(iaRes.rows || []), ...(fishRes.rows || [])];
-                        return {
-                            id: house.id,
-                            name: house.name,
-                            children: batches.map(batch => ({
-                                id: batch.batchId,
-                                name: batch.batchName
-                            }))
-                        };
-                    } catch (error) {
-                        console.error('获取分区数据失败:', error);
-                        return {
-                            id: house.id,
-                            name: house.name,
-                            children: []
-                        };
-                    }
-                }));
+                //         const batches = [...(iaRes.rows || []), ...(fishRes.rows || [])];
+                //         console.log('batches',batches);
+                        
+                //         return {
+                //             id: house.id,
+                //             name: house.name,
+                //             type: house.type,
+                //             children: batches.map(batch => ({
+                //                 id: batch.batchId,
+                //                 name: batch.batchName,
+                //                 type: house.type
+                //             }))
+                //         };
+                //     } catch (error) {
+                //         console.error('获取分区数据失败:', error);
+                //         return {
+                //             id: house.id,
+                //             name: house.name,
+                //             type: house.type,
+                //             children: []
+                //         };
+                //     }
+                // }));
             } catch (error) {
                 this.$message.error('加载场区数据失败');
             }
+        },
+        // 新增批量获取大棚数据的方法
+        async batchGetPastureData(pastureIds) {
+            const result = {};
+            try {
+                // 获取大棚信息
+                const pastureRes = await Promise.all(
+                    pastureIds.map(id => getHouse(id))
+                );
+                
+                // 获取分区信息
+                const batchRes = await Promise.all(
+                    pastureIds.map(id => iaBatch({ landId: id }))
+                );
+
+                pastureIds.forEach((id, index) => {
+                    const pasture = pastureRes[index]?.data;
+                    const batches = batchRes[index]?.rows || [];
+                    
+                    result[id] = {
+                        name: pasture?.name,
+                        batches: batches.reduce((acc, batch) => {
+                            acc[batch.batchId] = batch.batchName;
+                            return acc;
+                        }, {})
+                    };
+                });
+            } catch (error) {
+                console.error('批量获取大棚数据失败:', error);
+            }
+            return result;
+        },
+        // 新增批量获取鱼塘数据的方法
+        async batchGetFishPastureData(fishPastureIds) {
+            const result = {};
+            try {
+                // 获取鱼塘信息
+                const fishRes = await Promise.all(
+                    fishPastureIds.map(id => 
+                        this.$http.post("/dev-api/fishPasture/detail", null, {
+                            params: { id }
+                        })
+                    )
+                );
+                
+                // 获取分区信息
+                const batchRes = await Promise.all(
+                    fishPastureIds.map(id => fishBatch({ landId: id }))
+                );
+
+                fishPastureIds.forEach((id, index) => {
+                    const fish = fishRes[index]?.data?.data;
+                    const batches = batchRes[index]?.rows || [];
+                    
+                    result[id] = {
+                        name: fish?.name,
+                        batches: batches.reduce((acc, batch) => {
+                            acc[batch.batchId] = batch.batchName;
+                            return acc;
+                        }, {})
+                    };
+                });
+            } catch (error) {
+                console.error('批量获取鱼塘数据失败:', error);
+            }
+            return result;
         },
     },
 }
