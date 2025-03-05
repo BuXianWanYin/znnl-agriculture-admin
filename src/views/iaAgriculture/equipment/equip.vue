@@ -8,20 +8,15 @@
                               class="search-input"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" size="small" @click="equipmentSearch" class="search-btn">
-                        <svg-icon icon-class="ss" />
-                        搜索
+                    <el-button type="primary" icon="el-icon-search" size="small" @click="equipmentSearch"
+                               class="search-btn">搜索
                     </el-button>
-                    <el-button  size="small" @click="equipmentReset" class="reset-btn">
-                        <svg-icon icon-class="cz" />
-                        重置
+                    <el-button icon="el-icon-refresh" size="small" @click="equipmentReset" class="reset-btn">重置
                     </el-button>
                 </el-form-item>
                 <el-form-item class="fr">
-                    <el-button type="primary" plain  size="small" @click="equipmentEditAdd('新增')"
-                               class="add-btn">
-                        <svg-icon icon-class="xz" />
-                        新增
+                    <el-button type="primary" plain icon="el-icon-plus" size="small" @click="equipmentEditAdd('新增')"
+                               class="add-btn">新增设备
                     </el-button>
                 </el-form-item>
             </el-form>
@@ -41,32 +36,32 @@
                             </div>
                             <div class="card-content">
                                 <div class="info-item">
-                                    <svg-icon icon-class="shebeiid"></svg-icon>
+                                    <i class="el-icon-cpu"></i>
                                     <span class="label">设备ID</span>
                                     <span class="value">{{ item.id }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="fenqu"></svg-icon>
+                                    <i class="el-icon-location"></i>
                                     <span class="label">场区/分区</span>
                                     <span class="value">{{ item.pastureName || '-' }}/{{ item.batchName || '-' }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="cgqxh"></svg-icon>
+                                    <i class="el-icon-monitor"></i>
                                     <span class="label">传感器序号</span>
                                     <span class="value">{{ item.sensorType || '-' }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="cgqzl"></svg-icon>
+                                    <i class="el-icon-set-up"></i>
                                     <span class="label">传感器指令</span>
                                     <span class="value">{{ item.sensorCommand || '-' }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="hydz"></svg-icon>
+                                    <i class="el-icon-link"></i>
                                     <span class="label">合约地址</span>
                                     <span class="value">{{ item.address }}</span>
                                 </div>
                                 <div class="info-item">
-                                    <svg-icon icon-class="bz"></svg-icon>
+                                    <i class="el-icon-notebook-2"></i>
                                     <span class="label">备注</span>
                                     <span class="value">{{ item.remark || '暂无备注' }}</span>
                                 </div>
@@ -142,6 +137,7 @@
 import http from "@/utils/request";
 import {listBatch as iaBatch} from "@/api/agriculture/batch";
 import {listBatch as fishBatch} from "@/api/fishingGround/batch";
+import { getHouse } from "@/api/iaAgriculture/greenHouse";
 
 export default {
     data() {
@@ -214,16 +210,55 @@ export default {
                         ...this.searchForm
                     }
                 });
-                this.equipmentData = data.records;
+
+                // 获取场区和分区的名称
+                const pasturePromises = data.records.map(async item => {
+                    let pastureName, batchName;
+                    
+                    if (item.fishPastureId) {
+                        // 获取鱼塘名称 - 修改为使用 params 方式传参
+                        const fishRes = await this.$http.post("/dev-api/fishPasture/detail", null, {
+                            params: {
+                                id: item.fishPastureId
+                            }
+                        });
+                        pastureName = fishRes.data.data?.name;
+                        
+                        // 获取鱼塘分区名称
+                        const fishBatchRes = await fishBatch({ landId: item.fishPastureId });
+                        const batch = fishBatchRes.rows?.find(b => b.batchId === item.fishPastureBatchId);
+                        batchName = batch?.batchName;
+                    } else {
+                        // 获取大棚名称
+                        const pastureRes = await getHouse(item.pastureId);
+                        pastureName = pastureRes.data?.name;
+                        // 获取大棚分区名称
+                        const batchRes = await iaBatch({ landId: item.pastureId });
+                        // 修改匹配逻辑，确保类型一致
+                        const batch = batchRes.rows?.find(b => String(b.batchId) === String(item.batchId));
+                        batchName = batch?.batchName;
+                        
+                    }
+
+                    return {
+                        ...item,
+                        pastureName: pastureName || '-',
+                        batchName: batchName || '-',
+                        areaType: item.fishPastureId ? 'fishPasture' : 'pasture'
+                    };
+                });
+
+                this.equipmentData = await Promise.all(pasturePromises);
+                
                 this.pager = {
                     page: data.current,
                     pageSize: data.size,
                     pages: data.pages,
-                }
-                this.total = data.total
+                };
+                this.total = data.total;
             } catch (e) {
                 console.error('获取设备列表失败:', e);
-                this.$message.error('网络错误请重试！');
+                this.$message.error('获取设备列表失败');
             }
         },
         async equipmentSearch() {
@@ -261,39 +296,48 @@ export default {
                 sensorType: ""
             }
             // 获取场区和分区数据
-            // await this.loadAreaAndBatchData();
+            await this.loadAreaAndBatchData();
             this.equipmentEditDialog = true
         },
         //   弹框确定按钮
         equipmentDoBtn() {
             this.$refs.equipmentForm.validate((valid) => {
                 if (valid) {
-                    // 判断选择的是大棚还是鱼棚
-                    const isPasture = this.areaOptions.find(area => area.id === this.equipmentForm.areaIds[0])?.name.includes('大棚');
-                    
+                    // 构建提交数据
                     const submitData = {
                         ...this.equipmentForm,
-                        // 设置deviceId与sensorType相同
-                        deviceId: this.equipmentForm.sensorType,
-                        // 根据类型设置不同的字段名
-                        [isPasture ? 'pastureId' : 'fishPastureId']: this.equipmentForm.areaIds[0],
-                        [isPasture ? 'batchId' : 'fish_pasture_batch_id']: this.equipmentForm.areaIds[1]
+                        deviceId: this.equipmentForm.sensorType, // 设置deviceId与sensorType相同
                     };
-                    
+
+                    // 根据场区类型设置不同的字段
+                    if (this.equipmentForm.areaIds && this.equipmentForm.areaIds.length === 2) {
+                        const areaType = this.getAreaType(this.equipmentForm.areaIds[0]);
+                        if (areaType === 'pasture') {
+                            submitData.pastureId = this.equipmentForm.areaIds[0];
+                            submitData.batchId = this.equipmentForm.areaIds[1];
+                        } else {
+                            submitData.fishPastureId = this.equipmentForm.areaIds[0];
+                            submitData.fishPastureBatchId = this.equipmentForm.areaIds[1];
+                        }
+                    }
+
                     // 根据是否有id判断是新增还是编辑
-                    const url = this.equipmentForm.id ? '/device/update' : '/device/add'
+                    const url = this.equipmentForm.id ? '/device/update' : '/device/add';
                     
                     http.post(url, submitData).then(res => {
-                        this.$message.success(this.dialogTitle + '成功')
-                        this.getListData()
-                        this.equipmentEditDialog = false
+                        this.$message.success(this.dialogTitle + '成功');
+                        this.getListData();
+                        this.equipmentEditDialog = false;
                     }).catch(err => {
-                        this.$message.error('网络错误请重试！')
-                    })
-                } else {
-                    return false
+                        this.$message.error('操作失败：' + (err.message || '网络错误'));
+                    });
                 }
-            })
+            });
+        },
+        // 获取场区类型的辅助方法
+        getAreaType(areaId) {
+            const area = this.areaOptions.find(option => option.id === areaId);
+            return area ? area.type : null;
         },
         deleteData(id) {
             this.$confirm('确定要删除该条数据吗?', '删除', {
@@ -328,73 +372,134 @@ export default {
         },
         handleAreaChange(value) {
             if (value && value.length === 2) {
-                this.equipmentForm.landId = value[0];
-                this.equipmentForm.batchId = value[1];
-            } else {
-                this.equipmentForm.landId = '';
-                this.equipmentForm.batchId = '';
+                const areaId = value[0];
+                const batchId = value[1];
+                const area = this.areaOptions.find(opt => opt.id === areaId);
             }
         },
         async initAreaOptions() {
             try {
+            
+                // 先清空现有数据
+                this.areaOptions = [];
+                
+                // 获取大棚和鱼塘数据
                 const [houseResponse, fishResponse] = await Promise.all([
                     this.$http.get("/dev-api/iaPasture/list"),
                     this.$http.get("/dev-api/fishPasture/list")
                 ]);
-                
-                const houses = [...houseResponse.data.data, ...fishResponse.data.data];
-                
-                // 转换数据结构为级联选择器格式
-                this.areaOptions = await Promise.all(houses.map(async house => {
-                    const queryParams = { landId: house.id };
+
+                const houseData = houseResponse.data.data || [];
+                const fishData = fishResponse.data.data || [];
+
+                // 处理大棚数据
+                for (const house of houseData) {
                     try {
-                        const [iaRes, fishRes] = await Promise.all([
-                            iaBatch(queryParams),
-                            fishBatch(queryParams)
-                        ]);
-                        
-                        const batches = [...(iaRes.rows || []), ...(fishRes.rows || [])];
-                        return {
+                        const batchRes = await iaBatch({ landId: house.id });
+                        const option = {
                             id: house.id,
                             name: house.name,
-                            children: batches.map(batch => ({
+                            type: 'pasture',
+                            children: (batchRes.rows || []).map(batch => ({
                                 id: batch.batchId,
-                                name: batch.batchName
+                                name: batch.batchName,
+                                parentId: house.id,
+                                parentType: 'pasture'
                             }))
                         };
+                        this.areaOptions.push(option);
                     } catch (error) {
-                        console.error('获取分区数据失败:', error);
-                        return {
-                            id: house.id,
-                            name: house.name,
-                            children: []
-                        };
+                        console.error(`获取大棚 ${house.name} 的分区数据失败:`, error);
                     }
-                }));
+                }
+
+                // 处理鱼塘数据
+                for (const fish of fishData) {
+                    try {
+                        const batchRes = await fishBatch({ landId: fish.id });
+                        
+                        const option = {
+                            id: fish.id,
+                            name: fish.name,
+                            type: 'fishPasture',
+                            children: (batchRes.rows || []).map(batch => ({
+                                id: batch.batchId,
+                                name: batch.batchName,
+                                parentId: fish.id,
+                                parentType: 'fishPasture'
+                            }))
+                        };
+                        this.areaOptions.push(option);
+                    } catch (error) {
+                        console.error(`获取鱼塘 ${fish.name} 的分区数据失败:`, error);
+                    }
+                }
             } catch (error) {
+                console.error('初始化场区数据失败:', error);
                 this.$message.error('初始化场区数据失败');
             }
         },
         async handleEdit(item) {
-            this.dialogTitle = '编辑'
-            // 获取场区和分区数据
-            // await this.loadAreaAndBatchData();
+            this.dialogTitle = '编辑';
             
-            // 判断是大棚还是鱼塘的设备
-            const areaIds = item.pastureId ? 
-                [item.pastureId, item.batchId] : // 大棚设备
-                [item.fishPastureId, item.fishPastureBatchId]; // 鱼塘设备
+            // 确保场区数据已加载
+            if (!this.areaOptions.length) {
+                await this.initAreaOptions();
+            }
+
+            // 根据区域类型确定正确的ID
+            let areaIds = [];
+            if (item.areaType === 'fishPasture') {
+                areaIds = [item.fishPastureId, item.fishPastureBatchId];
+            } else {
+                areaIds = [item.pastureId, item.batchId];
+            }
+
+            // 验证选中的值是否在选项中存在
+            const areaOption = this.areaOptions.find(opt => opt.id === areaIds[0]);
+            if (!areaOption) {
+                // 重新加载场区数据
+                await this.initAreaOptions();
+            }
+
+            // 再次验证并设置表单数据
+            const updatedAreaOption = this.areaOptions.find(opt => opt.id === areaIds[0]);
+            if (updatedAreaOption) {
+                const batchOption = updatedAreaOption.children.find(child => child.id === areaIds[1]);
+                if (!batchOption) {
+                    // 尝试重新获取分区数据
+                    if (item.areaType === 'fishPasture') {
+                        const { rows } = await fishBatch({ landId: areaIds[0] });
+                        updatedAreaOption.children = rows.map(batch => ({
+                            id: batch.batchId,
+                            name: batch.batchName,
+                            parentId: areaIds[0],
+                            parentType: 'fishPasture'
+                        }));
+                    } else {
+                        const { rows } = await iaBatch({ landId: areaIds[0] });
+                        updatedAreaOption.children = rows.map(batch => ({
+                            id: batch.batchId,
+                            name: batch.batchName,
+                            parentId: areaIds[0],
+                            parentType: 'pasture'
+                        }));
+                    }
+                }
+            }
 
             this.equipmentForm = {
                 id: item.id,
                 deviceName: item.deviceName,
                 areaIds: areaIds,
-                remark: item.remark,
+                remark: item.remark || '',
                 status: item.status,
-                sensorCommand: item.sensorCommand,
-                sensorType: item.sensorType
-            }
-            this.equipmentEditDialog = true
+                sensorCommand: item.sensorCommand || '',
+                sensorType: item.sensorType || '',
+                deviceId: item.deviceId || ''
+            };
+
+            this.equipmentEditDialog = true;
         },
         // 新增加载场区和分区数据的方法
         async loadAreaAndBatchData() {
@@ -437,7 +542,7 @@ export default {
                 this.$message.error('加载场区数据失败');
             }
         },
-    }
+    },
 }
 </script>
 
