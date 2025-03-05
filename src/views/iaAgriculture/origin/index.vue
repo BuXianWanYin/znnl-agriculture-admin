@@ -823,9 +823,76 @@
                     });
 
                     if (response.rows) {
-                        // 处理任务资源信息
-                        this.taskList = await this.processTaskResources(response.rows);
-                        
+                        // 预加载每个任务的详细信息
+                        this.taskList = await Promise.all(response.rows.map(async (task) => {
+                            // 预加载资源信息
+                            const taskWithResources = await this.processTaskResources([task]);
+                            const enrichedTask = taskWithResources[0];
+                            
+                            if (this.type === 1) {
+                                // 预加载水产养殖特定信息
+                                const [baitResponse, medicineResponse] = await Promise.all([
+                                    listCostBait({
+                                        pageNum: 1,
+                                        pageSize: 10,
+                                        taskId: task.taskId
+                                    }),
+                                    listCostMedicine({
+                                        pageNum: 1,
+                                        pageSize: 10,
+                                        taskId: task.taskId
+                                    })
+                                ]);
+
+                                // 处理饵料信息
+                                const baitDetails = await Promise.all((baitResponse.rows || []).map(async (bait) => {
+                                    const baitInfo = await getBaitInfo(bait.baitId);
+                                    return {
+                                        name: baitInfo.data.baitName,
+                                        amount: bait.baitCount,
+                                        unit: bait.measureUnit
+                                    };
+                                }));
+
+                                // 处理药品信息
+                                const medicineDetails = await Promise.all((medicineResponse.rows || []).map(async (medicine) => {
+                                    const medicineInfo = await getMedicineInfo(medicine.medicineId);
+                                    return {
+                                        medicineName: medicineInfo.data.medicineName,
+                                        dosage: medicine.medicineCount,
+                                        unit: medicine.measureUnit
+                                    };
+                                }));
+
+                                return {
+                                    ...enrichedTask,
+                                    baitDetails,
+                                    medicineDetails
+                                };
+                            } else {
+                                // 预加载农资信息
+                                const materialResponse = await listCostMaterial({
+                                    pageNum: 1,
+                                    pageSize: 10,
+                                    taskId: task.taskId
+                                });
+
+                                const materialDetails = await Promise.all((materialResponse.rows || []).map(async (material) => {
+                                    const materialInfo = await getMaterialInfo(material.materialId);
+                                    return {
+                                        name: materialInfo.data.materialName,
+                                        amount: material.materialCount,
+                                        unit: material.measureUnit
+                                    };
+                                }));
+
+                                return {
+                                    ...enrichedTask,
+                                    materialDetails
+                                };
+                            }
+                        }));
+
                         // 默认选中第一个任务
                         if (this.taskList.length > 0) {
                             this.selectedTaskId = this.taskList[0].taskId;
@@ -1289,97 +1356,11 @@
                 }
             },
             async handleShowDetails(task) {
-                this.currentTask = task;
+                // 直接使用预加载的数据
+                this.currentTask = this.taskList.find(t => t.taskId === task.taskId);
+                this.mockResources = this.type === 1 ? task.baitDetails : task.materialDetails;
+                this.mockMedicineData = this.type === 1 ? task.medicineDetails : [];
                 this.dialogVisible = true;
-                
-                try {
-                    if (this.type === 1) {
-                        // 鱼类 - 获取饵料使用信息
-                        const baitResponse = await listCostBait({
-                            pageNum: 1,
-                            pageSize: 10,
-                            taskId: task.taskId
-                        });
-                        
-                       
-                        
-                        if (baitResponse.rows) {
-                            // 处理饵料信息
-                            const processedBaits = [];
-                            
-                            for (const bait of baitResponse.rows) {
-                                try {
-                                    const baitDetails = await getBaitInfo(bait.baitId);
-                                    processedBaits.push({
-                                        name: baitDetails.data.baitName,
-                                        amount: bait.baitCount,
-                                        unit: bait.measureUnit
-                                    });
-                                } catch (error) {
-                                    console.error('获取饵料详情失败:', error);
-                                }
-                            }
-
-                            this.mockResources = processedBaits;
-                        }
-
-                        // 获取药品使用信息
-                        const medicineResponse = await listCostMedicine({
-                            pageNum: 1,
-                            pageSize: 10,
-                            taskId: task.taskId
-                        });
-
-                        if (medicineResponse.rows) {
-                            // 处理药品信息
-                            const processedMedicines = [];
-
-                            for (const medicine of medicineResponse.rows) {
-                                try {
-                                    const medicineDetails = await getMedicineInfo(medicine.medicineId);
-                                    processedMedicines.push({
-                                        medicineName: medicineDetails.data.medicineName,
-                                        dosage: medicine.medicineCount,
-                                        unit: medicine.measureUnit
-                                    });
-                                } catch (error) {
-                                    console.error('获取药品详情失败:', error);
-                                }
-                            }
-
-                            this.mockMedicineData = processedMedicines;
-                        }
-                    } else {
-                        // 菜 - 获取农资使用信息
-                        const response = await listCostMaterial({
-                            pageNum: 1,
-                            pageSize: 10,
-                            taskId: task.taskId
-                        });
-                        
-                        if (response.rows) {
-                            const processedMaterials = [];
-                            
-                            for (const material of response.rows) {
-                                try {
-                                    const materialDetails = await getMaterialInfo(material.materialId);
-                                    processedMaterials.push({
-                                        name: materialDetails.data.materialName,
-                                        amount: material.materialCount,
-                                        unit: material.measureUnit
-                                    });
-                                } catch (error) {
-                                    console.error('获取农资详情失败:', error);
-                                }
-                            }
-
-                            this.mockResources = processedMaterials;
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error details:', error);
-                    this.$message.error(this.type === 1 ? '获取使用信息失败' : '获取农资使用信息失败');
-                }
             },
             handleClose(done) {
                 this.currentTask = null;
@@ -1421,27 +1402,6 @@
                 }
             
                 return process.env.VUE_APP_BASE_API + path;
-            },
-            async fetchCostMaterials(taskId) {
-                try {
-                    const response = await listCostMaterial({
-                        pageNum: 1,
-                        pageSize: 10,
-                        taskId
-                    });
-                
-                
-                    if (response.rows) {
-                        this.mockResources = response.rows.map(material => ({
-                            name: material.materialName,
-                            amount: material.amount,
-                            unit: material.unit || '个' 
-                        }));
-                    }
-                } catch (error) {
-                    console.error('Error fetching cost materials:', error);
-                    this.$message.error('获取农资使用信息失败');
-                }
             },
         },
         computed: {
@@ -3555,6 +3515,11 @@
             }
         }
     }
+}
+
+// 添加全局样式
+:global(body.el-popup-parent--hidden) {
+    padding-right: 17px; // 滚动条的宽度
 }
 </style>
 
