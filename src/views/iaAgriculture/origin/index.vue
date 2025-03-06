@@ -754,6 +754,7 @@
                             "type":this.type,
                             "traceCode":this.originName
                         }
+                        console.log(data)
                         this.$http.post("/dev-api/iaPartitionFoodSensorValue/addAgricultureTraceRecord", data)
                         .then((res) => {
                         }).catch((error) => {
@@ -1132,12 +1133,26 @@
                 if (res.data.code === 0) {
                     // 设置区块链相关信息
                     this.contractAddr = res.data.data.contractAddr;
-                    this.harvestTimestamp = res.data.data.iaPartitionInfo.find(
-                        item => item.name === '_harvestTimestamp'
-                    )?.numericValue?.value;
-                    this.processingTimestamp = res.data.data.iaPartitionFoodSensorValueInfo[0]?.listValues.find(
-                        item => item.name === 'processingTimestamp'
-                    )?.numericValue?.value;
+                    
+                    // 修复数组处理
+                    const partitionInfo = res.data.data.iaPartitionInfo;
+                    if (Array.isArray(partitionInfo)) {
+                        const harvestItem = partitionInfo.find(
+                            item => item.name === '_harvestTimestamp'
+                        );
+                        this.harvestTimestamp = harvestItem?.numericValue?.value;
+                    }
+
+                    const sensorValueInfo = res.data.data.iaPartitionFoodSensorValueInfo;
+                    if (Array.isArray(sensorValueInfo) && sensorValueInfo.length > 0) {
+                        const processingItem = sensorValueInfo[0].listValues?.find(
+                            item => item.name === 'processingTimestamp'
+                        );
+                        this.processingTimestamp = processingItem?.numericValue?.value;
+                    } else if (sensorValueInfo && sensorValueInfo.processingTimestamp) {
+                        // 处理非数组情况
+                        this.processingTimestamp = sensorValueInfo.processingTimestamp;
+                    }
                 }
             },
             checkDeviceType() {
