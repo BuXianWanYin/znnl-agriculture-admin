@@ -7,7 +7,19 @@
     :close-on-click-modal="true"
     @close="handleClose"
   >
-    <div class="ai-report-content">
+    <!-- 没有分析报告时显示的内容 -->
+    <div v-if="!hasAnalysis" class="no-analysis-content">
+      <el-empty description="暂无分析报告">
+        <el-button type="primary" 
+                   @click="startAnalysis" 
+                   :loading="loading">
+          {{ loading ? '分析中...' : '开始智能分析' }}
+        </el-button>
+      </el-empty>
+    </div>
+
+    <!-- 有分析报告时显示的内容 -->
+    <div v-else class="ai-report-content">
       <el-row :gutter="20">
         <!-- 左侧内容 -->
         <el-col :span="6">
@@ -125,12 +137,19 @@
     </div>
 
     <div slot="footer" class="dialog-footer">
-      <el-button type="primary" icon="el-icon-download" @click="handleExport">导出报告</el-button>
+      <el-button type="primary" 
+                 icon="el-icon-download" 
+                 @click="handleExport"
+                 v-if="hasAnalysis">
+        导出报告
+      </el-button>
     </div>
   </el-dialog>
 </template>
 
 <script>
+    import { getData as getSpeciesData, addData as addSpeciesData } from "@/api/fishingGround/species";
+    import { getData as getGermplasmData, addData as addGermplasmData } from "@/api/agriculture/germplasm";
 export default {
   name: 'AIReport',
   props: {
@@ -152,40 +171,7 @@ export default {
       dialogVisible: false,
       reportId: '',
       generateTime: '',
-      coreMetrics: [
-        {
-          name: '生长速度',
-          value: '85%',
-          percentage: 85,
-          icon: 'el-icon-timer',
-          type: 'primary',
-          color: '#409EFF'
-        },
-        {
-          name: '抗病能力',
-          value: '90%',
-          percentage: 90,
-          icon: 'el-icon-first-aid-kit',
-          type: 'success',
-          color: '#67C23A'
-        },
-        {
-          name: '饲料转化率',
-          value: '88%',
-          percentage: 88,
-          icon: 'el-icon-food',
-          type: 'warning',
-          color: '#E6A23C'
-        },
-        {
-          name: '市场认可度',
-          value: '92%',
-          percentage: 92,
-          icon: 'el-icon-shopping-cart-full',
-          type: 'info',
-          color: '#909399'
-        }
-      ],
+      coreMetrics: [],
       environmentData: [],
       suggestions: [],
       analysis: {
@@ -193,7 +179,9 @@ export default {
         difficulty: '',
         suggestion: '',
         market: ''
-      }
+      },
+      hasAnalysis: false,
+      loading: false
     }
   },
   computed: {
@@ -207,7 +195,12 @@ export default {
       return this.fishData?.fishSpeciesName || this.vegetableData?.germplasmName || '未知'
     },
     getId() {
-      return this.fishData?.speciesId || this.vegetableData?.germplasmId || '未知'
+      if (this.fishData) {
+        return this.fishData.speciesId
+      } else if (this.vegetableData) {
+        return this.vegetableData.germplasmId
+      }
+      return null
     },
     getImageUrl() {
       const baseUrl = window.location.origin + process.env.VUE_APP_BASE_API
@@ -230,110 +223,134 @@ export default {
     handleClose() {
       this.dialogVisible = false
     },
-    initData() {
-      // 生成报告ID
-      this.reportId = 'AI' + Math.random().toString().slice(2, 8)
-      
-      // 设置生成时间
+    async initData() {
+      try {
+        // 检查是否已有分析报告
+        const response = this.fishData 
+          ? await getSpeciesData(this.getId)
+          : await getGermplasmData(this.getId)
+
+        if (response.data?.aiAnalysis) {
+          // 如果已有分析报告，加载数据
+          this.hasAnalysis = true
+          const analysisData = response.data.aiAnalysis
+          
+          // 生成报告ID
+          this.reportId = analysisData.reportId || ('AI' + Math.random().toString().slice(2, 8))
+          
+          // 设置生成时间
+          this.generateTime = analysisData.generateTime || this.getCurrentTime()
+
+          // 更新核心指标
+          this.coreMetrics = analysisData.coreMetrics.map(metric => ({
+            ...metric,
+            icon: this.getMetricIcon(metric.name),
+            color: this.getMetricColor(metric.type)
+          }))
+
+          // 更新其他数据
+          this.environmentData = analysisData.environmentData
+          this.suggestions = analysisData.suggestions.map(suggestion => ({
+            ...suggestion,
+            icon: this.getSuggestionIcon(suggestion.title)
+          }))
+          this.analysis = analysisData.analysis
+        } else {
+          // 如果没有分析报告，重置数据
+          this.hasAnalysis = false
+          this.resetData()
+        }
+      } catch (error) {
+        this.$message.error('获取数据失败')
+        console.error('获取数据失败:', error)
+      }
+    },
+    getCurrentTime() {
       const now = new Date()
-      this.generateTime = now.getFullYear() + '-' + 
+      return now.getFullYear() + '-' + 
         String(now.getMonth() + 1).padStart(2, '0') + '-' + 
         String(now.getDate()).padStart(2, '0') + ' ' + 
         String(now.getHours()).padStart(2, '0') + ':' + 
         String(now.getMinutes()).padStart(2, '0')
-
-      // 更新核心指标的名称和图标
-      if (this.fishData) {
-        this.coreMetrics[2].name = '饲料转化率'
-        this.coreMetrics[2].icon = 'el-icon-food'
-      } else {
-        this.coreMetrics[2].name = '肥料转化率'
-        this.coreMetrics[2].icon = 'el-icon-box'
+    },
+    resetData() {
+      this.reportId = ''
+      this.generateTime = ''
+      this.coreMetrics = []
+      this.environmentData = []
+      this.suggestions = []
+      this.analysis = {
+        growth: '',
+        difficulty: '',
+        suggestion: '',
+        market: ''
       }
+    },
+    async startAnalysis() {
+      this.loading = true
+      try {
+        // 根据类型构建不同的参数
+        const params = this.fishData 
+          ? {
+              speciesId: this.fishData.speciesId,
+              fishSpeciesName: this.fishData.fishSpeciesName,
+              fishName: this.fishData.fishName,
+            }
+          : {
+              germplasmId: this.vegetableData.germplasmId,
+              germplasmName: this.vegetableData.germplasmName,
+              cropName: this.vegetableData.cropName,
+            }
+        
+        // 使用重命名后的方法
+        const response = this.fishData 
+          ? await addSpeciesData(params)  // 鱼类分析
+          : await addGermplasmData(params)  // 农作物分析
 
-      // 初始化环境参数数据
-      if (this.fishData) {
-        this.environmentData = [
-          { name: '水温(℃)', value: '22-28', description: '最适生长温度范围' },
-          { name: 'pH值', value: '6.5-8.5', description: '保持在此范围内可促进生长' },
-          { name: '溶解氧(mg/L)', value: '≥5.0', description: '充足的溶解氧有利于增长' },
-          { name: '氨氮(mg/L)', value: '≤0.5', description: '控制在安全范围内' },
-          { name: '亚硝酸盐(mg/L)', value: '≤0.1', description: '需严格控制，过高会影响健康' }
-        ]
-        
-        // 初始化养殖建议
-        this.suggestions = [
-          {
-            icon: 'el-icon-water-cup',
-            title: '水质管理',
-            content: '保持水质稳定，溶解氧维持在5mg/L以上，定期检测氨氮、亚硝酸盐等指标。'
-          },
-          {
-            icon: 'el-icon-food',
-            title: '投喂管理',
-            content: '建议每7点和16点进行投喂，日投喂量为2-3%，注意观察食欲情况。'
-          },
-          {
-            icon: 'el-icon-first-aid-kit',
-            title: '疾病防控',
-            content: '定期消毒，保持良好养殖环境，发现异常及时处理。'
-          },
-          {
-            icon: 'el-icon-monitor',
-            title: '环境监控',
-            content: '实时监测水温、pH值等关键指标，确保养殖环境稳定。'
-          }
-        ]
-        
-        // 初始化综合评估
-        this.analysis = {
-          growth: '生长周期约4-6个月，在适宜的环境条件下生长速度快，成活率高。养殖过程中需要注意水质管理和疾病防控。',
-          difficulty: '养殖难度适中，适合规模化养殖。主要考虑因素包括水质管理、投喂管理和疾病防控。新手养殖户建议从小规模开始。',
-          suggestion: '建议采用标准化养殖流程，定期监测水质指标，做好防疫工作。可以考虑与其他品种混养，提高单位产出。',
-          market: '市场前景广阔，需求稳定，价格波动较小。建议关注市场行情，合理安排养殖计划。'
+        if (response.code === 200) {
+          // 重新加载数据
+          await this.initData()
         }
-      } else {
-        this.environmentData = [
-          { name: '温度(℃)', value: '22-28', description: '最适生长温度范围' },
-          { name: '湿度(%)', value: '60-80', description: '适宜的湿度有利于生长' },
-          { name: '光照(lux)', value: '200-300', description: '充足的光照促进光合作用' },
-          { name: '风向', value: '通风良好', description: '保持适当通风' },
-          { name: '风速(m/s)', value: '0-3', description: '避免强风影响生长' },
-          { name: 'pH值', value: '6.5-8.5', description: '保持在此范围内可促进生长' }
-        ]
-        
-        // 初始化种植建议
-        this.suggestions = [
-          {
-            icon: 'el-icon-umbrella',
-            title: '水分管理',
-            content: '根据土壤墒情适时浇水，保持土壤湿润但不积水。'
-          },
-          {
-            icon: 'el-icon-box',
-            title: '肥料管理',
-            content: '采用有机肥和化肥配合施用，注意氮磷钾比例平衡。'
-          },
-          {
-            icon: 'el-icon-first-aid-kit',
-            title: '病虫害防治',
-            content: '采用综合防治措施，以预防为主，发现病虫害及时处理。'
-          },
-          {
-            icon: 'el-icon-monitor',
-            title: '环境监控',
-            content: '实时监测土壤湿度、光照等关键指标，确保种植环境稳定。'
-          }
-        ]
-        
-        // 初始化综合评估
-        this.analysis = {
-          growth: '生长期约60-90天，适应性强，在适宜条件下生长快速。需要注意温度和水分管理，保证充足光照。',
-          difficulty: '栽培难度较低，适合大众种植。重点关注水肥管理和病虫害防治。新手种植者可以选择此作物作为入门。',
-          suggestion: '建议采用标准化种植技术，合理使用肥料，做好病虫害防治。可以考虑间作或轮作，提高土地利用率。',
-          market: '市场前景广阔，需求稳定，价格波动较小。建议关注市场行情，合理安排种植计划。'
-        }
+      } catch (error) {
+        this.$modal.msgError('开始分析失败')
+        console.error('开始分析失败:', error)
+      } finally {
+        this.loading = false
       }
+    },
+    // 获取指标对应的图标
+    getMetricIcon(name) {
+      const iconMap = {
+        '生长速度': 'el-icon-timer',
+        '抗病能力': 'el-icon-first-aid-kit',
+        '饲料转化率': 'el-icon-food',
+        '肥料转化率': 'el-icon-box',
+        '市场认可度': 'el-icon-shopping-cart-full'
+      }
+      return iconMap[name] || 'el-icon-data-line'
+    },
+    // 获取指标对应的颜色
+    getMetricColor(type) {
+      const colorMap = {
+        primary: '#409EFF',
+        success: '#67C23A',
+        warning: '#E6A23C',
+        info: '#909399'
+      }
+      return colorMap[type] || '#409EFF'
+    },
+    // 获取建议对应的图标
+    getSuggestionIcon(title) {
+      const iconMap = {
+        '水质管理': 'el-icon-water-cup',
+        '水分管理': 'el-icon-umbrella',
+        '投喂管理': 'el-icon-food',
+        '肥料管理': 'el-icon-box',
+        '疾病防控': 'el-icon-first-aid-kit',
+        '病虫害防治': 'el-icon-first-aid-kit',
+        '环境监控': 'el-icon-monitor'
+      }
+      return iconMap[title] || 'el-icon-s-opportunity'
     },
     handleExport() {
       const exportData = {
@@ -615,6 +632,17 @@ export default {
           }
         }
       }
+    }
+  }
+
+  .no-analysis-content {
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .el-button {
+      min-width: 120px;
     }
   }
 }

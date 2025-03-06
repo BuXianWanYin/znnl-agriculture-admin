@@ -42,3 +42,18 @@ export function delGermplasm(speciesIdId) {
         method: 'delete'
     })
 }
+
+export function addData(data) {
+    return request({
+        url: '/fishPasture/species/ai/addData',
+        method: 'post',
+        data: data
+    })
+}
+
+export function getData(speciesIdId) {
+    return request({
+        url: '/fishPasture/species/ai/getData/' + speciesIdId,
+        method: 'get'
+    })
+}

@@ -42,3 +42,18 @@ export function delGermplasm(germplasmId) {
     method: 'delete'
   })
 }
+
+export function addData(data) {
+  return request({
+      url: '/agriculture/germplasm/ai/addData',
+      method: 'post',
+      data: data
+  })
+}
+
+export function getData(speciesIdId) {
+  return request({
+      url: '/agriculture/germplasm/ai/getData/' + speciesIdId,
+      method: 'get'
+  })
+}
