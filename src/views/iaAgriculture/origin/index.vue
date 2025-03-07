@@ -574,7 +574,7 @@
                 bottleImage: require('@/assets/logo/logo.png'), // 请确保有这个图片资源
                 traceItems: [
                     { name: '产地信息', threshold: 20 },
-                    { name: '种植环节', threshold: 40 },
+                    { name: '任务环节', threshold: 40 },
                     { name: '环境信息', threshold: 60 },    
                     { name: '', threshold: 80 }
                 ],
@@ -2516,8 +2516,8 @@
         height: 150px; // 减小5px
         margin: 0 auto;
         margin-bottom: 20px;
-     
-
+       
+    
         .progress-circle {
             position: relative;
             width: 100%;
@@ -3219,6 +3219,7 @@
         z-index: 2;
         filter: drop-shadow(0 0 8px rgba(66, 185, 131, 0.2)); // 添加发光效果
         animation: pulse 2s infinite; // 添加脉冲动画
+        
     }
 }
 
