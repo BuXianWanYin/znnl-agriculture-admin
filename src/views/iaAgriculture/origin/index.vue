@@ -11,7 +11,7 @@
             <div class="banner-content">
                 <div class="banner-title">
                     <i class="el-icon-shopping-bag-1"></i>
-                    <span>鱼菜共生</span>
+                    <span>智链兴农</span>
                 </div>
                 <div class="banner-subtitle">好食材不怕公开</div>
                 <div class="banner-desc">看得见溯源匠心，吃得出健康安心</div>

@@ -3,7 +3,7 @@
     <header class="nav-top">
         <div class="left-info">
             <img src="../../assets/logo.png" alt="">
-            <span>鱼菜共生溯源平台</span>
+            <span>智链兴农溯源平台</span>
             
         </div>
         <div class="userinfo">
