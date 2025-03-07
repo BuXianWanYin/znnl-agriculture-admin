@@ -282,7 +282,7 @@
     import { getHouse } from "@/api/iaAgriculture/greenHouse";
     import { getBatch } from "@/api/agriculture/batch";
     import { listSoilSensorValueVO } from '@/api/agriculture/soilsensorvaluevo'
-    import { listQuality } from "@/api/agriculture/quality";
+    import { listQualityByDesc } from "@/api/agriculture/quality";
     import http from "@/utils/request";
 
 
@@ -475,8 +475,7 @@
                 const params = {
                     pageNum: this.scurrentPage,
                     pageSize: this.spSize,
-                    orderByColumn: 'date,time',  // 按日期和时间排序
-                    isAsc: 'desc'                 // 升序排序
+                   // 升序排序
                 };
                 
                 listSoilSensorValueVO(params).then(response => {
@@ -643,11 +642,9 @@
                 const params = {
                     pageNum: this.fishCurrentPage,
                     pageSize: this.fishPageSize,
-                    orderByColumn: 'date,time',  // 按日期和时间排序
-                    isAsc: 'desc'                // 降序排序
                 };
 
-                listQuality(params).then(response => {
+                listQualityByDesc(params).then(response => {
                     if (response.rows) {
                         this.fishStatusData = response.rows;
                         this.fishTotal = response.total;
