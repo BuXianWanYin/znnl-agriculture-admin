@@ -569,7 +569,7 @@
                 isLoading: false,
                 progress: 0,
                 progressTimer: null,
-                bottleImage: require('@/assets/avatar.png'), // 请确保有这个图片资源
+                bottleImage: require('@/assets/logo/logo.png'), // 请确保有这个图片资源
                 traceItems: [
                     { name: '产地信息', threshold: 20 },
                     { name: '种植环节', threshold: 40 },
