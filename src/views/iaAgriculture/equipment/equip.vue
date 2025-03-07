@@ -309,8 +309,6 @@ export default {
 
                     // 根据场区类型设置不同的字段
                     if (this.equipmentForm.areaIds && this.equipmentForm.areaIds.length === 2) {
-                        console.log('areaIds',this.equipmentForm.areaIds);
-                        
                         const areaType = this.getAreaType(this.equipmentForm.areaIds[0]);
                         if (areaType === 'pasture') {
                             submitData.pastureId = this.equipmentForm.areaIds[0];
@@ -325,13 +323,26 @@ export default {
                     const url = this.equipmentForm.id ? '/device/update' : '/device/add';
                     const method = this.equipmentForm.id ? 'put' : 'post';
                     
-                    http[method](url, submitData).then(res => {
-                        this.$message.success(this.dialogTitle + '成功');
-                        this.getListData();
-                        this.equipmentEditDialog = false;
-                    }).catch(err => {
-                        this.$message.error('操作失败：' + (err.message || '网络错误'));
-                    });
+                    // 修改这里的请求方式
+                    if (method === 'put') {
+                        // 更新请求
+                        http.put(url, submitData).then(res => {
+                            this.$message.success(this.dialogTitle + '成功');
+                            this.getListData();
+                            this.equipmentEditDialog = false;
+                        }).catch(err => {
+                            this.$message.error('操作失败：' + (err.message || '网络错误'));
+                        });
+                    } else {
+                        // 新增请求保持不变
+                        http.post(url, submitData).then(res => {
+                            this.$message.success(this.dialogTitle + '成功');
+                            this.getListData();
+                            this.equipmentEditDialog = false;
+                        }).catch(err => {
+                            this.$message.error('操作失败：' + (err.message || '网络错误'));
+                        });
+                    }
                 }
             });
         },
