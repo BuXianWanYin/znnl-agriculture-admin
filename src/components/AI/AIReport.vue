@@ -694,21 +694,16 @@ export default {
     max-width: 1400px;
     margin: 30px auto;
     
-    @media screen and (max-width: 1440px) {
-      width: 95% !important;
-    }
-    
     .el-dialog__body {
       padding: 20px;
-      max-height: 80vh;
-      overflow-y: auto;
+      max-height: calc(90vh - 120px);
+      overflow: hidden;
     }
   }
-
+  
   .report-container {
     height: 100%;
     position: relative;
-    min-height: 400px;
   }
   
   .no-analysis-content,
@@ -738,7 +733,7 @@ export default {
         padding: 0 10px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 15px;
       }
     }
 
@@ -764,13 +759,13 @@ export default {
     .info-card {
       background: #fff;
       border-radius: 8px;
-      padding: 16px;
+      padding: 12px;
       text-align: center;
       
       .image-wrapper {
         width: 140px;
-        height: 100px;
-        margin: 0 auto 16px;
+        height: 90px;
+        margin: 0 auto 12px;
         overflow: hidden;
         
         img {
@@ -783,8 +778,8 @@ export default {
       
       .info-content {
         h2 {
-          margin: 0 0 8px;
-          font-size: 18px;
+          margin: 0 0 6px;
+          font-size: 16px;
           color: #303133;
         }
         
@@ -861,8 +856,8 @@ export default {
       background: #fff;
       border-radius: 8px;
       padding: 16px;
-      height: 50%;
-      margin-bottom: 30px;
+      height: 45%;
+      margin-bottom: 15px;
       
       ::v-deep .el-table {
         border-radius: 6px;
@@ -874,19 +869,19 @@ export default {
       background: #fff;
       border-radius: 8px;
       padding: 16px;
-      height: calc(58% - 30px);
+      height: calc(55% - 15px);
       
       .suggestions-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: repeat(2, 1fr);
-        gap: 12px;
-        margin-top: 20px;
+        gap: 10px;
+        margin-top: 15px;
         height: calc(100% - 56px);
         
         .suggestion-item {
           background: #f8f9fb;
-          padding: 12px;
+          padding: 10px;
           border-radius: 6px;
           display: flex;
           gap: 12px;
@@ -921,6 +916,10 @@ export default {
               font-size: 12px;
               color: #606266;
               line-height: 1.6;
+              display: -webkit-box;
+              -webkit-line-clamp: 3;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
             }
           }
         }
@@ -936,11 +935,11 @@ export default {
       .analysis-list {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         
         .analysis-item {
           background: #f8f9fb;
-          padding: 12px;
+          padding: 10px;
           border-radius: 6px;
           
           h4 {
@@ -965,6 +964,10 @@ export default {
             font-size: 12px;
             color: #606266;
             line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
           }
         }
       }
@@ -972,24 +975,13 @@ export default {
   }
 
   .no-analysis-content {
-    height: 400px;
+    height: 300px;
     display: flex;
     align-items: center;
     justify-content: center;
 
     .el-button {
       min-width: 120px;
-    }
-  }
-}
-
-// 响应式布局调整
-@media screen and (max-width: 1200px) {
-  .ai-report-dialog {
-    .ai-report-content {
-      .el-row {
-        flex-direction: column;
-      }
     }
   }
 }
