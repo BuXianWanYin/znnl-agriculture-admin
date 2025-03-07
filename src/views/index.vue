@@ -77,7 +77,7 @@
                             <div class="section-container">
                                 <div class="section-title">公共信息</div>
                                 <el-row :gutter="10" class="section-content">
-                                    <el-col :span="8" class="h100 flex aic">
+                                    <el-col :span="12" class="h100 flex aic">
                                         <data-box
                                             icon="mianji"
                                             backgroundColor="#5470c6"
@@ -666,8 +666,9 @@
 
                 // 更新颜色方案
                 const colors = {
+                    fish: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE'],  // 内圈：蓝色系为主
                     vegetables: ['#91CC75', '#73C0DE', '#5470C6', '#FAC858'], // 外圈：绿色系为主
-                    fish: ['#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE']  // 内圈：蓝色系为主
+                   
                 };
 
                 const option = {
@@ -691,40 +692,14 @@
                         }
                     },
                     legend: {
-                        show: false  // 不显示图例
+                        show: false
                     },
                     series: [
                         {
-                            name: '种植任务',
+                            name: '养殖任务',
                             type: 'pie',
-                            radius: ['60%', '75%'],
-                            center: ['50%', '50%'],  // 稍微减小饼图大小
-                            label: {
-                                show: false
-                            },
-                            emphasis: {
-                                label: {
-                                    show: false
-                                },
-                                itemStyle: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                }
-                            },
-                            data: this.taskInfo.map((item, index) => ({
-                                name: item.name,
-                                value: item.value,
-                                itemStyle: {
-                                    color: colors.vegetables[index]
-                                }
-                            }))
-                        },
-                        {
-                            name: '养殖状态',
-                            type: 'pie',
-                            radius: ['45%', '60%'],
-                            center: ['50%', '50%'],  // 确保饼图居中
+                            radius: ['55%', '70%'],  // 稍微减小半径
+                            center: ['50%', '50%'],
                             label: {
                                 show: false
                             },
@@ -743,6 +718,32 @@
                                 value: item.value,
                                 itemStyle: {
                                     color: colors.fish[index]
+                                }
+                            }))
+                        },
+                        {
+                            name: '种植任务',
+                            type: 'pie',
+                            radius: ['40%', '55%'],  // 稍微减小半径
+                            center: ['50%', '50%'],
+                            label: {
+                                show: false
+                            },
+                            emphasis: {
+                                label: {
+                                    show: false
+                                },
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            },
+                            data: this.taskInfo.map((item, index) => ({
+                                name: item.name,
+                                value: item.value,
+                                itemStyle: {
+                                    color: colors.vegetables[index]
                                 }
                             }))
                         }
@@ -959,11 +960,11 @@
                         }
                     },
                     grid: {
-                        top: '30px',      // 减小顶部边距
-                        left: '30px',     // 减小左侧边距
-                        right: '20px',    // 减小右侧边距
-                        bottom: '10px',   // 减小底部边距
-                        containLabel: true // 确保包含坐标轴标签
+                        top: '30px',
+                        left: '30px',
+                        right: '30px',
+                        bottom: '20px',
+                        containLabel: true
                     },
                     xAxis: {
                         type: 'category',
@@ -975,10 +976,8 @@
                             interval: this.timeRange === 'month' ? 2 : 0,
                             margin: 8,
                             color: '#666',
-                            fontSize: 12,
-                            formatter: function(value) {
-                                return value;
-                            }
+                            fontSize: 11,
+                            rotate: 0
                         },
                         axisTick: {
                             show: false
@@ -990,7 +989,7 @@
                         nameTextStyle: {
                             color: '#666',
                             fontSize: 12,
-                            padding: [0, 0, 0, 0]  // 减小名称的内边距
+                            padding: [0, 0, 0, 0]
                         },
                         splitLine: {
                             lineStyle: { 
@@ -1000,9 +999,8 @@
                         },
                         axisLabel: {
                             color: '#666',
-                            fontSize: 12,
-                            margin: 8,    // 减小标签与轴线的距离
-                            formatter: '{value}'
+                            fontSize: 11,
+                            margin: 8
                         },
                         axisTick: {
                             show: false
@@ -1011,8 +1009,8 @@
                             show: false
                         },
                         min: 0,
-                        max: maxValue,
-                        interval: maxValue / 5  // 减少刻度数量，使用5等分
+                        max: 150,  // 修改最大值为150
+                        interval: 30  // 将间隔设为30，这样会显示0,30,60,90,120,150
                     },
                     series: [
                         {
@@ -1442,6 +1440,7 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
+
     }
 
     .chart-container {
@@ -1450,22 +1449,14 @@
         justify-content: center;
         align-items: center;
         padding: 10px;
+        height: 100%;
+        overflow: hidden;
         
         .chart-area {
             width: 100%;
-            height: 280px;  // 固定高度
-            max-width: 280px; // 限制最大宽度
-            margin: 0 auto;  // 水平居中
-            
-            @media screen and (max-width: 1400px) {
-                height: 260px;
-                max-width: 260px;
-            }
-            
-            @media screen and (max-width: 1200px) {
-                height: 240px;
-                max-width: 240px;
-            }
+            height: 240px;  // 减小高度
+            max-width: 240px; // 减小最大宽度
+            margin: 0 auto;
         }
     }
 
@@ -1538,9 +1529,10 @@
     }
 
     .trace-chart-container {
-        height: calc(100% - 60px); // 减小头部区域的高度
+        height: 240px; // 减小高度
         width: 100%;
-        padding: 0; // 移除内边距
+        padding: 0;
+        overflow: hidden;
 
         .trace-chart {
             height: 100%;
