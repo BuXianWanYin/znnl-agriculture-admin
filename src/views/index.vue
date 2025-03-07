@@ -54,7 +54,7 @@
                                     </el-col>
                                     <el-col :span="8" class="h100 flex aic">
                                         <data-box
-                                            icon="yuleipingzhong"
+                                            icon="shuichan"
                                             backgroundColor="#ee6666"
                                             text="鱼类品种(种)"
                                             :value="fishInfo.speciesCount"
@@ -101,7 +101,7 @@
                     </data-panel>
                 </el-col>
                 <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
-                    <data-panel title="种植统计" more="更多详情" link="Task">
+                    <data-panel title="任务统计" more="更多详情" link="Task">
                         <div class="main main-large">
                             <el-row class="h100" :gutter="10">
                                 <!-- 修改图表部分的布局 -->
