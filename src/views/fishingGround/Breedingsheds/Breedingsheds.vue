@@ -46,31 +46,6 @@
                                 <span class="value">{{ item.area ? item.area: '/' }}</span>
                             </div>
                             <div class="info-item">
-                                <i class="el-icon-sunny icon"></i>
-                                <span class="label">温度</span>
-                                <span class="value">{{ item.temperature ? item.temperature + '℃' : '/' }}</span>
-                            </div>
-                            <div class="info-item">
-                                <svg-icon icon-class="PH值" class="icon" />
-                                <span class="label">PH值</span>
-                                <span class="value">{{ item.phValue ? item.phValue + ' pH' : '/' }}</span>
-                            </div>
-                            <div class="info-item">
-                                <svg-icon icon-class="含氧量" class="icon" />
-                                <span class="label">含氧量</span>
-                                <span class="value">{{ item.dissolvedOxygen ? item.dissolvedOxygen + ' mg/L' : '/' }}</span>
-                            </div>
-                            <div class="info-item">
-                                <svg-icon icon-class="氨氮" class="icon" />
-                                <span class="label">氨氮含量</span>
-                                <span class="value">{{ item.nitrogen ? item.nitrogen + ' mg/L' : '/' }}</span>
-                            </div>
-                            <div class="info-item">
-                                <svg-icon icon-class="亚硝酸盐" class="icon" />
-                                <span class="label">亚硝酸盐</span>
-                                <span class="value">{{ item.nitriteNitrogen ? item.nitriteNitrogen + ' mg/L' : '/' }}</span>
-                            </div>
-                            <div class="info-item">
                                 <i class="el-icon-data-line icon"></i>
                                 <span class="label">最大区分数量</span>
                                 <span class="value">{{ item.bigBreedingQuantity || '/' }}</span>
@@ -80,11 +55,6 @@
                                 <span class="label">位置</span>
                                 <span class="value">{{ item.address || '/' }}</span>
                             </div>
-                        </div>
-                        <div class="house-footer">
-                            <el-button size="small" plain type="warning" icon="el-icon-s-claim"
-                                @click="houseCheck(item.id)"
-                                v-hasPermi="['agriculture:batch:edit']">环境详情</el-button>
                         </div>
                     </el-card>
                 </el-col>
@@ -418,7 +388,7 @@
 <style lang="scss" scoped>
 .list-content {
     padding: 20px;
-    background-color: #f0f2f5;
+    background-color: #ffffff;
 }
 
 .card-margin-bottom {

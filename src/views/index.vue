@@ -1529,14 +1529,14 @@
     }
 
     .trace-chart-container {
-        height: 330px; // 外部容器高度330px
+        height: 330px; // 增加高度到330px
         width: 100%;
         padding: 0;
         overflow: hidden;
         margin-top: 10px;
 
         .trace-chart {
-            height: 320px; // 图表本体高度320px
+            height: 100%;
             width: 100%;
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.5);
