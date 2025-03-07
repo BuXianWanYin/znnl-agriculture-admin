@@ -29,60 +29,54 @@
                     <el-col :span="8" v-for="(item, index) in equipmentData" :key="item.id">
                         <div class="equipment-card">
                             <div class="card-header">
-                                <span class="device-name">{{ item.deviceName }}</span>
+                                <div class="device-info">
+                                    <div class="status-indicator" :class="{ 'online': item.status == 1 }"></div>
+                                    <span class="device-name">{{ item.deviceName }}</span>
+                                </div>
                                 <el-tag :type="item.status == 0 ? 'danger' : 'success'" size="small" class="status-tag">
                                     {{ item.status == 0 ? '离线' : '在线' }}
                                 </el-tag>
                             </div>
+       
                             <div class="card-content">
-                                <div class="info-item">
-                                    <i class="el-icon-cpu"></i>
-                                    <span class="label">设备ID</span>
-                                    <span class="value">{{ item.id }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <i class="el-icon-location"></i>
-                                    <span class="label">场区/分区</span>
-                                    <span class="value">{{ item.pastureName || '-' }}/{{ item.batchName || '-' }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <i class="el-icon-monitor"></i>
-                                    <span class="label">传感器序号</span>
-                                    <span class="value">{{ item.sensorType || '-' }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <i class="el-icon-set-up"></i>
-                                    <span class="label">传感器指令</span>
-                                    <span class="value">{{ item.sensorCommand || '-' }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <i class="el-icon-link"></i>
-                                    <span class="label">合约地址</span>
-                                    <span class="value">{{ item.address }}</span>
-                                </div>
-                                <div class="info-item">
-                                    <i class="el-icon-notebook-2"></i>
-                                    <span class="label">备注</span>
-                                    <span class="value">{{ item.remark || '暂无备注' }}</span>
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <i class="el-icon-cpu"></i>
+                                        <span class="label">设备ID</span>
+                                        <span class="value">{{ item.id }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-location"></i>
+                                        <span class="label">场区/分区</span>
+                                        <span class="value">{{ item.pastureName || '-' }}/{{ item.batchName || '-' }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-monitor"></i>
+                                        <span class="label">传感器序号</span>
+                                        <span class="value">{{ item.sensorType || '-' }}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-connection"></i>
+                                        <span class="label">传感器指令</span>
+                                        <span class="value">{{ item.sensorCommand || '-' }}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-footer">
                                 <el-button
                                     size="small"
                                     type="text"
-                                    icon="el-icon-edit"
                                     @click="handleEdit(item)"
                                     class="edit-btn">
-                                    编辑
+                                    <i class="el-icon-edit"></i> 编辑
                                 </el-button>
                                 <el-button
                                     size="small"
                                     type="text"
-                                    icon="el-icon-delete"
+                                    class="delete-btn"
                                     @click="deleteData(item.id)"
-                                    v-hasPermi="['agriculture:materialType:remove']"
-                                    class="delete-btn">
-                                    删除
+                                    v-hasPermi="['agriculture:materialType:remove']">
+                                    <i class="el-icon-delete"></i> 删除
                                 </el-button>
                             </div>
                         </div>
@@ -630,6 +624,33 @@ export default {
             }
             return result;
         },
+        getDeviceIconClass(sensorType) {
+            const typeMap = {
+                'temp': 'temperature',
+                'hum': 'humidity',
+                'co2': 'co2',
+                'light': 'light'
+            };
+            return typeMap[sensorType] || 'default';
+        },
+        getDeviceIcon(sensorType) {
+            const iconMap = {
+                'temp': 'el-icon-thermometer',
+                'hum': 'el-icon-water-drop',
+                'co2': 'el-icon-wind-power',
+                'light': 'el-icon-sunny'
+            };
+            return iconMap[sensorType] || 'el-icon-cpu';
+        },
+        getDeviceLabel(sensorType) {
+            const labelMap = {
+                'temp': '温度',
+                'hum': '湿度',
+                'co2': 'CO2浓度',
+                'light': '光照强度'
+            };
+            return labelMap[sensorType] || '设备数据';
+        }
     },
 }
 </script>
@@ -702,22 +723,15 @@ export default {
     .equipment-card {
         background: white;
         border-radius: 16px;
-        padding: 20px;
+        padding: 24px;
         margin-bottom: 24px;
         transition: all 0.3s ease;
         border: 1px solid rgba(0, 0, 0, 0.05);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 
         &:hover {
-            background: rgba(250, 250, 250, 0.95);
-
-            .card-header .device-name {
-                color: #007AFF;
-            }
-
-            // .info-item i {
-            //     transform: scale(1.1);
-            // }
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
 
         .card-header {
@@ -726,42 +740,107 @@ export default {
             align-items: center;
             margin-bottom: 20px;
 
-            .device-name {
-                font-size: 18px;
-                font-weight: 600;
-                color: #333;
-                transition: color 0.3s ease;
+            .device-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+
+                .status-indicator {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    background: #ff4d4f;
+                    position: relative;
+
+                    &.online {
+                        background: #52c41a;
+                        
+                        &::after {
+                            content: '';
+                            position: absolute;
+                            width: 100%;
+                            height: 100%;
+                            border-radius: 50%;
+                            background: inherit;
+                            animation: pulse 2s infinite;
+                        }
+                    }
+                }
+            }
+        }
+
+        .device-main-info {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin: 24px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+
+            .device-icon {
+                width: 64px;
+                height: 64px;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 32px;
+                
+                &.temperature { background: #ffe7e7; color: #ff4d4f; }
+                &.humidity { background: #e6f7ff; color: #1890ff; }
+                &.co2 { background: #f6ffed; color: #52c41a; }
+                &.light { background: #fff7e6; color: #faad14; }
+                &.default { background: #f0f2f5; color: #666; }
             }
 
-            .status-tag {
-                border-radius: 6px;
-                padding: 0px 8px;
+            .main-readings {
+                flex: 1;
+                
+                .reading-value {
+                    font-size: 28px;
+                    font-weight: 600;
+                    color: #262626;
+                }
+
+                .reading-label {
+                    font-size: 14px;
+                    color: #8c8c8c;
+                    margin-top: 4px;
+                }
             }
         }
 
         .card-content {
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+
             .info-item {
                 display: flex;
                 align-items: center;
-                margin-bottom: 12px;
-
+                gap: 8px;
+                
                 i {
                     font-size: 16px;
-                    color: #007AFF;
-                    margin-right: 8px;
-                    transition: transform 0.3s ease;
+                    color: #1890ff;
                 }
 
                 .label {
-                    color: #666;
-                    width: 80px;
-                    font-size: 14px;
+                    color: #8c8c8c;
+                    font-size: 13px;
+                    white-space: nowrap;
                 }
 
                 .value {
-                    color: #333;
-                    flex: 1;
-                    font-size: 14px;
+                    color: #262626;
+                    font-size: 13px;
+                    font-weight: 500;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
             }
         }
@@ -833,6 +912,21 @@ export default {
             border-radius: 8px;
             padding: 8px 20px;
         }
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    70% {
+        transform: scale(2);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
     }
 }
 </style>
