@@ -2,7 +2,7 @@
     <div class="container">
         <div class="index">
             <el-row :gutter="10">
-                <el-col :span="8">
+                <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
                     <data-panel title="基地概况">
                         <div class="main main-large">
                             <!-- 蔬菜部分 -->
@@ -100,21 +100,35 @@
                         </div>
                     </data-panel>
                 </el-col>
-                <el-col :span="8">
+                <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
                     <data-panel title="任务统计" more="更多详情" link="Task">
                         <div class="main main-large">
                             <el-row class="h100" :gutter="10">
-                                <!-- 图表部分 -->
-                                <el-col :md="12" class="h100">
+                                <!-- 修改图表部分的布局 -->
+                                <el-col :md="12" class="h100 flex-center">
                                     <div class="chart-container">
-                                        <!-- 图表区域 -->
                                         <div ref="combinedStatsChart" class="chart-area"></div>
-
                                     </div>
                                 </el-col>
                                 <!-- 右侧数据展示部分保持不变 -->
                                 <el-col :md="12" class="h100">
                                     <el-row class="h100 flex fdc">
+                                                 <!-- 养殖统计数据 -->
+                                        <div class="stats-section">
+                                            <div class="stats-title">养殖任务</div>
+                                            <el-row :gutter="10">
+                                                <el-col :span="12" v-for="item in fishStatsInfo" :key="item.name">
+                                                    <data-box
+                                                        icon="el-icon-s-promotion"
+                                                        :backgroundColor="item.color || '#67C23A'"
+                                                        :text="item.name+'(条)'"
+                                                        :value="item.value"
+                                                        :isBorder="false"
+                                                        :isIcon="false">
+                                                    </data-box>
+                                                </el-col>
+                                            </el-row>
+                                        </div>
                                         <!-- 种植统计数据 -->
                                         <div class="stats-section">
                                             <div class="stats-title">种植任务</div>
@@ -131,29 +145,14 @@
                                                 </el-col>
                                             </el-row>
                                         </div>
-                                        <!-- 养殖统计数据 -->
-                                        <div class="stats-section">
-                                            <div class="stats-title">养殖任务</div>
-                                            <el-row :gutter="10">
-                                                <el-col :span="12" v-for="item in fishStatsInfo" :key="item.name">
-                                                    <data-box
-                                                        icon="el-icon-s-promotion"
-                                                        :backgroundColor="item.color || '#67C23A'"
-                                                        :text="item.name+'(条)'"
-                                                        :value="item.value"
-                                                        :isBorder="false"
-                                                        :isIcon="false">
-                                                    </data-box>
-                                                </el-col>
-                                            </el-row>
-                                        </div>
+                               
                                     </el-row>
                                 </el-col>
                             </el-row>
                         </div>
                     </data-panel>
                 </el-col>
-                <el-col :span="8">
+                <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
                     <data-panel 
                         title="溯源统计" 
                         more="更多溯源" 
@@ -191,7 +190,7 @@
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="margin-top-10">
-                <el-col :span="12">
+                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
                     <data-panel title="蔬菜大棚环境监测">
                         <el-table :data="statusData" height="400">
                             <el-table-column prop="pastureName" label="大棚名称" width="100"> </el-table-column>
@@ -221,7 +220,7 @@
                     </data-panel>
                 </el-col>
 
-                <el-col :span="12">
+                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
                     <data-panel title="养殖池环境监测">
                         <el-table :data="fishStatusData" height="400">
                             <el-table-column prop="fishPastureName" label="养殖棚" width="70"> </el-table-column>
@@ -701,8 +700,8 @@
                         {
                             name: '种植任务',
                             type: 'pie',
-                            radius: ['65%', '80%'],
-                            center: ['50%', '50%'],
+                            radius: ['60%', '75%'],
+                            center: ['50%', '50%'],  // 稍微减小饼图大小
                             label: {
                                 show: false
                             },
@@ -728,7 +727,7 @@
                             name: '养殖状态',
                             type: 'pie',
                             radius: ['45%', '60%'],
-                            center: ['50%', '50%'],
+                            center: ['50%', '50%'],  // 确保饼图居中
                             label: {
                                 show: false
                             },
@@ -1096,13 +1095,15 @@
     }
 
     .index {
-        height: calc(100vh - 84px - #{$margin} * 2);
+        height: auto; // 改为自适应高度
+        min-height: calc(100vh - 84px - #{$margin} * 2);
         margin: $margin;
     }
 
     .main {
         box-sizing: border-box;
-        height: calc((100vh - 84px - #{$margin} * 4 - 51px * 3) / 3);
+        height: auto; // 改为自适应高度
+        min-height: 200px; // 设置最小高度
         padding: 10px;
         background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(10px);
@@ -1112,7 +1113,20 @@
 
         // 添加新的样式类用于更高的面板
         &.main-large {
-            height: calc(((100vh - 84px - #{$margin} * 4 - 51px * 3) / 3) * 2 + #{$margin});
+            height: auto;
+            min-height: 400px;
+            max-height: none;  // 移除最大高度限制
+            overflow: auto;    // 添加滚动条
+            padding: 15px 10px;
+
+            // 优化内部布局
+            display: flex;
+            flex-direction: column;
+            gap: 15px;        // 使用gap替代margin，更好控制间距
+
+            @media screen and (max-width: 1400px) {
+                padding: 10px 5px;
+            }
         }
     }
 
@@ -1130,6 +1144,13 @@
 
     .data-panel {
         transition: all 0.3s ease;
+        height: 100%;
+        
+        ::v-deep .panel-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
 
         &:hover {
             transform: translateY(-5px);
@@ -1326,14 +1347,46 @@
 
     .stats-section {
         flex: 1;
-        padding: 10px 0;
+        padding: 8px;
+        margin-bottom: 10px;
 
         .stats-title {
-            font-size: 14px;
+            font-size: 13px;
             color: #606266;
-            margin-bottom: 10px;
-            padding-left: 10px;
-            border-left: 3px solid #409EFF;
+            margin-bottom: 8px;
+            padding-left: 8px;
+            border-left: 2px solid #409EFF;
+        }
+        
+        .stats-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            background: #f5f7fa;
+            border-radius: 4px;
+            
+            .stats-label {
+                font-size: 12px;
+                color: #909399;
+                flex: 0 0 auto;
+                margin-right: 4px;
+            }
+            
+            .stats-value {
+                font-size: 14px;
+                color: #303133;
+                font-weight: 500;
+                flex: 0 0 auto;
+                min-width: 30px;
+                text-align: right;
+            }
         }
     }
 
@@ -1344,7 +1397,8 @@
     }
 
     .section-container {
-        margin-bottom: 20px;
+        margin-bottom: 15px;  // 减小section间距
+        padding: 0 10px;      // 添加左右内边距
 
         &:last-child {
             margin-bottom: 0;
@@ -1353,7 +1407,7 @@
         .section-title {
             font-size: 14px;
             color: #606266;
-            margin-bottom: 15px;
+            margin-bottom: 10px;  // 减小标题下方间距
             padding-left: 10px;
             border-left: 3px solid #409EFF;
             font-weight: 500;
@@ -1361,10 +1415,24 @@
 
         .section-content {
             .el-col {
-                margin-bottom: 15px;
+                margin-bottom: 10px;  // 减小列间距
 
                 &:last-child {
                     margin-bottom: 0;
+                }
+
+                @media screen and (max-width: 1400px) {
+                    // 在较小屏幕上调整数据盒子的大小
+                    .data-box {
+                        transform: scale(0.95);
+                        transform-origin: center;
+                    }
+                }
+
+                @media screen and (max-width: 1200px) {
+                    .data-box {
+                        transform: scale(0.9);
+                    }
                 }
             }
         }
@@ -1380,108 +1448,26 @@
     }
 
     .chart-container {
-        height: 100%;
+        flex: 1;
         display: flex;
-        flex-direction: column;
-        align-items: center; // 水平居中
-        justify-content: center; // 垂直居中
-
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        
         .chart-area {
-            width: 310px; // 增加宽度
-            height: 310px; // 增加高度
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .stats-data {
-            width: 100%; // 确保数据区域占满宽度
-            padding: 0 20px;
-
-            .stats-section {
-                & + .stats-section {
-                    margin-top: 15px;
-                }
-
-                .stats-title {
-                    font-size: 14px;
-                    color: #333;
-                    margin-bottom: 10px;
-                    position: relative;
-                    padding-left: 10px;
-
-                    &:before {
-                        content: '';
-                        position: absolute;
-                        left: 0;
-                        top: 50%;
-                        transform: translateY(-50%);
-                        width: 3px;
-                        height: 14px;
-                        background: #409EFF;
-                    }
-                }
-
-                .stats-items {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 10px;
-
-                    .stats-item {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        padding: 8px 12px;
-                        background: #F5F7FA;
-                        border-radius: 4px;
-
-                        .item-name {
-                            color: #606266;
-                            font-size: 13px;
-                        }
-
-                        .item-value {
-                            color: #333;
-                            font-size: 13px;
-                            font-weight: 500;
-                        }
-                    }
-                }
+            width: 100%;
+            height: 280px;  // 固定高度
+            max-width: 280px; // 限制最大宽度
+            margin: 0 auto;  // 水平居中
+            
+            @media screen and (max-width: 1400px) {
+                height: 260px;
+                max-width: 260px;
             }
-        }
-    }
-
-    // 添加响应式布局支持
-    @media screen and (max-width: 1400px) {
-        .env-cards-wrapper {
-            .env-card {
-                .env-title {
-                    font-size: 12px;
-                }
-                .env-value {
-                    font-size: 18px;
-                }
-            }
-        }
-    }
-
-    .env-cards-wrapper {
-        &.fish-cards {
-            .el-row {
-                margin: 0 -8px; // 抵消padding的间距
-                width: calc(100% + 16px); // 补偿margin的负值
-
-                .el-col {
-                    padding: 0 8px;
-                    width: 20%; // 确保每个卡片占20%宽度
-
-                    // 修复 el-col 的默认样式
-                    @media only screen and (min-width: 768px) {
-                        flex: 0 0 20%;
-                        max-width: 20%;
-                    }
-                }
+            
+            @media screen and (max-width: 1200px) {
+                height: 240px;
+                max-width: 240px;
             }
         }
     }
@@ -1499,6 +1485,8 @@
                 background: #f5f7fa;
                 border-radius: 20px;
                 padding: 3px;
+                width: fit-content; // 根据内容自适应宽度
+                margin: 0 auto; // 居中显示
                 
                 .time-tab {
                     padding: 6px 16px;
@@ -1507,6 +1495,8 @@
                     font-size: 13px;
                     color: #606266;
                     transition: all 0.3s ease;
+                    min-width: 50px; // 设置最小宽度
+                    text-align: center;
                     
                     &:hover {
                         color: #409EFF;
@@ -1524,9 +1514,12 @@
         .trace-stats {
             display: flex;
             gap: 24px;
+            justify-content: center; // 居中显示
+            margin-top: 15px;
 
             .stat-item {
                 text-align: center;
+                flex: 0 0 auto; // 防止拉伸
                 
                 .stat-value {
                     font-size: 24px;
@@ -1568,5 +1561,241 @@
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.3);
         box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+    }
+
+    // 添加响应式媒体查询
+    @media screen and (max-width: 768px) {
+        .el-col {
+            margin-bottom: 10px;
+        }
+
+        .trace-header {
+            flex-direction: column;
+            gap: 15px;
+            padding: 10px;
+            
+            .time-range-tabs {
+                width: auto; // 自适应宽度
+                max-width: 100%; // 不超过容器宽度
+                
+                .time-tab {
+                    padding: 6px 12px; // 减小内边距
+                    min-width: 40px; // 减小最小宽度
+                    font-size: 12px; // 减小字体大小
+                }
+            }
+            
+            .trace-stats {
+                flex-wrap: wrap; // 允许换行
+                gap: 15px; // 减小间距
+                margin-top: 10px;
+                
+                .stat-item {
+                    flex: 0 0 calc(50% - 8px); // 两列布局
+                    
+                    .stat-value {
+                        font-size: 20px; // 减小字体大小
+                    }
+                    
+                    .stat-label {
+                        font-size: 12px;
+                    }
+                }
+            }
+        }
+
+        .chart-container {
+            .chart-area {
+                height: 220px;
+                max-width: 220px;
+            }
+        }
+
+        .section-container {
+            .section-content {
+                .el-col {
+                    margin-bottom: 10px;
+                }
+            }
+        }
+    }
+
+    @media screen and (max-width: 576px) {
+        .trace-header {
+            .trace-stats {
+                flex-direction: column;
+                gap: 10px;
+                
+                .stat-item {
+                    width: 100%;
+                }
+            }
+        }
+
+        .el-table {
+            height: 300px !important;
+        }
+
+        .page-block {
+            .el-pagination {
+                transform: scale(0.9);
+                transform-origin: left;
+            }
+        }
+    }
+
+    // 确保内容不会溢出的通用样式
+    .el-row {
+        margin-left: -5px !important;
+        margin-right: -5px !important;
+        
+        .el-col {
+            padding-left: 5px !important;
+            padding-right: 5px !important;
+        }
+    }
+
+    // 响应式布局优化
+    @media screen and (max-width: 1400px) {
+        .section-container {
+            .section-content {
+                .el-col {
+                    .data-box {
+                        height: auto;
+                        min-height: 80px;
+                    }
+                }
+            }
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .main.main-large {
+            min-height: 300px;
+        }
+
+        .section-container {
+            margin-bottom: 10px;
+            
+            .section-content {
+                .el-col {
+                    margin-bottom: 8px;
+                }
+            }
+        }
+    }
+
+    // 添加flex居中布局类
+    .flex-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    // 优化任务信息显示
+    .task-info-section {
+        padding: 8px;
+        
+        .task-type {
+            margin-bottom: 8px;
+            
+            &:last-child {
+                margin-bottom: 0;
+            }
+            
+            .task-title {
+                font-size: 13px;
+                color: #606266;
+                margin-bottom: 6px;
+                padding-left: 8px;
+                border-left: 2px solid #409EFF;
+            }
+        }
+        
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            
+            .task-item {
+                background: #f5f7fa;
+                border-radius: 4px;
+                padding: 4px;
+                text-align: center;
+                
+                .task-value {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #303133;
+                    line-height: 1.2;
+                }
+                
+                .task-label {
+                    font-size: 11px;
+                    color: #909399;
+                    margin-top: 2px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+            }
+        }
+    }
+
+    // 移动端适配
+    @media screen and (max-width: 768px) {
+        .task-info-section {
+            padding: 6px;
+            
+            .task-type {
+                margin-bottom: 6px;
+                
+                .task-title {
+                    font-size: 12px;
+                    margin-bottom: 4px;
+                }
+            }
+            
+            .task-grid {
+                gap: 4px;
+                
+                .task-item {
+                    padding: 3px 2px;
+                    
+                    .task-value {
+                        font-size: 13px;
+                    }
+                    
+                    .task-label {
+                        font-size: 10px;
+                    }
+                }
+            }
+        }
+    }
+
+    // 超小屏幕适配
+    @media screen and (max-width: 375px) {
+        .task-info-section {
+            .task-grid {
+                .task-item {
+                    .task-value {
+                        font-size: 12px;
+                    }
+                    
+                    .task-label {
+                        font-size: 9px;
+                    }
+                }
+            }
+        }
+    }
+
+    // 确保内容不会溢出
+    .task-grid {
+        .task-item {
+            min-width: 0;  // 确保grid项可以收缩
+            overflow: hidden;
+        }
     }
 </style>
