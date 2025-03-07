@@ -82,12 +82,14 @@
                 <!-- 添加加载进度组件 -->
                 <div class="loading-container" v-if="isLoading">
                     <div class="loading-circle">
-                        <img :src="bottleImage" alt="溯源图片" class="bottle-image">
                         <div class="progress-circle" :style="{ background: `conic-gradient(#42b983 ${progress}%, transparent 0%)` }">
                             <div class="progress-inner">
-                                <span class="progress-number">{{ progress }}%</span>
-                                <span class="progress-text">追溯中</span>
+                                <img :src="bottleImage" alt="溯源图片" class="bottle-image">
                             </div>
+                        </div>
+                        <div class="progress-text">
+                            <span class="progress-number">{{ progress }}%</span>
+                            <span class="progress-label">追溯中</span>
                         </div>
                     </div>
                     
@@ -2498,118 +2500,157 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     z-index: 9999;
+    transition: all 0.3s ease;
 
     .loading-circle {
         position: relative;
-        width: 200px;
-        height: 200px;
-        margin-bottom: 40px;
-
-        .bottle-image {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 60%;
-            height: auto;
-            z-index: 2;
-        }
+        width: 150px; // 减小5px
+        height: 150px; // 减小5px
+        margin: 0 auto;
+        margin-bottom: 20px;
+     
 
         .progress-circle {
+            position: relative;
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            position: relative;
-            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
 
             &::before {
                 content: '';
                 position: absolute;
-                top: 5px;
-                left: 5px;
-                right: 5px;
-                bottom: 5px;
+                inset: 8px; // 减小内圈间距2px
                 background: white;
                 border-radius: 50%;
             }
+
+            .progress-inner {
+                position: relative;
+                z-index: 2;
+                width: calc(100% - 16px); // 相应调整内部容器
+                height: calc(100% - 16px);
+                border-radius: 50%;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+
+                .bottle-image {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+            }
         }
 
-        .progress-inner {
+        .progress-text {
             position: absolute;
-            top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            bottom: -55px;
+            transform: translateX(-50%);
             text-align: center;
-            z-index: 1;
+            white-space: nowrap;
 
             .progress-number {
                 display: block;
                 font-size: 24px;
                 font-weight: bold;
                 color: #42b983;
+                line-height: 1.2;
             }
 
-            .progress-text {
+            .progress-label {
                 display: block;
                 font-size: 14px;
-                color: #909399;
-                margin-top: 5px;
+                color: #606266;
+                margin-top: 4px;
             }
         }
     }
 
     .trace-items {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        margin-top: 20px;
-
+        margin-top: 40px; // 增加上边距，为进度文字留出空间
+        
         .trace-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: #909399;
-            transition: all 0.3s ease;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #606266;
 
-            .item-name {
-                min-width: 80px;
-                text-align: right;
-                font-size: 14px;
+            &.traced {
+                .status-text {
+                    color: #67c23a;
+                }
             }
 
             .status-text {
                 display: flex;
                 align-items: center;
-                gap: 5px;
-                opacity: 0.5;
-                
-                .status {
-                    color: #67C23A;
-                }
+                gap: 4px;
+            }
+        }
+    }
+}
 
-                i {
-                    color: #67C23A;
-                    font-size: 14px;
-                    opacity: 0;
-                    transform: scale(0);
-                    transition: all 0.3s ease;
-                }
+.trace-items {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+
+    .trace-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #909399;
+        transition: all 0.3s ease;
+
+        .item-name {
+            min-width: 80px;
+            text-align: right;
+            font-size: 14px;
+        }
+
+        .status-text {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            opacity: 0.5;
+            
+            .status {
+                color: #67C23A;
             }
 
-            &.traced {
-                .status-text {
+            i {
+                color: #67C23A;
+                font-size: 14px;
+                opacity: 0;
+                transform: scale(0);
+                transition: all 0.3s ease;
+            }
+        }
+
+        &.traced {
+            .status-text {
+                opacity: 1;
+                
+                i {
                     opacity: 1;
-                    
-                    i {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
+                    transform: scale(1);
                 }
             }
         }
