@@ -110,6 +110,7 @@
                        :total="total" 
                        :page.sync="queryParams.pageNum"
                        :limit.sync="queryParams.pageSize" 
+                       :page-sizes="[12, 24, 36, 48]"
                        @pagination="getList" />
         </el-card>
         <!-- 添加或修改作物批次对话框 -->
@@ -233,7 +234,7 @@
                 // 查询参数
                 queryParams: {
                     pageNum: 1,
-                    pageSize: 10,
+                    pageSize: 12,
                     batchName: null,
                     speciesId: null,
                     landId: null,
