@@ -738,18 +738,27 @@ export default {
     }
 
     .left {
-      height: 30vh;
-      min-height: 200px;
+      height: 25vh;
+      min-height: 180px;
+      
+      .login-title {
+        margin-top: 5vh;
+      }
+      
+      .login-subTitle {
+        padding-bottom: 15px;
+      }
     }
 
     .right {
-      height: 70vh;
-      margin-left: 0;
-      padding-left: 0;
+      height: 75vh;
+      
+      .loginForm-title {
+        margin-top: 10vh;
+      }
 
-      &::before {
-        border-radius: 30px 30px 0 0;
-        top: -30px;
+      .loginForm-form {
+        padding: 0 8%;
       }
     }
   }
