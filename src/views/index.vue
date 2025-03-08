@@ -118,14 +118,10 @@
                                             <div class="stats-title">养殖任务</div>
                                             <el-row :gutter="10">
                                                 <el-col :span="12" v-for="item in fishStatsInfo" :key="item.name">
-                                                    <data-box
-                                                        icon="el-icon-s-promotion"
-                                                        :backgroundColor="item.color || '#67C23A'"
-                                                        :text="item.name+'(条)'"
-                                                        :value="item.value"
-                                                        :isBorder="false"
-                                                        :isIcon="false">
-                                                    </data-box>
+                                                    <div class="stats-card" :style="{ backgroundColor: getStatusBgColor(item.name) }">
+                                                        <div class="stats-card-value">{{ item.value }}</div>
+                                                        <div class="stats-card-label">{{ item.name }}</div>
+                                                    </div>
                                                 </el-col>
                                             </el-row>
                                         </div>
@@ -134,14 +130,10 @@
                                             <div class="stats-title">种植任务</div>
                                             <el-row :gutter="10">
                                                 <el-col :span="12" v-for="item in taskInfo" :key="item.name">
-                                                    <data-box
-                                                        icon="el-icon-s-promotion"
-                                                        :backgroundColor="item.color || '#409EFF'"
-                                                        :text="item.name+'(条)'"
-                                                        :value="item.value"
-                                                        :isBorder="false"
-                                                        :isIcon="false">
-                                                    </data-box>
+                                                    <div class="stats-card" :style="{ backgroundColor: getStatusBgColor(item.name) }">
+                                                        <div class="stats-card-value">{{ item.value }}</div>
+                                                        <div class="stats-card-label">{{ item.name }}</div>
+                                                    </div>
                                                 </el-col>
                                             </el-row>
                                         </div>
@@ -1104,7 +1096,17 @@
             handleTimeRangeChange(range) {
                 this.timeRange = range;
                 this.updateTraceabilityChart();
-            }
+            },
+            // 添加新方法用于生成背景色
+            getStatusBgColor(status) {
+                const colors = {
+                    '未分配': 'rgba(255, 77, 79, 0.1)',     // 淡红色
+                    '已完成': 'rgba(82, 196, 26, 0.1)',     // 淡绿色
+                    '进行中': 'rgba(24, 144, 255, 0.1)',    // 淡蓝色
+                    '已分配': 'rgba(250, 173, 20, 0.1)'     // 淡黄色
+                };
+                return colors[status] || 'rgba(0, 0, 0, 0.05)'; // 默认淡灰色
+            },
         },
     };
 </script>
@@ -1814,6 +1816,75 @@
         .task-item {
             min-width: 0;  // 确保grid项可以收缩
             overflow: hidden;
+        }
+    }
+
+    // 添加新的卡片样式
+    .stats-section {
+        .stats-card {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            }
+
+            .stats-card-value {
+                font-size: 20px;
+                margin-bottom: 3px;
+                color: #1f1e1e;  // 更改为更柔和的深灰色
+            }
+
+            .stats-card-label {
+                font-size: 12px;
+                color: #646464;  // 更改为中灰色
+            }
+        }
+
+        .el-row {
+            margin: 0 -4px;
+        }
+
+        .el-col {
+            padding: 0 4px;
+        }
+    }
+
+    // 响应式调整
+    @media screen and (max-width: 1400px) {
+        .stats-section {
+            .stats-card {
+                padding: 8px;
+                
+                .stats-card-value {
+                    font-size: 18px;
+                }
+                
+                .stats-card-label {
+                    font-size: 11px;
+                }
+            }
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        .stats-section {
+            .stats-card {
+                padding: 6px;
+                
+                .stats-card-value {
+                    font-size: 16px;
+                }
+                
+                .stats-card-label {
+                    font-size: 10px;
+                }
+            }
         }
     }
 </style>
