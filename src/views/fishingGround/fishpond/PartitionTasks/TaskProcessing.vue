@@ -77,15 +77,15 @@
                 </el-tab-pane>
                 <el-tab-pane name="costEmployee">
                     <template #label> <i class="el-icon-user"></i> 人工工时 </template>
-                    <cost-employee ref="costEmployee" :task-id="taskId" @log="getLoglist"></cost-employee>
+                    <cost-employee ref="costEmployee" :task-id="Number(taskId)" @log="getLoglist"></cost-employee>
                 </el-tab-pane>
                 <el-tab-pane name="costMaterial"><template #label>
                         <i class="el-icon-suitcase-1"></i> 饵料投喂
                     </template>
-                    <cost-material :taskId="taskId" @log="getLoglist"></cost-material>
+                    <cost-material :taskId="Number(taskId)" @log="getLoglist"></cost-material>
                 </el-tab-pane>
                     <el-tab-pane name="costMachine"><template #label> <i class="el-icon-truck"></i> 用药记录 </template>
-                    <cost-machine :task-id="taskId" @log="getLoglist"></cost-machine>
+                    <cost-machine :task-id="Number(taskId)" @log="getLoglist"></cost-machine>
                 </el-tab-pane>
                 <el-tab-pane name="annex"><template #label> <i class="el-icon-paperclip"></i> 附件 </template>
                     <div class="font-weight-bold">图片:</div>
@@ -149,7 +149,7 @@
         },
         props: {
             taskId: {
-                type: Number,
+                type: [Number, String],
             },
             oprType: {
                 type: String,
@@ -195,8 +195,8 @@
             },
             'form.taskHead': {
                 handler: function(n) {
-                    console.log('taskHead', n)
                     let arr = this.employeeList.filter(item => item.employeeId == n);
+                    
                     if (arr.length > 0) {
                         this.form.taskHeadName = arr[0].employeeName;
                     }
@@ -207,7 +207,7 @@
                     if (newBatchId && this.batchList.length > 0) {
                         const batch = this.batchList.find(item => item.batchId === newBatchId);
                         if (batch) {
-                            this.form.batchName = batch.batchName;
+                          
                         }
                     }
                 }
@@ -227,7 +227,8 @@
             getBatchList() {
                 listBatch().then((response) => {
                     this.batchList = response.rows;
-                    console.log(this.batchList)
+                    this.form.batchName = batchList.batchName;
+                    console.log('batchList', this.batchList)
                 });
             },
             /** 查询用户 */
@@ -320,6 +321,7 @@
                     // 根据 batchId 设置 batchName
                     if (this.form.batchId && this.batchList.length > 0) {
                         const batch = this.batchList.find(item => item.batchId === this.form.batchId);
+                        console.log(' 根据 batchId 设置 batchName batch', batch)
                         if (batch) {
                             this.form.batchName = batch.batchName;
                         }
