@@ -3,7 +3,6 @@
     <div>
         <el-input :value="form.batchName + ' / ' + form.taskName" placeholder="" size="small"
             clearable disabled></el-input>
-
         <el-form label-position="top" ref="form" :model="form" :rules="rules" label-width="0">
             <el-row class="margin-top-20">
                 <el-col :span="4" class="flex aic">
@@ -202,6 +201,16 @@
                         this.form.taskHeadName = arr[0].employeeName;
                     }
                 }
+            },
+            'form.batchId': {
+                handler: function(newBatchId) {
+                    if (newBatchId && this.batchList.length > 0) {
+                        const batch = this.batchList.find(item => item.batchId === newBatchId);
+                        if (batch) {
+                            this.form.batchName = batch.batchName;
+                        }
+                    }
+                }
             }
         },
         created() {
@@ -218,6 +227,7 @@
             getBatchList() {
                 listBatch().then((response) => {
                     this.batchList = response.rows;
+                    console.log(this.batchList)
                 });
             },
             /** 查询用户 */
@@ -307,6 +317,13 @@
                 const taskId = this.taskId;
                 getBatchTask(taskId).then((response) => {
                     this.form = response.data;
+                    // 根据 batchId 设置 batchName
+                    if (this.form.batchId && this.batchList.length > 0) {
+                        const batch = this.batchList.find(item => item.batchId === this.form.batchId);
+                        if (batch) {
+                            this.form.batchName = batch.batchName;
+                        }
+                    }
                 });
             },
             /** 插入任务日志 */
