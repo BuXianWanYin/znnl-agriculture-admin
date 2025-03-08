@@ -98,7 +98,7 @@
                 <standard-job :germplasm-id="currentspeciesId" :name="fishName" :typeName="fishSpeciesName" v-if="showStandardJobComponent" />
             </el-dialog>
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
-                :limit.sync="queryParams.pageSize" @pagination="getList" />
+                :limit.sync="queryParams.pageSize" :page-sizes="[12, 24, 36, 48]" @pagination="getList" />
         </el-card>
         <!-- 添加或修改种质对话框 -->
         <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
@@ -202,7 +202,7 @@
                 // 查询参数
                 queryParams: {
                     pageNum: 1,
-                    pageSize: 10,
+                    pageSize: 12,
                     fishName: null,
                     fishSpeciesName: null,
                 },
