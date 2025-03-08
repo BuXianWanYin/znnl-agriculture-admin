@@ -675,21 +675,49 @@
                     tooltip: {
                         trigger: 'item',
                         formatter: function(params) {
-                            // 根据系列名称添加不同的前缀
                             const title = params.seriesName === '种植任务' ? '种植任务' : '养殖状态';
-                            // 使用 <br/> 进行换行，添加一些样式
                             return `<div style="font-weight: bold; margin-bottom: 3px;">${title}</div>` +
                                    `${params.name}: ${params.value} (${params.percent}%)`;
                         },
-                        show: false,  // 默认不显示tooltip
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',  // 设置背景色为半透明白色
-                        borderColor: '#ccc',  // 设置边框颜色
-                        borderWidth: 1,  // 设置边框宽度
-                        padding: [5, 10],  // 设置内边距 [上下, 左右]
+                        show: false,
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        borderColor: '#ccc',
+                        borderWidth: 1,
+                        padding: [5, 10],
                         textStyle: {
-                            color: '#333',  // 文字颜色
-                            fontSize: 14    // 文字大小
-                        }
+                            color: '#333',
+                            fontSize: 14
+                        },
+                        position: function (point, params, dom, rect, size) {
+                            // 获取图表容器的尺寸
+                            const chartWidth = size.viewSize[0];
+                            const chartHeight = size.viewSize[1];
+                            
+                            // tooltip 的尺寸
+                            const tooltipWidth = dom.offsetWidth;
+                            const tooltipHeight = dom.offsetHeight;
+                            
+                            // 计算最佳位置
+                            let x = point[0];
+                            let y = point[1];
+                            
+                            // 确保 tooltip 不会超出右边界
+                            if (x + tooltipWidth > chartWidth) {
+                                x = x - tooltipWidth;
+                            }
+                            
+                            // 确保 tooltip 不会超出下边界
+                            if (y + tooltipHeight > chartHeight) {
+                                y = y - tooltipHeight;
+                            }
+                            
+                            // 确保不会超出左边界和上边界
+                            x = Math.max(0, x);
+                            y = Math.max(0, y);
+                            
+                            return [x, y];
+                        },
+                        confine: true // 将 tooltip 限制在图表区域内
                     },
                     legend: {
                         show: false
@@ -1009,7 +1037,7 @@
                             show: false
                         },
                         min: 0,
-                        max: 150,  // 修改最大值为150
+                        max: 250,  // 修改最大值为150
                         interval: 30  // 将间隔设为30，这样会显示0,30,60,90,120,150
                     },
                     series: [
