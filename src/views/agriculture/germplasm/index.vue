@@ -94,7 +94,7 @@
                 @close="closeStandardJob">
                 <standard-job :germplasmId="currentGermplasmId" :name="cropName" :typeName="germplasmName" v-if="showStandardJobComponent" />
             </el-dialog>
-            <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum"
+            <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageNum":page-sizes="[12, 24, 36, 48]"
                 :limit.sync="queryParams.pageSize" @pagination="getList" />
         </el-card>
         <!-- 添加或修改种质对话框 -->
@@ -199,7 +199,7 @@
                 // 查询参数
                 queryParams: {
                     pageNum: 1,
-                    pageSize: 10,
+                    pageSize: 12,
                     cropName: null,
                     germplasmName: null,
                 },
