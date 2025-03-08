@@ -64,11 +64,6 @@
                                     <span class="value">{{ item.address }}</span>
                                 </div>
                             </div>
-                            <div class="card-footer">
-                                <el-button size="small" type="warning" plain 
-                                    @click="houseCheck(item.id)"
-                                    v-hasPermi="['agriculture:batch:edit']"><i class="el-icon-view"></i>环境详情</el-button>
-                            </div>
                         </div>
                     </el-col>
                 </el-row>
