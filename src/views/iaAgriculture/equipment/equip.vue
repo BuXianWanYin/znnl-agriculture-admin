@@ -52,7 +52,7 @@
                                     </div>
                                     <div class="info-item">
                                         <i class="el-icon-connection"></i>
-                                        <span class="label">传感器指令</span>
+                                        <span class="label">指令</span>
                                         <span class="value">{{ item.sensorCommand || '-' }}</span>
                                     </div>
                                     <div class="info-item">
@@ -110,8 +110,8 @@
                         @change="handleAreaChange">
                     </el-cascader>
                 </el-form-item>
-                <el-form-item label="传感器指令" prop="sensorCommand">
-                    <el-input v-model="equipmentForm.sensorCommand" placeholder="请输入传感器指令"></el-input>
+                <el-form-item label="控制指令" prop="sensorCommand">
+                    <el-input v-model="equipmentForm.sensorCommand" placeholder="请输入控制指令"></el-input>
                 </el-form-item>
                 <el-form-item label="传感器序号" prop="sensorType">
                     <el-input v-model="equipmentForm.sensorType" placeholder="请输入传感器序号"></el-input>
@@ -660,6 +660,10 @@ export default {
 .app-container-sm {
     padding: 20px;
     background-color: #f5f7fa;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
 }
 
 .search-card {
@@ -721,34 +725,45 @@ export default {
         padding: 12px;
 
         .el-row {
-            margin: 0 !important; // 覆盖 element-ui 默认边距
+            margin: 0 !important;
+            position: relative;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
         }
 
-        // 响应式列宽
         .el-col {
             padding: 12px;
+            position: relative;
+            transition: none;
+            flex: 0 0 33.33%;
+            max-width: 33.33%;
             
             @media screen and (max-width: 1600px) {
-                width: 33.33%;
+                flex: 0 0 33.33%;
+                max-width: 33.33%;
             }
             
             @media screen and (max-width: 1200px) {
-                width: 50%;
+                flex: 0 0 50%;
+                max-width: 50%;
             }
             
             @media screen and (max-width: 768px) {
-                width: 100%;
+                flex: 0 0 100%;
+                max-width: 100%;
             }
         }
     }
 
     .equipment-card {
-        height: 100%; // 确保同一行的卡片高度一致
+        height: 100%;
         background: white;
         border-radius: 16px;
         padding: 24px;
         margin-bottom: 24px;
-        transition: all 0.3s ease;
+        transition: transform 0.3s ease;
+        position: relative;
         border: 1px solid rgba(0, 0, 0, 0.05);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 
@@ -841,20 +856,20 @@ export default {
                 gap: 16px;
                 
                 @media screen and (max-width: 1400px) {
-                    grid-template-columns: 1fr; // 在较小屏幕上切换为单列
+                    grid-template-columns: 1fr;
                 }
             }
 
             .info-item {
                 display: flex;
-                align-items: flex-start; // 改为顶部对齐，支持多行
+                align-items: flex-start;
                 gap: 8px;
                 
                 i {
                     font-size: 16px;
                     color: #1890ff;
                     flex-shrink: 0;
-                    margin-top: 2px; // 微调图标位置
+                    margin-top: 2px;
                 }
 
                 .label {
@@ -862,15 +877,21 @@ export default {
                     font-size: 13px;
                     white-space: nowrap;
                     flex-shrink: 0;
+                    line-height: 20px;
                 }
 
                 .value {
                     color: #262626;
                     font-size: 13px;
                     font-weight: 500;
-                    word-break: break-all; // 允许在任意字符间换行
-                    white-space: normal; // 允许换行
+                    word-break: break-all;
+                    white-space: normal;
                     flex: 1;
+                    line-height: 20px;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 1;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
                 }
             }
         }
@@ -879,7 +900,7 @@ export default {
             margin-top: 20px;
             display: flex;
             justify-content: flex-end;
-            gap: 16px; // 按钮之间的间距
+            gap: 16px;
 
             .edit-btn {
                 color: #409EFF;
@@ -911,7 +932,7 @@ export default {
     
     @media screen and (max-width: 768px) {
         .el-pagination {
-            white-space: normal; // 允许分页器换行
+            white-space: normal;
             .el-pager {
                 margin: 5px 0;
             }
@@ -952,6 +973,10 @@ export default {
             padding: 8px 20px;
         }
     }
+
+    position: relative;
+    margin: 0 auto;
+    z-index: 2001;
 }
 
 @keyframes pulse {
@@ -966,6 +991,22 @@ export default {
     100% {
         transform: scale(2);
         opacity: 0;
+    }
+}
+
+.el-dialog__wrapper {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    margin: 0;
+}
+
+.el-popup-parent--hidden {
+    .app-container-sm {
+        padding-right: 17px;
     }
 }
 </style>
