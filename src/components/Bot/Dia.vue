@@ -187,6 +187,7 @@ export default {
         color_3: '#7aa2f7'
       },
       wsInitialized: false,   // WebSocket初始化状态
+      clickOutsideHandler: null, // 添加点击外部处理器引用
     }
   },
 
@@ -262,6 +263,24 @@ export default {
     if (!this.wsInitialized && !this.isLoginPage) {
       this.initAlertWebSocket()
     }
+    
+    // 添加点击外部处理器
+    this.clickOutsideHandler = (event) => {
+      if (this.showChat) {
+        const chatWindow = document.querySelector('.chat-window')
+        const botContainer = document.getElementById('bot-container')
+        
+        // 检查点击是否在聊天窗口或机器人容器外部
+        if (chatWindow && botContainer && 
+            !chatWindow.contains(event.target) && 
+            !botContainer.contains(event.target)) {
+          this.toggleChat()
+        }
+      }
+    }
+    
+    // 添加点击事件监听器
+    document.addEventListener('click', this.clickOutsideHandler)
   },
 
   beforeDestroy() {
@@ -272,6 +291,11 @@ export default {
     } else {
       // 正常销毁时的处理
       this.disconnectWebSocket();
+    }
+    
+    // 移除点击事件监听器
+    if (this.clickOutsideHandler) {
+      document.removeEventListener('click', this.clickOutsideHandler)
     }
   },
 
@@ -893,16 +917,17 @@ export default {
 
     // 切换聊天窗口显示状态
     toggleChat() {
-      this.showChat = !this.showChat;
-      this.userInput = '';
-
-      if (this.showChat) {
-        // 打开聊天窗口时滚动到底部
-        this.scrollToBottom();
-      }
-
       if (!this.showChat) {
-        // 隐藏聊天窗口时恢复机器人显示
+        // 打开聊天窗口时，添加一个小延迟以避免立即触发关闭
+        setTimeout(() => {
+          this.showChat = true
+          this.scrollToBottom()
+        }, 10)
+      } else {
+        this.showChat = false
+        this.userInput = ''
+
+        // 恢复机器人显示
         const diaBody = document.getElementById('Aurora-Dia--body')
         const platform = document.querySelector('.Aurora-Dia--platform')
         const voiceBtn = document.querySelector('.voice-btn')
@@ -914,9 +939,12 @@ export default {
     },
 
     // 处理机器人点击事件
-    handleDiaClick() {
-      this.showChat = true;
-      this.userInput = '';
+    handleDiaClick(event) {
+      // 阻止事件冒泡，避免触发外部点击处理
+      event.stopPropagation()
+      
+      this.showChat = true
+      this.userInput = ''
 
       // 隐藏机器人相关元素
       const diaBody = document.getElementById('Aurora-Dia--body')
@@ -928,7 +956,7 @@ export default {
       if (voiceBtn) voiceBtn.style.display = 'none'
 
       // 点击打开聊天窗口时滚动到底部
-      this.scrollToBottom();
+      this.scrollToBottom()
     },
 
     // 判断是否显示时间戳
