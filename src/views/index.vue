@@ -190,8 +190,10 @@
                             <el-table-column prop="temperature" label="温度(℃)" width="80"> </el-table-column>
                             <el-table-column prop="humidity" label="湿度(%)" width="80"> </el-table-column>
                             <el-table-column prop="lightLux" label="光照(lux)" width="90"> </el-table-column>
-                            <el-table-column prop="direction" label="风向" width="70"> </el-table-column>
-                            <el-table-column prop="speed" label="风速(m/s)" width="90"> </el-table-column>
+                            <el-table-column prop="soilMoisture" label="土壤含水率(%)" width="110"> </el-table-column>
+                            <el-table-column prop="soilTemperature" label="土壤温度(℃)" width="110"> </el-table-column>
+                            <el-table-column prop="soilPh" label="土壤ph值" width="90"> </el-table-column>
+                            <el-table-column prop="soilConductivity" label="土壤电导率(μS/cm)" width="130"> </el-table-column>
                             <el-table-column label="记录时间" min-width="150">
                                 <template slot-scope="scope">
                                     {{ scope.row.date + ' ' + scope.row.time }}
@@ -248,8 +250,6 @@
 <script>
     import {
         selectBaseInfo,
-        selectDeviceInfo,
-        selectDeviceJobInfo,
         selectRecordGroupByMonth,
         selectTaskInfo
     } from "@/api/agriculture/dataStatistics";
@@ -259,20 +259,12 @@
     import DataPanel from "./components/DataPanel";
     import DataBox from "./components/DataBox";
     import {
-        lineChart,
-        pieChart,
-        barChart
-    } from "./components/DataChart";
-    import {
         listLand
     } from "@/api/agriculture/land";
     // import {listDevice} from "@/api/iot/device";
     import {
         getBaseinfoLimitOne
     } from "@/api/agriculture/baseinfo";
-    import { listValue } from "@/api/agriculture/value";
-    import { getHouse } from "@/api/iaAgriculture/greenHouse";
-    import { getBatch } from "@/api/agriculture/batch";
     import { listSoilSensorValueVO } from '@/api/agriculture/soilsensorvaluevo'
     import { listQualityByDesc } from "@/api/agriculture/quality";
     import http from "@/utils/request";
