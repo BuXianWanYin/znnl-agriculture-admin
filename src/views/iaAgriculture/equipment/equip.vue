@@ -51,15 +51,16 @@
                                         <span class="value">{{ item.pastureName || '-' }}/{{ item.batchName || '-' }}</span>
                                     </div>
                                     <div class="info-item">
-                                        <i class="el-icon-monitor"></i>
-                                        <span class="label">传感器序号</span>
-                                        <span class="value">{{ item.sensorType || '-' }}</span>
-                                    </div>
-                                    <div class="info-item">
                                         <i class="el-icon-connection"></i>
                                         <span class="label">传感器指令</span>
                                         <span class="value">{{ item.sensorCommand || '-' }}</span>
                                     </div>
+                                    <div class="info-item">
+                                        <i class="el-icon-monitor"></i>
+                                        <span class="label">传感器序号</span>
+                                        <span class="value">{{ item.sensorType || '-' }}</span>
+                                    </div>
+
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -109,11 +110,11 @@
                         @change="handleAreaChange">
                     </el-cascader>
                 </el-form-item>
-                <el-form-item label="传感器序号" prop="sensorType">
-                    <el-input v-model="equipmentForm.sensorType" placeholder="请输入传感器序号"></el-input>
-                </el-form-item>
                 <el-form-item label="传感器指令" prop="sensorCommand">
                     <el-input v-model="equipmentForm.sensorCommand" placeholder="请输入传感器指令"></el-input>
+                </el-form-item>
+                <el-form-item label="传感器序号" prop="sensorType">
+                    <el-input v-model="equipmentForm.sensorType" placeholder="请输入传感器序号"></el-input>
                 </el-form-item>
                 <el-form-item label="备注">
                     <el-input type="textarea" v-model="equipmentForm.remark" :rows="3" placeholder="请输入备注信息"></el-input>
@@ -718,9 +719,31 @@ export default {
     .equipment-grid {
         margin: -12px;
         padding: 12px;
+
+        .el-row {
+            margin: 0 !important; // 覆盖 element-ui 默认边距
+        }
+
+        // 响应式列宽
+        .el-col {
+            padding: 12px;
+            
+            @media screen and (max-width: 1600px) {
+                width: 33.33%;
+            }
+            
+            @media screen and (max-width: 1200px) {
+                width: 50%;
+            }
+            
+            @media screen and (max-width: 768px) {
+                width: 100%;
+            }
+        }
     }
 
     .equipment-card {
+        height: 100%; // 确保同一行的卡片高度一致
         background: white;
         border-radius: 16px;
         padding: 24px;
@@ -816,31 +839,38 @@ export default {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 16px;
+                
+                @media screen and (max-width: 1400px) {
+                    grid-template-columns: 1fr; // 在较小屏幕上切换为单列
+                }
             }
 
             .info-item {
                 display: flex;
-                align-items: center;
+                align-items: flex-start; // 改为顶部对齐，支持多行
                 gap: 8px;
                 
                 i {
                     font-size: 16px;
                     color: #1890ff;
+                    flex-shrink: 0;
+                    margin-top: 2px; // 微调图标位置
                 }
 
                 .label {
                     color: #8c8c8c;
                     font-size: 13px;
                     white-space: nowrap;
+                    flex-shrink: 0;
                 }
 
                 .value {
                     color: #262626;
                     font-size: 13px;
                     font-weight: 500;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
+                    word-break: break-all; // 允许在任意字符间换行
+                    white-space: normal; // 允许换行
+                    flex: 1;
                 }
             }
         }
@@ -878,6 +908,15 @@ export default {
     margin-top: 20px;
     display: flex;
     justify-content: center;
+    
+    @media screen and (max-width: 768px) {
+        .el-pagination {
+            white-space: normal; // 允许分页器换行
+            .el-pager {
+                margin: 5px 0;
+            }
+        }
+    }
 }
 
 .custom-dialog {
