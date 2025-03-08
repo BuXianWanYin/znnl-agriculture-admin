@@ -448,8 +448,8 @@
                     <span>{{ currentTask.taskName }}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="label">操作人：</span>
-                    <span>{{ currentTask.taskHeadName }}</span>
+                    <span class="label">负责人：</span>
+                    <span>{{ iaPartitionInfo.taskHeadName }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="label">时间：</span>
@@ -513,6 +513,7 @@
 
 <script>
     import HeaderTop from "@/components/common/Header.vue";
+    import { getUser } from "@/api/system/user";
     import TimelineItem from "@/views/iaAgriculture/origin/components/timelineItem.vue";
     import sf from "@/components/origin/sf";
     import environment from "@/components/origin/environment";
@@ -596,28 +597,7 @@
                 dialogVisible: false,
                 currentTask: null,
                 // 模拟数据
-                mockResources: [], // Remove mock data, we'll use real data
-                mockImages: [
-                    require('@/assets/avatar.png'),
-                    require('@/assets/avatar.png'),
-                    require('@/assets/avatar.png')
-                ],
-                mockMedicineData: [
-                    {
-                        medicineName: "测试药品1",
-                        dosage: "100",
-                        unit: "ml",
-                        useTime: "2024-03-20",
-                        operator: "张三"
-                    },
-                    {
-                        medicineName: "测试药品2",
-                        dosage: "200",
-                        unit: "g",
-                        useTime: "2024-03-21",
-                        operator: "李四"
-                    }
-                ]
+                mockResources: []
             };
         },
         components: {
@@ -804,6 +784,26 @@
                     try {
                         const [batchResponse, germplasmResponse] = await this.getBatchAndGermplasmInfo(batchId);
                         
+                        // 获取批次负责人信息
+                        if (batchResponse?.data?.batchHead) {
+                            try {
+                                const batchHeadInfo = await getUser(batchResponse.data.batchHead);
+                                console.log('批次负责人信息:', batchHeadInfo.data.nickName);
+                                
+                                // 更新种植/养殖信息，添加操作人信息
+                                this.iaPartitionInfo = {
+                                    ...this.iaPartitionInfo,
+                                    variety: this.type === 1 
+                                        ? germplasmResponse.data.fishSpeciesName 
+                                        : germplasmResponse.data.germplasmName || '',
+                                    dateT: batchResponse.data.startTime || '',
+                                    taskHeadName: batchHeadInfo.data.nickName || '' // 添加操作人信息
+                                };
+                            } catch (error) {
+                                console.error('获取批次负责人信息失败:', error);
+                            }
+                        }
+                        
                         // 更新种植/养殖信息
                         if (batchResponse?.data && germplasmResponse?.data) {
                             this.iaPartitionInfo = {
@@ -921,6 +921,21 @@
                 
                     }
                     
+                    // 获取批次负责人信息
+                    if (batchResponse.data?.batchHead) {
+                        try {
+                            const batchHeadInfo = await getUser(batchResponse.data.batchHead);
+                            // 更新种植/养殖信息，添加负责人信息
+                            this.iaPartitionInfo = {
+                                ...this.iaPartitionInfo,
+                                variety: germplasmResponse?.data?.fishSpeciesName || '',
+                                dateT: batchResponse.data.startTime || '',
+                                taskHeadName: batchHeadInfo.data.nickName || '' 
+                            };
+                        } catch (error) {
+                            console.error('获取批次负责人信息失败:', error);
+                        }
+                    }
                     return [batchResponse, germplasmResponse];
                 } else {
                     // 蔬菜种植
