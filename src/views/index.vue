@@ -1177,12 +1177,30 @@
     .el-table {
         background: transparent !important;
         margin-top: 15px;
-        height: 440px !important;  // 调整表格高度
+        height: 440px !important;
 
-        ::v-deep .el-table__body-wrapper {
-            overflow-y: auto;
+        ::v-deep {
+            // 调整表头字体
+            .el-table__header-wrapper {
+                th {
+                    background: rgba(64, 158, 255, 0.1);
+                    color: #606266;
+                    font-weight: 600;
+                    font-size: 13px;  // 减小表头字体
+                    padding: 8px 0;    // 适当减小padding
+                }
+            }
 
-            &::-webkit-scrollbar {
+            // 调整表格内容字体
+            .el-table__body-wrapper {
+                td {
+                    padding: 6px 0;    // 减小单元格padding
+                    font-size: 12px;   // 减小内容字体
+                }
+            }
+
+            // 保持滚动条样式
+            .el-table__body-wrapper::-webkit-scrollbar {
                 width: 6px;
             }
 
@@ -1193,24 +1211,6 @@
 
             &::-webkit-scrollbar-track {
                 background: #f5f5f5;
-            }
-        }
-
-        ::v-deep .el-table__header-wrapper {
-            th {
-                background: rgba(64, 158, 255, 0.1);
-                color: #606266;
-                font-weight: 600;
-            }
-        }
-
-        ::v-deep .el-table__body {
-            td {
-                padding: 8px 0;
-            }
-
-            tr:hover > td {
-                background: rgba(64, 158, 255, 0.05);
             }
         }
     }
