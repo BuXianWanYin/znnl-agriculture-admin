@@ -67,11 +67,11 @@
                                 <span class="value">{{ item.cropBatch }}</span>
                             </div> -->
                             
-                            <div class="info-item">
+                            <!-- <div class="info-item">
                                 <i class="el-icon-location"></i>
                                 <span class="label">预警分区:</span>
                                 <span class="value">{{ item.batchName }}</span>
-                            </div>
+                            </div> -->
 
                             <div class="info-item">
                                 <i class="el-icon-warning"></i>
