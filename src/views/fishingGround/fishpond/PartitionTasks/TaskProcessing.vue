@@ -1,7 +1,7 @@
 <!-- 任务处理页面 -->
 <template>
     <div>
-        <el-input :value="form.batchName + ' / ' + form.taskName" placeholder="" size="small"
+        <el-input :value="form.batchName + ' / ' + form.taskName" placeholder="加载中..." size="small"
             clearable disabled></el-input>
         <el-form label-position="top" ref="form" :model="form" :rules="rules" label-width="0">
             <el-row class="margin-top-20">
@@ -171,7 +171,12 @@
                 logList: [],
                 remarkOpen: false,
                 // 表单参数
-                form: {},
+                form: {
+                    batchName: '',
+                    taskName: '',
+                    batchId: null,
+                    // ... other form fields
+                },
                 // 表单校验
                 rules: {
                     taskHead: [{
@@ -207,7 +212,7 @@
                     if (newBatchId && this.batchList.length > 0) {
                         const batch = this.batchList.find(item => item.batchId === newBatchId);
                         if (batch) {
-                          
+                            this.form.batchName = batch.batchName;
                         }
                     }
                 }
@@ -227,8 +232,13 @@
             getBatchList() {
                 listBatch().then((response) => {
                     this.batchList = response.rows;
-                    this.form.batchName = batchList.batchName;
-                    console.log('batchList', this.batchList)
+                    // 初始化时设置 batchName
+                    if (this.form.batchId && response.rows.length > 0) {
+                        const batch = response.rows.find(item => item.batchId === this.form.batchId);
+                        if (batch) {
+                            this.form.batchName = batch.batchName;
+                        }
+                    }
                 });
             },
             /** 查询用户 */
@@ -318,10 +328,9 @@
                 const taskId = this.taskId;
                 getBatchTask(taskId).then((response) => {
                     this.form = response.data;
-                    // 根据 batchId 设置 batchName
+                    // 获取数据后立即更新 batchName
                     if (this.form.batchId && this.batchList.length > 0) {
                         const batch = this.batchList.find(item => item.batchId === this.form.batchId);
-                        console.log(' 根据 batchId 设置 batchName batch', batch)
                         if (batch) {
                             this.form.batchName = batch.batchName;
                         }
@@ -380,6 +389,13 @@
                 }
             }
         },
+        computed: {
+            getDisplayValue() {
+                if (!this.form) return '';
+                if (!this.form.batchName && !this.form.taskName) return '加载中...';
+                return `${this.form.batchName || ''} / ${this.form.taskName || ''}`.trim();
+            }
+        }
     };
 </script>
 <style lang="scss" scoped>
