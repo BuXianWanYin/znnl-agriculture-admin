@@ -182,19 +182,19 @@
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="margin-top-10">
-                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="14">
+                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="13">
                     <data-panel title="蔬菜大棚环境监测">
                         <el-table :data="statusData" height="400">
-                            <el-table-column prop="pastureName" label="大棚名称" width="100"> </el-table-column>
-                            <el-table-column prop="batchName" label="分区名称" width="100"> </el-table-column>
-                            <el-table-column prop="temperature" label="温度(℃)" width="80"> </el-table-column>
-                            <el-table-column prop="humidity" label="湿度(%)" width="80"> </el-table-column>
-                            <el-table-column prop="lightLux" label="光照(lux)" width="90"> </el-table-column>
+                            <el-table-column prop="pastureName" label="大棚" width="60"> </el-table-column>
+                            <el-table-column prop="batchName" label="分区" width="60"> </el-table-column>
+                            <el-table-column prop="temperature" label="温度(℃)" width="75"> </el-table-column>
+                            <el-table-column prop="humidity" label="湿度(%)" width="75"> </el-table-column>
+                            <el-table-column prop="lightLux" label="光照(lux)" width="75"> </el-table-column>
                             <el-table-column prop="soilMoisture" label="土壤含水率(%)" width="110"> </el-table-column>
-                            <el-table-column prop="soilTemperature" label="土壤温度(℃)" width="110"> </el-table-column>
+                            <el-table-column prop="soilTemperature" label="土壤温度(℃)" width="95"> </el-table-column>
                             <el-table-column prop="soilPh" label="土壤ph值" width="90"> </el-table-column>
-                            <el-table-column prop="soilConductivity" label="电导率(μS/cm)" width="130"> </el-table-column>
-                            <el-table-column label="记录时间" min-width="150">
+                            <el-table-column prop="soilConductivity" label="电导率(μS/cm)" width="120"> </el-table-column>
+                            <el-table-column label="记录时间" min-width="140">
                                 <template slot-scope="scope">
                                     {{ scope.row.date + ' ' + scope.row.time }}
                                 </template>
@@ -214,17 +214,17 @@
                     </data-panel>
                 </el-col>
 
-                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="10">
+                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="11">
                     <data-panel title="养殖池环境监测">
                         <el-table :data="fishStatusData" height="400">
-                            <el-table-column prop="fishPastureName" label="养殖棚" width="70"> </el-table-column>
-                            <el-table-column prop="fishPastureBatchName" label="鱼池" width="74"> </el-table-column>
+                            <el-table-column prop="fishPastureName" label="养殖棚" width="60"> </el-table-column>
+                            <el-table-column prop="fishPastureBatchName" label="鱼池" width="68"> </el-table-column>
                             <el-table-column prop="waterTemperature" label="水温(℃)" width="70"> </el-table-column>
                             <el-table-column prop="waterPhValue" label="ph值" width="56"></el-table-column>
-                            <el-table-column prop="waterOxygenContent" label="溶解氧(mg/L)" width="110"></el-table-column>
-                            <el-table-column prop="waterAmmoniaNitrogenContent" label="氨氮(mg/L)" width="100"></el-table-column>
-                            <el-table-column prop="waterNitriteContent" label="亚硝酸盐(mg/L)" width="120"></el-table-column>
-                            <el-table-column label="记录日期" min-width="150">
+                            <el-table-column prop="waterOxygenContent" label="溶解氧(mg/L)" width="100"></el-table-column>
+                            <el-table-column prop="waterAmmoniaNitrogenContent" label="氨氮(mg/L)" width="88"></el-table-column>
+                            <el-table-column prop="waterNitriteContent" label="亚硝酸盐(mg/L)" width="115"></el-table-column>
+                            <el-table-column label="记录日期" min-width="140">
                                 <template slot-scope="scope">
                                     <span>{{ scope.row.date }} {{ scope.row.time }}</span>
                                 </template>
