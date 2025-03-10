@@ -182,7 +182,7 @@
                 </el-col>
             </el-row>
             <el-row :gutter="10" class="margin-top-10">
-                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="14">
                     <data-panel title="蔬菜大棚环境监测">
                         <el-table :data="statusData" height="400">
                             <el-table-column prop="pastureName" label="大棚名称" width="100"> </el-table-column>
@@ -193,7 +193,7 @@
                             <el-table-column prop="soilMoisture" label="土壤含水率(%)" width="110"> </el-table-column>
                             <el-table-column prop="soilTemperature" label="土壤温度(℃)" width="110"> </el-table-column>
                             <el-table-column prop="soilPh" label="土壤ph值" width="90"> </el-table-column>
-                            <el-table-column prop="soilConductivity" label="土壤电导率(μS/cm)" width="130"> </el-table-column>
+                            <el-table-column prop="soilConductivity" label="电导率(μS/cm)" width="130"> </el-table-column>
                             <el-table-column label="记录时间" min-width="150">
                                 <template slot-scope="scope">
                                     {{ scope.row.date + ' ' + scope.row.time }}
@@ -214,13 +214,13 @@
                     </data-panel>
                 </el-col>
 
-                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
+                <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="10">
                     <data-panel title="养殖池环境监测">
                         <el-table :data="fishStatusData" height="400">
                             <el-table-column prop="fishPastureName" label="养殖棚" width="70"> </el-table-column>
-                            <el-table-column prop="fishPastureBatchName" label="鱼池" width="80"> </el-table-column>
+                            <el-table-column prop="fishPastureBatchName" label="鱼池" width="74"> </el-table-column>
                             <el-table-column prop="waterTemperature" label="水温(℃)" width="70"> </el-table-column>
-                            <el-table-column prop="waterPhValue" label="ph值" width="80"></el-table-column>
+                            <el-table-column prop="waterPhValue" label="ph值" width="56"></el-table-column>
                             <el-table-column prop="waterOxygenContent" label="溶解氧(mg/L)" width="110"></el-table-column>
                             <el-table-column prop="waterAmmoniaNitrogenContent" label="氨氮(mg/L)" width="100"></el-table-column>
                             <el-table-column prop="waterNitriteContent" label="亚硝酸盐(mg/L)" width="120"></el-table-column>
@@ -235,7 +235,8 @@
                                 @size-change="fishSizeChange"
                                 @current-change="fishCurrentChange"
                                 :current-page="fishCurrentPage"
-                                :page-size="fishPageSize"
+                                :page-size="20"
+                                :page-sizes="[20, 40, 60, 80]"
                                 layout="total, sizes, prev, pager, next, jumper"
                                 :total="fishTotal">
                             </el-pagination>
