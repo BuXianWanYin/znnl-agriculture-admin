@@ -64,6 +64,8 @@
                         </div>
 
                         <div class="task-actions">
+
+                            <!-- 映射状态 -->
                             <dict-tag 
                                 :options="dict.type.agriculture_batch_task_status" 
                                 :value="task.status"
@@ -453,9 +455,9 @@
                     padding: 12px;
                     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
                     
-                    &.task-completed {
-                        border-left: 4px solid #67c23a;
-                    }
+                    // &.task-completed {
+                    //     border-left: 4px solid #67c23a;
+                    // }
 
                     .task-content {
                         display: flex;
@@ -473,9 +475,9 @@
                                 color: #333;
                                 margin-bottom: 8px;
                                 
-                                &.task-name-completed {
-                                    color: #67c23a;
-                                }
+                                // &.task-name-completed {
+                                //     color: #67c23a;
+                                // }
                             }
 
                             .task-info {

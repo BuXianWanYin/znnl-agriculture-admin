@@ -33,9 +33,9 @@ export default {
             type: Array,
             default: ()=>[
                 {label:"未分配",activeIcon:"el-icon-minus",color:"#F71653",value:0},
-                {label:"已分配",activeIcon:"el-icon-s-claim",color:"#13ce66",value:1},
-                {label:"进行中",activeIcon:"el-icon-s-promotion",color:"#ffba00",value:2},
-                {label:"已完成",activeIcon:"el-icon-check",color:"#ff4949",value:3},
+                {label:"已分配",activeIcon:"el-icon-s-claim",color:"#ffba00",value:1},
+                {label:"进行中",activeIcon:"el-icon-s-promotion",color:"#ff4949",value:2},
+                {label:"已完成",activeIcon:"el-icon-check",color:"#13ce66",value:3},
             ]
         },
         disabled:{
