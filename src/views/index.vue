@@ -187,13 +187,13 @@
                         <el-table :data="statusData" height="400">
                             <el-table-column prop="pastureName" label="大棚" width="60"> </el-table-column>
                             <el-table-column prop="batchName" label="分区" width="60"> </el-table-column>
-                            <el-table-column prop="temperature" label="温度(℃)" width="75"> </el-table-column>
-                            <el-table-column prop="humidity" label="湿度(%)" width="75"> </el-table-column>
+                            <el-table-column prop="temperature" label="大棚温度(℃)" width="95"> </el-table-column>
+                            <el-table-column prop="humidity" label="大棚湿度(%)" width="95"> </el-table-column>
                             <el-table-column prop="lightLux" label="光照(lux)" width="75"> </el-table-column>
-                            <el-table-column prop="soilMoisture" label="土壤含水率(%)" width="110"> </el-table-column>
-                            <el-table-column prop="soilTemperature" label="土壤温度(℃)" width="95"> </el-table-column>
-                            <el-table-column prop="soilPh" label="土壤ph值" width="90"> </el-table-column>
-                            <el-table-column prop="soilConductivity" label="电导率(μS/cm)" width="120"> </el-table-column>
+                            <el-table-column prop="waterPhValue" label="ph值" width="70"> </el-table-column>
+                            <el-table-column prop="waterTemperature" label="水温(℃)" width="70"> </el-table-column>
+                            <el-table-column prop="waterOxygenContent" label="含氧量(mg/L)" width="100"> </el-table-column>
+                            <el-table-column prop="waterAmmoniaNitrogenContent" label="含氮量(mg/L)" width="100"> </el-table-column>
                             <el-table-column label="记录时间" min-width="140">
                                 <template slot-scope="scope">
                                     {{ scope.row.date + ' ' + scope.row.time }}
@@ -456,39 +456,59 @@
             },
 
             // 获取大棚环境数据
-            houseCheck() {
+            async houseCheck() {
                 const params = {
                     pageNum: this.scurrentPage,
                     pageSize: this.spSize,
-                   // 升序排序
                 };
                 
-                listSoilSensorValueVO(params).then(response => {
-                    let data;
-                    if (Array.isArray(response)) {
-                        data = response;
-                        this.stotal = response.length;
-                    } 
-                    else if (response.rows) {
-                        data = response.rows;
-                        this.stotal = response.total;
-                    }
-                    else if (response.data) {
-                        if (Array.isArray(response.data)) {
-                            data = response.data;
-                            this.stotal = response.data.length;
+                try {
+                    // 获取大棚数据
+                    const soilResponse = await listSoilSensorValueVO(params);
+                    // 获取养殖池数据
+                    const fishResponse = await listQualityByDesc(params);
+                    
+                    let soilData = [];
+                    let fishData = [];
+                    
+                    // 处理大棚数据
+                    if (Array.isArray(soilResponse)) {
+                        soilData = soilResponse;
+                        this.stotal = soilResponse.length;
+                    } else if (soilResponse.rows) {
+                        soilData = soilResponse.rows;
+                        this.stotal = soilResponse.total;
+                    } else if (soilResponse.data) {
+                        if (Array.isArray(soilResponse.data)) {
+                            soilData = soilResponse.data;
+                            this.stotal = soilResponse.data.length;
                         } else {
-                            data = response.data.rows || [];
+                            soilData = soilResponse.data.rows || [];
                             this.stotal = response.data.total || 0;
                         }
                     }
-
-                    // 直接使用后端排序好的数据
-                    this.statusData = data;
-                }).catch(error => {
-                    console.error('获取传感器数据失败:', error);
-                    this.$message.error('获取传感器数据失败');
-                });
+                    
+                    // 处理养殖池数据
+                    if (fishResponse.rows) {
+                        fishData = fishResponse.rows;
+                    }
+                    
+                    // 合并数据
+                    this.statusData = soilData.map((soilItem, index) => {
+                        const fishItem = fishData[index] || {};
+                        return {
+                            ...soilItem,
+                            waterTemperature: fishItem.waterTemperature,
+                            waterPhValue: fishItem.waterPhValue,
+                            waterOxygenContent: fishItem.waterOxygenContent,
+                            waterAmmoniaNitrogenContent: fishItem.waterAmmoniaNitrogenContent
+                        };
+                    });
+                    
+                } catch (error) {
+                    console.error('获取环境数据失败:', error);
+                    this.$message.error('获取环境数据失败');
+                }
             },
 
             /** 初始化map */
