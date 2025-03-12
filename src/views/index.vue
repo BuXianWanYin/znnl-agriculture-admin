@@ -148,7 +148,7 @@
                     <data-panel 
                         title="溯源统计" 
                         more="更多溯源" 
-                        :moreLink="'http://192.168.1.153:81/originIndex'">
+                        :moreLink="'/originIndex'">
                         <div class="main main-large">
                             <div class="trace-header">
                                 <div class="time-range-selector">
@@ -848,9 +848,9 @@
                     }
                 ];
             },
-            handleMoreClick() {
-                window.open('http://192.168.1.153:81/originIndex', '_blank');
-            },
+            // handleMoreClick() {
+            //     window.open('http://192.168.1.153:81/originIndex', '_blank');
+            // },
             // 添加新的方法用于处理数据
             processTraceabilityData(rawData) {
                 if (!Array.isArray(rawData)) {
