@@ -757,7 +757,7 @@ export default {
         }
 
         // 发送请求到AI服务器
-        const response = await fetch('http://192.168.31.203:8081/ai/chatVLStream', {
+        const response = await fetch('http://192.168.31.201:8081/ai/chatVLStream', {
           method: 'POST',
           body: formData
         });

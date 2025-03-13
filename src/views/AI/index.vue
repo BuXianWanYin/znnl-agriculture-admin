@@ -902,33 +902,33 @@ export default {
       detailedResults: [],
       similarCases: {
         fish: [
-          {
-            id: 1,
-            image: 'localhost/dev-api/profile/upload/2025/03/01/c456e339-3b24-4b28-8303-deabe93ebded.png',
-            title: '罗非鱼常见病害',
-            description: '鳃部发炎、体表发白，建议及时隔离治疗'
-          },
+          // {
+          //   id: 1,
+          //   image: '192.168.31.201/dev-api/profile/upload/2025/03/01/c456e339-3b24-4b28-8303-deabe93ebded.png',
+          //   title: '罗非鱼常见病害',
+          //   description: '鳃部发炎、体表发白，建议及时隔离治疗'
+          // },
           {
             id: 2,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/0bd276a8-b1aa-4000-8ce2-4fa8795c3fa1.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/0bd276a8-b1aa-4000-8ce2-4fa8795c3fa1.png',
             title: '草鱼出血病',
             description: '体表出血点、行为异常，需要专业治疗'
           },
           {
             id: 3,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/24dc29ca-182e-40db-97fe-4bc9788579d9.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/24dc29ca-182e-40db-97fe-4bc9788579d9.png',
             title: '龙鱼鳞片病',
             description: '鳞片脱落、食欲下降，建议调整水质'
           },
           {
             id: 4,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/46eef39c-1690-4aab-bfe5-f9430d67d56b.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/46eef39c-1690-4aab-bfe5-f9430d67d56b.png',
             title: '黄花鱼寄生虫病',
             description: '体表有白点、游动缓慢，需要药物治疗'
           },
           {
             id: 5,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/ed279b13-913b-4108-9f44-29fdc2437973.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/ed279b13-913b-4108-9f44-29fdc2437973.png',
             title: '鲤鱼水霉病',
             description: '体表有棉絮状物，及时用药并改善环境'
           }
@@ -936,31 +936,31 @@ export default {
         vegetables: [
           {
             id: 1,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/87b5365d-f709-4fda-ab7c-88db5c2c7808.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/87b5365d-f709-4fda-ab7c-88db5c2c7808.png',
             title: '小白菜根腐病',
             description: '根部发黑腐烂，需要改良土壤并施药'
           },
           {
             id: 2,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/e346c20b-6931-4c17-a459-fb39bab95984.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/e346c20b-6931-4c17-a459-fb39bab95984.png',
             title: '番茄早疫病',
             description: '叶片褐斑、果实腐烂，及时喷施药剂'
           },
           {
             id: 3,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/07fd276f-bc55-4798-8bb3-b8f52baa6a9e.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/07fd276f-bc55-4798-8bb3-b8f52baa6a9e.png',
             title: '胡萝卜根结线虫病',
             description: '根部畸形、生长缓慢，需要土壤消毒'
           },
           {
             id: 4,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/52db8e60-b3be-4a5a-9c19-68c10e6eb53e.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/52db8e60-b3be-4a5a-9c19-68c10e6eb53e.png',
             title: '生菜灰霉病',
             description: '叶片腐烂发灰，控制湿度并用药防治'
           },
           {
             id: 5,
-            image: 'http://localhost/dev-api/profile/upload/2025/03/01/08696a0d-966b-4fc4-931c-8937ceda7812.png',
+            image: 'http://192.168.31.201/dev-api/profile/upload/2025/03/01/08696a0d-966b-4fc4-931c-8937ceda7812.png',
             title: '西兰花黑腐病',
             description: '花球变黑、叶片黄化，需要综合防治'
           }
