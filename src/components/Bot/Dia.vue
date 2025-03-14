@@ -94,7 +94,7 @@
       </div>
       <div id="Aurora-Dia--body" :style="cssVariables" v-show="showBot">
         <div id="Aurora-Dia--tips-wrapper">
-          <div id="Aurora-Dia--tips" class="Aurora-Dia--tips">你好呀～</div>
+          <div ref="tips" id="Aurora-Dia--tips" class="Aurora-Dia--tips">你好呀～</div>
         </div>
         <!-- 修改按钮布局 -->
         <div class="voice-btn"
@@ -188,6 +188,29 @@ export default {
       },
       wsInitialized: false,   // WebSocket初始化状态
       clickOutsideHandler: null, // 添加点击外部处理器引用
+      newTheme: {
+            gradient: {
+              color_1: '#CD0000',
+              color_2: '#FF4444',
+              color_3: '#FF6666'
+            } 
+          },
+           defaultTheme : {
+                gradient: {
+                  color_1: '#8f41e9',
+                  color_2: '#578cef',
+                  color_3: '#7aa2f7'
+                }
+              },
+              no:{
+            title: '严重警告',
+            message: alert.alertMessage,
+            type: 'error',
+            showClose: true,
+            duration: 0,
+            position: 'top-right'
+          }
+              
     }
   },
 
@@ -1232,29 +1255,13 @@ export default {
         alertWsInstance.handleWarning = function(alert) {
           componentInstance.isShowingAlert = true;
           
-          const newTheme = {
-            gradient: {
-              color_1: '#FF8C00',
-              color_2: '#FFA500',
-              color_3: '#FFD700'
-            }
-          };
-          componentInstance.updateThemeWithTransition(newTheme);
+          componentInstance.updateThemeWithTransition(this.newTheme);
           
-          const tipsElement = document.getElementById('Aurora-Dia--tips');
+          const tipsElement = this.$refs.tips;
           if (tipsElement) {
             tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`;
-            
             setTimeout(() => {
-              const defaultTheme = {
-                gradient: {
-                  color_1: '#8f41e9',
-                  color_2: '#578cef',
-                  color_3: '#7aa2f7'
-                }
-              };
               componentInstance.updateThemeWithTransition(defaultTheme);
-              
               setTimeout(() => {
                 componentInstance.isShowingAlert = false;
                 tipsElement.innerHTML = '你好呀～';
@@ -1273,33 +1280,16 @@ export default {
 
          
         // 报警处理   全栈工程师做 
-        alertWsInstance.handleSeriousAlert = function(alert) {
+        alertWsInstance.handleSeriousAlert = (alert) => {
           // 立即更新状态
           componentInstance.isShowingAlert = true;
-          
-          // 立即开始颜色过渡
-          const newTheme = {
-            gradient: {
-              color_1: '#CD0000',
-              color_2: '#FF4444',
-              color_3: '#FF6666'
-            } 
-          };
-          componentInstance.updateThemeWithTransition(newTheme);
-          
-          const tipsElement = document.getElementById('Aurora-Dia--tips');
+          componentInstance.updateThemeWithTransition(this.newTheme);
+          const tipsElement = this.$refs.tips;
           if (tipsElement) {
             tipsElement.innerHTML = `⚠️ 报警提示：${alert.alertMessage}`;
             
             setTimeout(() => {
-              const defaultTheme = {
-                gradient: {
-                  color_1: '#8f41e9',
-                  color_2: '#578cef',
-                  color_3: '#7aa2f7'
-                }
-              };
-              componentInstance.updateThemeWithTransition(defaultTheme);
+              componentInstance.updateThemeWithTransition(this.defaultTheme);
               
               setTimeout(() => {
                 componentInstance.isShowingAlert = false;
@@ -1308,14 +1298,7 @@ export default {
             }, 15000);
           }
           
-          componentInstance.$notify({
-            title: '严重警告',
-            message: alert.alertMessage,
-            type: 'error',
-            showClose: true,
-            duration: 0,
-            position: 'top-right'
-          });
+          componentInstance.$notify(this.no);
         };
 
 
