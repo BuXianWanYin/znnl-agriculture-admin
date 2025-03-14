@@ -86,7 +86,7 @@
                                         <span>{{ item.cropArea }}亩</span>
                                     </div>
                                     <div class="info-item">
-                                        <i class="el-icon-document"></i>
+                                        <i class="el-icon-link icon"></i>
                                         <span class="label">合约地址：</span>
                                         <span>{{ item.contractAddress }}</span>
                                     </div>

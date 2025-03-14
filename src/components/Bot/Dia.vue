@@ -1289,7 +1289,7 @@ export default {
           
           const tipsElement = document.getElementById('Aurora-Dia--tips');
           if (tipsElement) {
-            tipsElement.innerHTML = `⚠️ 严重警告：${alert.alertMessage}`;
+            tipsElement.innerHTML = `⚠️ 报警提示：${alert.alertMessage}`;
             
             setTimeout(() => {
               const defaultTheme = {

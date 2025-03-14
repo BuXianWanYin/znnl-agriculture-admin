@@ -34,7 +34,7 @@
                             </div>
                             <div class="card-content">
                                 <div class="info-item">
-                                    <i class="el-icon-location"></i>
+                                    <i class="el-icon-link icon"></i>
                                     <span class="label">合约地址</span>
                                     <span class="value">{{ item.contractAddr }}</span>
                                 </div>

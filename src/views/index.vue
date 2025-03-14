@@ -217,7 +217,7 @@
                 <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="11">
                     <data-panel title="养殖池环境监测">
                         <el-table :data="fishStatusData" height="400">
-                            <el-table-column prop="fishPastureName" label="养殖棚" width="60"> </el-table-column>
+                            <el-table-column prop="fishPastureName" label="养殖棚" width="65"> </el-table-column>
                             <el-table-column prop="fishPastureBatchName" label="鱼池" width="68"> </el-table-column>
                             <el-table-column prop="waterTemperature" label="水温(℃)" width="70"> </el-table-column>
                             <el-table-column prop="waterPhValue" label="ph值" width="56"></el-table-column>
