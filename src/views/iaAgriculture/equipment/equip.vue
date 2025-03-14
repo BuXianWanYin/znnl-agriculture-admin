@@ -26,7 +26,7 @@
         <el-card class="device-card">
             <div class="equipment-grid">
                 <el-row :gutter="24">
-                    <el-col :span="8" v-for="(item, index) in equipmentData" :key="item.id">
+                    <el-col :span="8" v-for="(item, index) in equipmentData" :key="item.id" v-show="!item.deviceName.includes('土壤')">
                         <div class="equipment-card">
                             <div class="card-header">
                                 <div class="device-info">
@@ -46,6 +46,11 @@
                                         <span class="value">{{ item.id }}</span>
                                     </div>
                                     <div class="info-item">
+                                        <i class="el-icon-link icon"></i>
+                                        <span class="label">合约地址</span>
+                                        <span class="value">{{ item.address || '-' }}</span>
+                                    </div>
+                                    <div class="info-item">
                                         <i class="el-icon-location"></i>
                                         <span class="label">场区/分区</span>
                                         <span class="value">{{ item.pastureName || '-' }}/{{ item.batchName || '-' }}</span>
@@ -55,11 +60,13 @@
                                         <span class="label">指令</span>
                                         <span class="value">{{ item.sensorCommand || '-' }}</span>
                                     </div>
-                                    <div class="info-item">
+
+                                    <!-- <div class="info-item">
                                         <i class="el-icon-monitor"></i>
                                         <span class="label">传感器序号</span>
                                         <span class="value">{{ item.sensorType || '-' }}</span>
-                                    </div>
+                                    </div> -->
+                               
 
                                 </div>
                             </div>
