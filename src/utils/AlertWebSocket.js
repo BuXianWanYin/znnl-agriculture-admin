@@ -10,7 +10,7 @@ export class AlertWebSocket {
         }
 
         this.clientId = this.generateClientId();
-        this.url = `ws://192.168.31.201:8081/websocket/alert?clientId=${this.clientId}`;
+        this.url = `ws://localhost:8081/websocket/alert?clientId=${this.clientId}`;
         this.ws = new WebSocket(this.url);
         
         // 设置基本事件处理器
