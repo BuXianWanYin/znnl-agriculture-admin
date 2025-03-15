@@ -1261,11 +1261,13 @@ export default {
           if (tipsElement) {
             tipsElement.innerHTML = `⚠️ 预警提示：${alert.alertMessage}`;
             setTimeout(() => {
+               // 15秒后恢复默认主题
               componentInstance.updateThemeWithTransition(defaultTheme);
               setTimeout(() => {
+                // 15秒后重置状态和提示文本
                 componentInstance.isShowingAlert = false;
                 tipsElement.innerHTML = '你好呀～';
-              }, 100);
+              }, 15000);
             }, 15000);
           }
           
@@ -1289,12 +1291,13 @@ export default {
             tipsElement.innerHTML = `⚠️ 报警提示：${alert.alertMessage}`;
             
             setTimeout(() => {
+              // 15秒后恢复默认主题
               componentInstance.updateThemeWithTransition(this.defaultTheme);
-              
               setTimeout(() => {
+                 // 第二个定时器: 15秒后重置状态和提示文本
                 componentInstance.isShowingAlert = false;
                 tipsElement.innerHTML = '你好呀～';
-              }, 100);
+              }, 15000);
             }, 15000);
           }
           

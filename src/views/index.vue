@@ -957,12 +957,14 @@
                 const xAxisData = Array.from({length: period.length}, (_, i) => period.getLabel(i));
                 const seriesData = this.traceabilityData[this.timeRange];
 
-                const maxValue = {
-                    week: 100,
-                    month: 1000,
-                    year: 8000
-                }[this.timeRange];
-
+                // 计算最大值：找出所有数据中的最大值并向上取整到最近的50或100
+                const allData = [...seriesData.agriculture, ...seriesData.fish];
+                const maxValue = Math.max(...allData);
+                const roundedMax = Math.ceil(maxValue / 50) * 50;  // 向上取整到最近的50
+                
+                // 计算合适的间隔：最大值除以5-8个刻度
+                const interval = Math.ceil(roundedMax / 6);  // 这里选择6个刻度
+                
                 const option = {
                     tooltip: {
                         trigger: 'axis',
@@ -1042,8 +1044,8 @@
                             show: false
                         },
                         min: 0,
-                        max: 250,  // 修改最大值为150
-                        interval: 30  // 将间隔设为30，这样会显示0,30,60,90,120,150
+                        max: roundedMax,
+                        interval: interval
                     },
                     series: [
                         {
