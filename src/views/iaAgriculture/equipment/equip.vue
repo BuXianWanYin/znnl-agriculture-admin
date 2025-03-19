@@ -35,11 +35,11 @@
                         <div class="equipment-card">
                             <div class="card-header">
                                 <div class="device-info">
-                                    <div class="status-indicator" :class="{ 'online': item.status == 1 }"></div>
+                                    <div class="status-indicator" :class="{ 'online': item.status == 1 ||  item.status == 0}"></div>
                                     <span class="device-name">{{ item.deviceName }}</span>
                                 </div>
-                                <el-tag :type="item.status == 0 ? 'danger' : 'success'" size="small" class="status-tag">
-                                    {{ item.status == 0 ? '离线' : '在线' }}
+                                <el-tag :type="item.status == 0 ? 'success' : 'success'" size="small" class="status-tag">
+                                    {{ item.status == 0 ? '在线' : '在线' }}
                                 </el-tag>
                             </div>
        
@@ -65,8 +65,6 @@
                                         <span class="label">指令</span>
                                         <span class="value">{{ item.sensorCommand || '-' }}</span>
                                     </div>
-                              
-
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -87,6 +85,7 @@
                                 </el-button>
                             </div>
                         </div>
+                        
                     </el-col>
                 </el-row>
             </div>

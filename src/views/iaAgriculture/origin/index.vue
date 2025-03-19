@@ -476,7 +476,7 @@
                     </div>
                 </div>
 
-                <!-- 用药记录（仅鱼类显示） -->
+                <!-- 用药记录（仅鱼类显示）
                 <div class="resource-section" v-if="type === 1 && mockMedicineData && mockMedicineData.length > 0">
                     <div class="section-title">用药记录：</div>
                     <div class="resource-list">
@@ -489,7 +489,7 @@
                             {{ medicine.medicineName }}: {{ medicine.dosage }}{{ medicine.unit }}
                         </el-tag>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Only show images section if taskImages exists and is not empty -->
                 <div v-if="currentTask.taskImages && currentTask.taskImages.trim() && currentTask.taskImages !== '加载失败'" class="images-section">

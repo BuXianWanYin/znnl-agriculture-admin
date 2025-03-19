@@ -615,11 +615,11 @@ export default {
             height: container.offsetHeight
           })
 
-          // 获取页面尺寸
+          // 获取页面尺寸 
           const pageWidth = pdf.internal.pageSize.getWidth()
           const pageHeight = pdf.internal.pageSize.getHeight()
 
-          // 计算图片尺寸
+          // 计算图片尺寸 
           const imgWidth = pageWidth - 20
           const imgHeight = (canvas.height * imgWidth) / canvas.width
 
@@ -627,7 +627,7 @@ export default {
           let heightLeft = imgHeight
           let position = 10
           let page = 1
-
+          
           // 添加第一页
           pdf.addImage(canvas, 'JPEG', 10, position, imgWidth, imgHeight)
           heightLeft -= (pageHeight - position)
@@ -639,7 +639,7 @@ export default {
             pdf.addImage(canvas, 'JPEG', 10, position - imgHeight + heightLeft, imgWidth, imgHeight)
             heightLeft -= pageHeight
           }
-
+          
           // 添加页码
           for (let i = 1; i <= page; i++) {
             pdf.setPage(i)

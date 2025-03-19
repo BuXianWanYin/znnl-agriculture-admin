@@ -365,7 +365,7 @@ export class AuroraDia {
                                             for (const char of newText) {
                                                 fullMessage += char;
                                                 this.software?.showMessage(fullMessage);
-                                                await new Promise(resolve => setTimeout(resolve, 50));
+                                                await new Promise(resolve => setTimeout(resolve, 0));
                                             }
                                         }
                                     } catch (e) {

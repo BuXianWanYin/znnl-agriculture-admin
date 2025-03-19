@@ -96,7 +96,7 @@
               </div>
 
               <!-- 用药记录 -->
-              <div class="resource-section" v-if="type === 1 && task.resources && getMedicineResources.length > 0">
+              <!-- <div class="resource-section" v-if="type === 1 && task.resources && getMedicineResources.length > 0">
                 <div class="section-title">用药记录：</div>
                 <div class="resource-list">
                   <el-tag 
@@ -109,7 +109,7 @@
                     {{ resource.name }}: {{ resource.amount }}{{ resource.unit }}
                   </el-tag>
                 </div>
-              </div>
+              </div> -->
 
               <!-- 农资使用信息 -->
               <div class="resource-section" v-if="type === 0 && displayResources && displayResources.length">

@@ -292,7 +292,7 @@
             },
             /** AI生成按钮操作 */
     async handleAIGenerate() {
-      this.$modal.msgSuccess("AI生成功能开发中 稍等。。。。。。");
+      this.$modal.msgSuccess("AI处理中，请耐心等待......");
       const dataFrom = {
         "germplasmId": this.germplasmId,
         "name": this.name,

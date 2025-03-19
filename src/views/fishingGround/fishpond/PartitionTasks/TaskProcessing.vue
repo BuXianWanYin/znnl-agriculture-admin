@@ -84,9 +84,9 @@
                     </template>
                     <cost-material :taskId="Number(taskId)" @log="getLoglist"></cost-material>
                 </el-tab-pane>
-                    <el-tab-pane name="costMachine"><template #label> <i class="el-icon-truck"></i> 用药记录 </template>
+                <!-- <el-tab-pane name="costMachine"><template #label> <i class="el-icon-truck"></i> 用药记录 </template>
                     <cost-machine :task-id="Number(taskId)" @log="getLoglist"></cost-machine>
-                </el-tab-pane>
+                </el-tab-pane> -->
                 <el-tab-pane name="annex"><template #label> <i class="el-icon-paperclip"></i> 附件 </template>
                     <div class="font-weight-bold">图片:</div>
                     <image-upload class="margin-top-10" @change="submitForm" v-model="form.taskImages"

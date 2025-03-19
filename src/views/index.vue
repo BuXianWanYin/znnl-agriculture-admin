@@ -169,7 +169,6 @@
                                         <div class="stat-label">总溯源次数</div>
                                     </div>
                                     <div class="stat-item">
-                                        <div class="stat-value">{{ currentPeriodTraces }}</div>
                                         <div class="stat-label">{{ timeRangeLabel }}溯源次数</div>
                                     </div>
                                 </div>
@@ -192,7 +191,7 @@
                             <el-table-column prop="lightLux" label="光照(lux)" width="75"> </el-table-column>
                             <el-table-column prop="waterPhValue" label="ph值" width="70"> </el-table-column>
                             <el-table-column prop="waterTemperature" label="水温(℃)" width="70"> </el-table-column>
-                            <el-table-column prop="waterOxygenContent" label="含氧量(mg/L)" width="100"> </el-table-column>
+                            <el-table-column prop="waterOxygenContent" label="溶解氧(mg/L)" width="100"> </el-table-column>
                             <el-table-column prop="waterAmmoniaNitrogenContent" label="含氮量(mg/L)" width="100"> </el-table-column>
                             <el-table-column label="记录时间" min-width="140">
                                 <template slot-scope="scope">
@@ -224,7 +223,7 @@
                             <el-table-column prop="waterOxygenContent" label="溶解氧(mg/L)" width="100"></el-table-column>
                             <el-table-column prop="waterAmmoniaNitrogenContent" label="氨氮(mg/L)" width="88"></el-table-column>
                             <el-table-column prop="waterNitriteContent" label="亚硝酸盐(mg/L)" width="115"></el-table-column>
-                            <el-table-column label="记录日期" min-width="140">
+                            <el-table-column label="记录时间" min-width="140">
                                 <template slot-scope="scope">
                                     <span>{{ scope.row.date }} {{ scope.row.time }}</span>
                                 </template>
@@ -385,6 +384,8 @@
                     { label: '月', value: 'month' },
                     { label: '年', value: 'year' }
                 ],
+                environmentTimer: null,  // 添加定时器变量
+                REFRESH_INTERVAL: 5000, // 刷新间隔时间：5秒
             };
         },
         computed: {
@@ -440,19 +441,44 @@
             
             // Add this line to get fish environment data on component mount
             this.getFishEnvironmentData();
+            
+            // 启动定时器
+            this.startEnvironmentTimer();
+        },
+        beforeDestroy() {
+            // 组件销毁前清除定时器
+            this.clearEnvironmentTimer();
         },
         methods: {
-            // 处理每页显示数量变化
-            sSizeChange(val) {
-                this.spSize = val;
-                this.scurrentPage = 1;  // 重置到第一页
-                this.houseCheck();
+            // 启动环境数据定时器
+            startEnvironmentTimer() {
+                this.clearEnvironmentTimer(); // 先清除可能存在的定时器
+                this.environmentTimer = setInterval(() => {
+                    this.houseCheck();
+                    this.getFishEnvironmentData();
+                }, this.REFRESH_INTERVAL);
             },
 
-            // 处理页码变化
+            // 清除环境数据定时器
+            clearEnvironmentTimer() {
+                if (this.environmentTimer) {
+                    clearInterval(this.environmentTimer);
+                    this.environmentTimer = null;
+                }
+            },
+
+            // 修改分页方法，重置定时器
+            sSizeChange(val) {
+                this.spSize = val;
+                this.scurrentPage = 1;
+                this.houseCheck();
+                this.startEnvironmentTimer(); // 重置定时器
+            },
+
             sCurrentChange(val) {
                 this.scurrentPage = val;
                 this.houseCheck();
+                this.startEnvironmentTimer(); // 重置定时器
             },
 
             // 获取大棚环境数据

@@ -1086,7 +1086,7 @@ export default {
       try {
         // 压缩图片
         const { blob, previewUrl } = await this.compressImage(file);
-
+        
         // 上传图片并获取URL
         const formData = new FormData();
         formData.append('file', blob, 'image.jpg');
